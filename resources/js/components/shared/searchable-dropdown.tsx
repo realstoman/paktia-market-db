@@ -12,8 +12,8 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
 import { useLocalization } from '@/lib/localization';
+import { cn } from '@/lib/utils';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
@@ -90,6 +90,7 @@ export function SearchableDropdown({
                 </Button>
             </PopoverTrigger>
             <PopoverContent
+                dir={isRtl ? 'rtl' : 'ltr'}
                 align="start"
                 className="w-[--radix-popover-trigger-width] p-0"
             >
@@ -109,43 +110,34 @@ export function SearchableDropdown({
                                 <CommandItem
                                     key={option.value}
                                     value={`${option.label} ${option.value}`}
+                                    dir="ltr"
                                     className={cn(
-                                        isRtl && 'w-full text-right',
+                                        'flex w-full items-center',
+                                        isRtl && 'text-right',
                                     )}
                                     onSelect={() => {
                                         onValueChange(option.value);
                                         setOpen(false);
                                     }}
                                 >
-                                    {isRtl ? (
-                                        <>
-                                            <span className="flex-1 truncate text-right">
-                                                {option.label}
-                                            </span>
-                                            <Check
-                                                className={cn(
-                                                    'h-4 w-4 shrink-0',
-                                                    value === option.value
-                                                        ? 'opacity-100'
-                                                        : 'opacity-0',
-                                                )}
-                                            />
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Check
-                                                className={cn(
-                                                    'mr-2 h-4 w-4 shrink-0',
-                                                    value === option.value
-                                                        ? 'opacity-100'
-                                                        : 'opacity-0',
-                                                )}
-                                            />
-                                            <span className="flex-1 truncate">
-                                                {option.label}
-                                            </span>
-                                        </>
-                                    )}
+                                    <Check
+                                        className={cn(
+                                            'h-4 w-4 shrink-0',
+                                            !isRtl && 'mr-2',
+                                            value === option.value
+                                                ? 'opacity-100'
+                                                : 'opacity-0',
+                                        )}
+                                    />
+                                    <span
+                                        dir={isRtl ? 'rtl' : 'ltr'}
+                                        className={cn(
+                                            'flex-1 truncate',
+                                            isRtl && 'text-right',
+                                        )}
+                                    >
+                                        {option.label}
+                                    </span>
                                 </CommandItem>
                             ))}
                         </CommandGroup>

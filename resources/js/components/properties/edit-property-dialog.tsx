@@ -186,9 +186,18 @@ export function EditPropertyDialog({
                                         | 'house',
                                 )
                             }
-                            options={['market', 'mall', 'block', 'house'].map((value) => ({ value, label: t(`propertyWorkspace.types.${value}`) }))}
+                            options={['market', 'mall', 'block', 'house'].map(
+                                (value) => ({
+                                    value,
+                                    label: t(
+                                        `propertyWorkspace.types.${value}`,
+                                    ),
+                                }),
+                            )}
                             placeholder={t('propertyWorkspace.fields.type')}
-                            searchPlaceholder={t('propertyWorkspace.searchOptions')}
+                            searchPlaceholder={t(
+                                'propertyWorkspace.searchOptions',
+                            )}
                             emptyText={t('propertyWorkspace.noOptions')}
                         />
                     </Field>
@@ -204,9 +213,18 @@ export function EditPropertyDialog({
                                         | 'mixed',
                                 )
                             }
-                            options={['commercial', 'residential', 'mixed'].map((value) => ({ value, label: t(`propertyWorkspace.usage.${value}`) }))}
+                            options={['commercial', 'residential', 'mixed'].map(
+                                (value) => ({
+                                    value,
+                                    label: t(
+                                        `propertyWorkspace.usage.${value}`,
+                                    ),
+                                }),
+                            )}
                             placeholder={t('propertyWorkspace.fields.usage')}
-                            searchPlaceholder={t('propertyWorkspace.searchOptions')}
+                            searchPlaceholder={t(
+                                'propertyWorkspace.searchOptions',
+                            )}
                             emptyText={t('propertyWorkspace.noOptions')}
                         />
                     </Field>
@@ -232,9 +250,14 @@ export function EditPropertyDialog({
                                 form.setData('country_id', value);
                                 form.setData('province_id', '');
                             }}
-                            options={countries.map((country) => ({ value: String(country.id), label: country.name }))}
+                            options={countries.map((country) => ({
+                                value: String(country.id),
+                                label: country.name,
+                            }))}
                             placeholder={t('propertyWorkspace.selectCountry')}
-                            searchPlaceholder={t('propertyWorkspace.searchOptions')}
+                            searchPlaceholder={t(
+                                'propertyWorkspace.searchOptions',
+                            )}
                             emptyText={t('propertyWorkspace.noOptions')}
                         />
                     </Field>
@@ -244,9 +267,14 @@ export function EditPropertyDialog({
                             onValueChange={(value) =>
                                 form.setData('province_id', value)
                             }
-                            options={provinceOptions.map((province) => ({ value: String(province.id), label: province.name }))}
+                            options={provinceOptions.map((province) => ({
+                                value: String(province.id),
+                                label: province.name,
+                            }))}
                             placeholder={t('propertyWorkspace.selectProvince')}
-                            searchPlaceholder={t('propertyWorkspace.searchOptions')}
+                            searchPlaceholder={t(
+                                'propertyWorkspace.searchOptions',
+                            )}
                             emptyText={t('propertyWorkspace.noOptions')}
                         />
                     </Field>
@@ -260,11 +288,19 @@ export function EditPropertyDialog({
                                 )
                             }
                             options={[
-                                { value: 'none', label: t('propertyWorkspace.independent') },
-                                ...propertyOptions.map((option) => ({ value: String(option.id), label: option.name })),
+                                {
+                                    value: 'none',
+                                    label: t('propertyWorkspace.independent'),
+                                },
+                                ...propertyOptions.map((option) => ({
+                                    value: String(option.id),
+                                    label: option.name,
+                                })),
                             ]}
                             placeholder={t('propertyWorkspace.independent')}
-                            searchPlaceholder={t('propertyWorkspace.searchOptions')}
+                            searchPlaceholder={t(
+                                'propertyWorkspace.searchOptions',
+                            )}
                             emptyText={t('propertyWorkspace.noOptions')}
                         />
                     </Field>

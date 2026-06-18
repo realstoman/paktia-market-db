@@ -391,8 +391,10 @@ function FloorCard({
                     <CardTitle>{floor.name}</CardTitle>
                     <p className="mt-1 text-sm text-muted-foreground">
                         {floor.level_number} ·{' '}
-                        {floor.area_sqm ? `${formatNumber(floor.area_sqm)} m²` : '—'} ·{' '}
-                        {(floor.units ?? []).length} {spaceLabel}
+                        {floor.area_sqm
+                            ? `${formatNumber(floor.area_sqm)} m²`
+                            : '—'}{' '}
+                        · {(floor.units ?? []).length} {spaceLabel}
                     </p>
                 </div>
                 <div className="flex gap-1">

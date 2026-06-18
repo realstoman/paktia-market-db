@@ -209,10 +209,21 @@ export default function PropertiesPage({
                                         onValueChange={(value) =>
                                             form.setData('property_type', value)
                                         }
-                                        options={Object.keys(typeIcons).map((value) => ({ value, label: typeLabel(value) }))}
-                                        placeholder={t('propertyWorkspace.fields.type')}
-                                        searchPlaceholder={t('propertyWorkspace.searchOptions')}
-                                        emptyText={t('propertyWorkspace.noOptions')}
+                                        options={Object.keys(typeIcons).map(
+                                            (value) => ({
+                                                value,
+                                                label: typeLabel(value),
+                                            }),
+                                        )}
+                                        placeholder={t(
+                                            'propertyWorkspace.fields.type',
+                                        )}
+                                        searchPlaceholder={t(
+                                            'propertyWorkspace.searchOptions',
+                                        )}
+                                        emptyText={t(
+                                            'propertyWorkspace.noOptions',
+                                        )}
                                     />
                                 </Field>
                                 <Field
@@ -223,10 +234,25 @@ export default function PropertiesPage({
                                         onValueChange={(value) =>
                                             form.setData('usage_type', value)
                                         }
-                                        options={['commercial', 'residential', 'mixed'].map((value) => ({ value, label: t(`propertyWorkspace.usage.${value}`) }))}
-                                        placeholder={t('propertyWorkspace.fields.usage')}
-                                        searchPlaceholder={t('propertyWorkspace.searchOptions')}
-                                        emptyText={t('propertyWorkspace.noOptions')}
+                                        options={[
+                                            'commercial',
+                                            'residential',
+                                            'mixed',
+                                        ].map((value) => ({
+                                            value,
+                                            label: t(
+                                                `propertyWorkspace.usage.${value}`,
+                                            ),
+                                        }))}
+                                        placeholder={t(
+                                            'propertyWorkspace.fields.usage',
+                                        )}
+                                        searchPlaceholder={t(
+                                            'propertyWorkspace.searchOptions',
+                                        )}
+                                        emptyText={t(
+                                            'propertyWorkspace.noOptions',
+                                        )}
                                     />
                                 </Field>
                                 <Field
@@ -256,10 +282,19 @@ export default function PropertiesPage({
                                             form.setData('country_id', value);
                                             form.setData('province_id', '');
                                         }}
-                                        options={countries.map((country) => ({ value: String(country.id), label: country.name }))}
-                                        placeholder={t('propertyWorkspace.selectCountry')}
-                                        searchPlaceholder={t('propertyWorkspace.searchOptions')}
-                                        emptyText={t('propertyWorkspace.noOptions')}
+                                        options={countries.map((country) => ({
+                                            value: String(country.id),
+                                            label: country.name,
+                                        }))}
+                                        placeholder={t(
+                                            'propertyWorkspace.selectCountry',
+                                        )}
+                                        searchPlaceholder={t(
+                                            'propertyWorkspace.searchOptions',
+                                        )}
+                                        emptyText={t(
+                                            'propertyWorkspace.noOptions',
+                                        )}
                                     />
                                 </Field>
                                 <Field
@@ -273,10 +308,21 @@ export default function PropertiesPage({
                                         onValueChange={(value) =>
                                             form.setData('province_id', value)
                                         }
-                                        options={provinceOptions.map((province) => ({ value: String(province.id), label: province.name }))}
-                                        placeholder={t('propertyWorkspace.selectProvince')}
-                                        searchPlaceholder={t('propertyWorkspace.searchOptions')}
-                                        emptyText={t('propertyWorkspace.noOptions')}
+                                        options={provinceOptions.map(
+                                            (province) => ({
+                                                value: String(province.id),
+                                                label: province.name,
+                                            }),
+                                        )}
+                                        placeholder={t(
+                                            'propertyWorkspace.selectProvince',
+                                        )}
+                                        searchPlaceholder={t(
+                                            'propertyWorkspace.searchOptions',
+                                        )}
+                                        emptyText={t(
+                                            'propertyWorkspace.noOptions',
+                                        )}
                                     />
                                 </Field>
                                 <Field
@@ -298,12 +344,28 @@ export default function PropertiesPage({
                                             )
                                         }
                                         options={[
-                                            { value: 'none', label: t('propertyWorkspace.independent') },
-                                            ...propertyOptions.map((property) => ({ value: String(property.id), label: `${property.name} · ${typeLabel(property.property_type)}` })),
+                                            {
+                                                value: 'none',
+                                                label: t(
+                                                    'propertyWorkspace.independent',
+                                                ),
+                                            },
+                                            ...propertyOptions.map(
+                                                (property) => ({
+                                                    value: String(property.id),
+                                                    label: `${property.name} · ${typeLabel(property.property_type)}`,
+                                                }),
+                                            ),
                                         ]}
-                                        placeholder={t('propertyWorkspace.independent')}
-                                        searchPlaceholder={t('propertyWorkspace.searchOptions')}
-                                        emptyText={t('propertyWorkspace.noOptions')}
+                                        placeholder={t(
+                                            'propertyWorkspace.independent',
+                                        )}
+                                        searchPlaceholder={t(
+                                            'propertyWorkspace.searchOptions',
+                                        )}
+                                        emptyText={t(
+                                            'propertyWorkspace.noOptions',
+                                        )}
                                     />
                                     <p className="text-xs text-muted-foreground">
                                         {t('propertyWorkspace.relatedHelp')}
@@ -455,8 +517,14 @@ export default function PropertiesPage({
                         value={type}
                         onValueChange={setType}
                         options={[
-                            { value: 'all', label: t('propertyWorkspace.allTypes') },
-                            ...Object.keys(typeIcons).map((value) => ({ value, label: typeLabel(value) })),
+                            {
+                                value: 'all',
+                                label: t('propertyWorkspace.allTypes'),
+                            },
+                            ...Object.keys(typeIcons).map((value) => ({
+                                value,
+                                label: typeLabel(value),
+                            })),
                         ]}
                         placeholder={t('propertyWorkspace.allTypes')}
                         searchPlaceholder={t('propertyWorkspace.searchOptions')}
