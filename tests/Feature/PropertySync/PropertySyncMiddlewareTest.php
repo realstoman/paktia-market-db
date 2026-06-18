@@ -1,8 +1,8 @@
 <?php
 
 use App\Http\Middleware\EnsurePropertySyncAuthenticated;
-use App\Models\Property;
 use App\Models\Country;
+use App\Models\Property;
 use App\Models\Province;
 use App\Services\PropertySync\PropertySyncCredentialService;
 

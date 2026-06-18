@@ -1,8 +1,8 @@
 <?php
 
+use App\Models\Country;
 use App\Models\Property;
 use App\Models\PropertySyncCredential;
-use App\Models\Country;
 use App\Models\Province;
 use App\Services\PropertySync\PropertySyncCredentialService;
 use Illuminate\Support\Facades\DB;
@@ -139,10 +139,10 @@ test('issue rejects wildcard abilities by default and accepts them with allowWil
     $service = app(PropertySyncCredentialService::class);
 
     expect(fn () => $service->issue($property, 'wildcard', ['*']))
-        ->toThrow(\InvalidArgumentException::class);
+        ->toThrow(InvalidArgumentException::class);
 
     expect(fn () => $service->issue($property, 'wildcard', ['health.read', '*']))
-        ->toThrow(\InvalidArgumentException::class);
+        ->toThrow(InvalidArgumentException::class);
 
     $issued = $service->issue($property, 'wildcard', ['*'], allowWildcard: true);
     expect($issued['credential']->abilities)->toContain('*');

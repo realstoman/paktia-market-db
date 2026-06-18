@@ -1,7 +1,7 @@
 <?php
 
-use App\Models\Property;
 use App\Models\Country;
+use App\Models\Property;
 use App\Models\PropertyFloor;
 use App\Models\Province;
 use App\Models\User;
@@ -95,5 +95,35 @@ test('residential block spaces are always apartments', function () {
         'unit_number' => 'A-1',
         'unit_type' => 'apartment',
         'rooms_count' => 3,
+    ]);
+});
+
+test('another location can be linked to the original property in a different province', function () {
+    [$country, $province] = propertyLocation();
+    $secondProvince = Province::query()->create([
+        'country_id' => $country->id,
+        'name' => 'Paktia',
+    ]);
+    $original = Property::query()->create([
+        'name' => 'National Market - Kabul',
+        'property_type' => 'market',
+        'usage_type' => 'commercial',
+        'country_id' => $country->id,
+        'province_id' => $province->id,
+    ]);
+
+    $this->post(route('properties.store'), [
+        'name' => 'National Market - Paktia',
+        'parent_property_id' => $original->id,
+        'property_type' => 'market',
+        'usage_type' => 'commercial',
+        'country_id' => $country->id,
+        'province_id' => $secondProvince->id,
+    ])->assertRedirect(route('properties.index'));
+
+    $this->assertDatabaseHas('properties', [
+        'name' => 'National Market - Paktia',
+        'parent_property_id' => $original->id,
+        'province_id' => $secondProvince->id,
     ]);
 });
