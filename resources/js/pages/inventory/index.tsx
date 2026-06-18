@@ -2,7 +2,6 @@
 
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { InventoryClient } from '@/components/tables/inventory/client';
-import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
 import {
     Dialog,
     DialogContent,
@@ -10,19 +9,20 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
 import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
 import { cn } from '@/lib/utils';
 import {
-    Property,
     BreadcrumbItem,
     Currency,
     InventoryCategory,
     InventoryItem,
     InventoryType,
+    Property,
+    SharedData,
     Unit,
     Vendor,
-    SharedData,
 } from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
 import { Head, usePage } from '@inertiajs/react';
@@ -79,7 +79,8 @@ export default function InventoryPage({
               ];
     const PROPERTY_FILTER_ALL = '__all__';
     const LOW_STOCK_THRESHOLD = 10;
-    const [selectedPropertyId, setSelectedPropertyId] = useState(PROPERTY_FILTER_ALL);
+    const [selectedPropertyId, setSelectedPropertyId] =
+        useState(PROPERTY_FILTER_ALL);
     const [isVendorOwedModalOpen, setIsVendorOwedModalOpen] = useState(false);
     const propertyOptions = useMemo(
         () =>
@@ -227,7 +228,7 @@ export default function InventoryPage({
             <div className="mx-auto w-full max-w-[1680px] space-y-6 pb-8">
                 <section className="relative overflow-hidden rounded-[2rem] bg-[#102f33] p-6 text-white shadow-xl shadow-[#102f33]/10 sm:p-8">
                     <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(58,181,157,0.28),transparent_38%),radial-gradient(circle_at_bottom_left,rgba(242,162,12,0.16),transparent_34%)]" />
-                    <div className="pointer-events-none absolute inset-0 opacity-[0.08] [background-image:linear-gradient(rgba(255,255,255,.5)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.5)_1px,transparent_1px)] [background-size:32px_32px]" />
+                    <div className="pointer-events-none absolute inset-0 [background-image:linear-gradient(rgba(255,255,255,.5)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.5)_1px,transparent_1px)] [background-size:32px_32px] opacity-[0.08]" />
                     <div className="relative flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
                         <div className="max-w-3xl">
                             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-xs font-semibold tracking-[0.16em] text-emerald-100 uppercase backdrop-blur">
@@ -467,20 +468,121 @@ export default function InventoryPage({
                     </DialogContent>
                 </Dialog>
 
-                <div className="rounded-lg bg-white dark:bg-brand-bg-dark">
-                    <div className="p-6 text-gray-900">
-                        <InventoryClient
-                            data={inventoryItems}
-                            properties={properties}
-                            vendors={vendors}
-                            currencies={currencies}
-                            units={units}
-                            categories={categories}
-                            inventoryTypes={inventoryTypes}
-                        />
-                    </div>
-                </div>
+                <section className="rounded-[2rem] border border-white/80 bg-white p-4 shadow-sm sm:p-6 dark:border-neutral-800 dark:bg-neutral-900">
+                    <InventoryClient
+                        data={inventoryItems}
+                        properties={properties}
+                        vendors={vendors}
+                        currencies={currencies}
+                        units={units}
+                        categories={categories}
+                        inventoryTypes={inventoryTypes}
+                    />
+                </section>
             </div>
         </AppLayout>
+    );
+}
+
+type InventoryMetricTone =
+    | 'emerald'
+    | 'blue'
+    | 'violet'
+    | 'amber'
+    | 'rose'
+    | 'slate';
+
+const metricToneStyles: Record<
+    InventoryMetricTone,
+    { icon: string; glow: string }
+> = {
+    emerald: {
+        icon: 'bg-emerald-500/12 text-emerald-700 dark:text-emerald-300',
+        glow: 'bg-emerald-400/15',
+    },
+    blue: {
+        icon: 'bg-blue-500/12 text-blue-700 dark:text-blue-300',
+        glow: 'bg-blue-400/15',
+    },
+    violet: {
+        icon: 'bg-violet-500/12 text-violet-700 dark:text-violet-300',
+        glow: 'bg-violet-400/15',
+    },
+    amber: {
+        icon: 'bg-amber-500/12 text-amber-700 dark:text-amber-300',
+        glow: 'bg-amber-400/15',
+    },
+    rose: {
+        icon: 'bg-rose-500/12 text-rose-700 dark:text-rose-300',
+        glow: 'bg-rose-400/15',
+    },
+    slate: {
+        icon: 'bg-slate-500/12 text-slate-700 dark:text-slate-300',
+        glow: 'bg-slate-400/15',
+    },
+};
+
+function InventoryMetric({
+    title,
+    value,
+    description,
+    icon: Icon,
+    tone,
+    featured = false,
+    onClick,
+}: {
+    title: string;
+    value: string;
+    description: string;
+    icon: LucideIcon;
+    tone: InventoryMetricTone;
+    featured?: boolean;
+    onClick?: () => void;
+}) {
+    const styles = metricToneStyles[tone];
+    const className = cn(
+        'group relative min-h-36 overflow-hidden rounded-3xl border border-white/80 bg-white p-5 text-start shadow-sm transition-all duration-300 dark:border-neutral-800 dark:bg-neutral-900',
+        onClick &&
+            'cursor-pointer hover:-translate-y-0.5 hover:border-rose-200 hover:shadow-lg hover:shadow-rose-500/5 dark:hover:border-rose-900',
+        featured && 'xl:col-span-2',
+    );
+    const content = (
+        <>
+            <div
+                className={cn(
+                    'pointer-events-none absolute -end-8 -top-10 h-28 w-28 rounded-full blur-2xl transition-transform duration-500 group-hover:scale-125',
+                    styles.glow,
+                )}
+            />
+            <div className="relative flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                    <p className="text-xs font-semibold tracking-[0.13em] text-slate-500 uppercase dark:text-neutral-400">
+                        {title}
+                    </p>
+                    <p
+                        className={cn(
+                            'mt-3 font-semibold tracking-tight text-slate-950 dark:text-white',
+                            featured ? 'text-3xl sm:text-4xl' : 'text-2xl',
+                        )}
+                    >
+                        {value}
+                    </p>
+                    <p className="mt-2 text-xs leading-5 text-slate-500 dark:text-neutral-400">
+                        {description}
+                    </p>
+                </div>
+                <span className={cn('rounded-2xl p-3', styles.icon)}>
+                    <Icon className="h-5 w-5" />
+                </span>
+            </div>
+        </>
+    );
+
+    return onClick ? (
+        <button type="button" className={className} onClick={onClick}>
+            {content}
+        </button>
+    ) : (
+        <div className={className}>{content}</div>
     );
 }

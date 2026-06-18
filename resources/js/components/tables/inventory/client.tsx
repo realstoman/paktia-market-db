@@ -1,8 +1,6 @@
 import InputError from '@/components/input-error';
-import Heading from '@/components/shared/heading';
 import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
-import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -22,17 +20,17 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
+import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
 import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
 import {
-    Property,
     Currency,
     InventoryCategory,
     InventoryItem,
     InventoryType,
+    Property,
     SharedData,
     Unit,
     Vendor,
@@ -42,6 +40,7 @@ import { router, usePage } from '@inertiajs/react';
 import {
     Clock,
     ImagePlus,
+    PackageSearch,
     Pencil,
     Plus,
     Save,
@@ -1068,7 +1067,10 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
             onSuccess: () => {
                 toast.success(successMessage);
 
-                if (deleteTarget.type === 'unit' && String(deleteTarget.id) === unitId) {
+                if (
+                    deleteTarget.type === 'unit' &&
+                    String(deleteTarget.id) === unitId
+                ) {
                     setUnitId(replacementResourceId || '');
                 }
 
@@ -1103,24 +1105,33 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     };
 
     return (
-        <div className="space-y-4">
-            <div className="flex items-start justify-between">
-                <Heading
-                    title={t(
-                        'inventory.toolbar.title',
-                        'Inventory Items: :count',
-                    ).replace(':count', formatNumber(data.length))}
-                    description={t(
-                        'inventory.toolbar.description',
-                        'Manage grocery, food supplies, and other usable/non-usable inventory.',
-                    )}
-                />
-                <div className="flex items-center gap-2">
+        <div className="space-y-5">
+            <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-center">
+                <div className="flex items-start gap-3">
+                    <span className="rounded-2xl bg-[#102f33] p-3 text-white shadow-sm dark:bg-emerald-400 dark:text-emerald-950">
+                        <PackageSearch className="h-5 w-5" />
+                    </span>
+                    <div>
+                        <h2 className="text-xl font-semibold tracking-tight text-slate-950 dark:text-white">
+                            {t(
+                                'inventory.toolbar.title',
+                                'Inventory Items: :count',
+                            ).replace(':count', formatNumber(data.length))}
+                        </h2>
+                        <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-500 dark:text-neutral-400">
+                            {t(
+                                'inventory.toolbar.description',
+                                'Manage grocery, food supplies, and other usable/non-usable inventory.',
+                            )}
+                        </p>
+                    </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
                     {canAdjustInventory ? (
                         <Button
                             variant="outline"
                             onClick={() => setIsUsageCycleOpen(true)}
-                            className="gap-2"
+                            className="h-10 gap-2 rounded-xl border-slate-200 bg-white dark:border-neutral-700 dark:bg-neutral-900"
                         >
                             <Clock className="h-4 w-4" />
                             {t('inventory.toolbar.usage', 'Usage')}
@@ -1133,7 +1144,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                 resetCategoryForm();
                                 setIsCategoryDialogOpen(true);
                             }}
-                            className="gap-2"
+                            className="h-10 gap-2 rounded-xl border-slate-200 bg-white dark:border-neutral-700 dark:bg-neutral-900"
                         >
                             <Tag className="h-4 w-4" />
                             {t('inventory.toolbar.categories', 'Categories')}
@@ -1146,7 +1157,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                 resetUnitForm();
                                 setIsUnitDialogOpen(true);
                             }}
-                            className="gap-2"
+                            className="h-10 gap-2 rounded-xl border-slate-200 bg-white dark:border-neutral-700 dark:bg-neutral-900"
                         >
                             <ImagePlus className="h-4 w-4" />
                             {t('inventory.toolbar.units', 'Units')}
@@ -1159,7 +1170,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                 resetTypeForm();
                                 setIsTypeDialogOpen(true);
                             }}
-                            className="gap-2"
+                            className="h-10 gap-2 rounded-xl border-slate-200 bg-white dark:border-neutral-700 dark:bg-neutral-900"
                         >
                             <Pencil className="h-4 w-4" />
                             {t('inventory.toolbar.types', 'Types')}
@@ -1168,7 +1179,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                     {canAdjustInventory ? (
                         <Button
                             onClick={() => setIsCreateOpen(true)}
-                            className="gap-2"
+                            className="h-10 gap-2 rounded-xl bg-[#102f33] px-4 text-white shadow-sm hover:bg-[#17464b] dark:bg-emerald-400 dark:text-emerald-950 dark:hover:bg-emerald-300"
                         >
                             <Plus className="h-4 w-4" />
                             {t('inventory.toolbar.addNewItem', 'Add New Item')}
@@ -1176,7 +1187,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                     ) : null}
                 </div>
             </div>
-            <Separator className="bg-neutral-200/60 dark:bg-neutral-900/50" />
+            <div className="h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent dark:via-neutral-700" />
             <DataTable
                 searchKey={['name', 'type', 'property.name', 'vendor.name']}
                 columns={tableColumns}
@@ -1187,7 +1198,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                     'Search inventory by item, type, or property...',
                 )}
                 toolbar={
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="grid w-full gap-2 sm:grid-cols-2 xl:grid-cols-4">
                         <SearchableDropdown
                             value={selectedPropertyFilter}
                             onValueChange={setSelectedPropertyFilter}
@@ -1203,7 +1214,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                 'inventory.filters.noProperties',
                                 'No properties found.',
                             )}
-                            className="w-[180px]"
+                            className="w-full rounded-xl bg-white dark:bg-neutral-900"
                             options={[
                                 {
                                     value: FILTER_ALL,
@@ -1234,7 +1245,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                 'inventory.filters.noTypes',
                                 'No types found.',
                             )}
-                            className="w-[200px]"
+                            className="w-full rounded-xl bg-white dark:bg-neutral-900"
                             options={[
                                 {
                                     value: FILTER_ALL,
@@ -1281,7 +1292,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                 'inventory.filters.noVendors',
                                 'No vendors found.',
                             )}
-                            className="w-[220px]"
+                            className="w-full rounded-xl bg-white dark:bg-neutral-900"
                             options={[
                                 {
                                     value: FILTER_ALL,
@@ -1312,7 +1323,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                 'inventory.filters.noStockFilters',
                                 'No stock filters found.',
                             )}
-                            className="w-[220px]"
+                            className="w-full rounded-xl bg-white dark:bg-neutral-900"
                             options={[
                                 {
                                     value: FILTER_ALL,
@@ -2848,10 +2859,13 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                                                 )}: ${Number(
                                                                     item.quantity ||
                                                                         0,
-                                                                )} ${item.unit ?? t(
-                                                                    'inventory.common.unit',
-                                                                    'unit',
-                                                                )}`,
+                                                                )} ${
+                                                                    item.unit ??
+                                                                    t(
+                                                                        'inventory.common.unit',
+                                                                        'unit',
+                                                                    )
+                                                                }`,
                                                             }),
                                                         )}
                                                         placeholder={t(

@@ -10,6 +10,7 @@ import { SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
 import { Link } from '@inertiajs/react';
+import type { LucideIcon } from 'lucide-react';
 import {
     Banknote,
     Building2,
@@ -22,7 +23,16 @@ import {
     Users,
 } from 'lucide-react';
 
-const tools = [
+interface ToolConfig {
+    href: string;
+    labelKey: string;
+    fallbackLabel: string;
+    icon: LucideIcon;
+    can?: string;
+    superAdminOnly?: boolean;
+}
+
+const tools: ToolConfig[] = [
     {
         href: '/inventory',
         labelKey: 'navigation.toolInventory',

@@ -2239,6 +2239,11 @@ const en = {
     inventory: {
         page: {
             title: 'Inventory',
+            controlCenter: 'Inventory control center',
+            heroTitle: 'Stock clarity across every property',
+            heroDescription:
+                'Monitor value, availability, usage, and vendor exposure from one operational workspace.',
+            portfolioScope: 'Portfolio scope',
             propertyStatsPlaceholder: 'Select property for stats',
             allProperties: 'All Properties',
             stats: {
@@ -2247,6 +2252,9 @@ const en = {
                     'Current value from quantity x single price.',
                 totalItems: 'Total Items',
                 totalItemsDescription: 'Inventory records currently tracked.',
+                totalUsable: 'Usable Items',
+                totalUsableDescription:
+                    'Items available for active operations.',
                 totalOwed: 'Amount Owed to Vendors',
                 totalFixed: 'Total Fixed Items',
                 totalFixedDescription: 'Equipment and long-term stock items.',

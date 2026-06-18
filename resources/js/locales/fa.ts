@@ -2232,6 +2232,11 @@ const fa = {
     inventory: {
         page: {
             title: 'موجودی',
+            controlCenter: 'مرکز کنترول گدام',
+            heroTitle: 'نمای روشن موجودی در تمام جایدادها',
+            heroDescription:
+                'ارزش، موجودیت، مصرف و بدهی فروشندگان را از یک محیط عملیاتی مدیریت کنید.',
+            portfolioScope: 'محدوده جایدادها',
             propertyStatsPlaceholder: 'برای آمار، جایداد را انتخاب کنید',
             allProperties: 'همه جایدادها',
             stats: {
@@ -2239,6 +2244,8 @@ const fa = {
                 totalValueDescription: 'ارزش فعلی بر اساس تعداد × قیمت واحد.',
                 totalItems: 'مجموع اقلام',
                 totalItemsDescription: 'رکوردهای موجودی که فعلاً ثبت شده‌اند.',
+                totalUsable: 'اقلام قابل استفاده',
+                totalUsableDescription: 'اقلام آماده برای فعالیت‌های جاری.',
                 totalOwed: 'مبلغ بدهکار به فروشندگان',
                 totalFixed: 'مجموع اقلام ثابت',
                 totalFixedDescription: 'تجهیزات و اقلام بلندمدت.',

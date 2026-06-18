@@ -2216,6 +2216,11 @@ const ps = {
     inventory: {
         page: {
             title: 'ذخیره',
+            controlCenter: 'د ګدام د کنټرول مرکز',
+            heroTitle: 'په ټولو جایدادونو کې د ذخیرې روښانه لید',
+            heroDescription:
+                'ارزښت، موجودي، مصرف او د پلورونکو پورونه له یوه عملیاتي ځایه مدیریت کړئ.',
+            portfolioScope: 'د جایدادونو ساحه',
             propertyStatsPlaceholder: 'د احصایو لپاره جایداد وټاکئ',
             allProperties: 'ټولې جایدادونه',
             stats: {
@@ -2224,6 +2229,8 @@ const ps = {
                     'اوسنی ارزښت د مقدار × واحد قیمت له مخې.',
                 totalItems: 'ټول توکي',
                 totalItemsDescription: 'هغه د ذخیرې ریکارډونه چې اوس ثبت دي.',
+                totalUsable: 'د کار وړ توکي',
+                totalUsableDescription: 'د روانو عملیاتو لپاره چمتو توکي.',
                 totalOwed: 'پلورونکو ته پور',
                 totalFixed: 'ټول ثابت توکي',
                 totalFixedDescription: 'تجهیزات او اوږدمهاله توکي.',
