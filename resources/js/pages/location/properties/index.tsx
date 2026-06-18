@@ -1,4 +1,5 @@
 import InputError from '@/components/input-error';
+import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -507,7 +508,7 @@ export default function PropertiesPage({
                     <div className="relative flex-1">
                         <Search className="absolute start-3 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input
-                            className="ps-9"
+                            className="bg-white ps-9 dark:bg-neutral-900"
                             placeholder={t('propertyWorkspace.search')}
                             value={search}
                             onChange={(event) => setSearch(event.target.value)}
@@ -817,12 +818,12 @@ function NumberField({
 }) {
     return (
         <Field label={label} error={form.errors[name]}>
-            <Input
-                type="number"
+            <NumericInput
                 min="0"
                 step="any"
                 value={form.data[name]}
-                onChange={(event) => form.setData(name, event.target.value)}
+                onValueChange={(value) => form.setData(name, value)}
+                showControls={false}
             />
         </Field>
     );

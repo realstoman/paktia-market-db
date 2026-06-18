@@ -40,7 +40,8 @@ function showLoginWelcomeToast(pageProps: Partial<SharedData>) {
     displayedLoginWelcomeToasts.add(toastId);
 
     toast.success(welcomeToastMessage(pageProps), {
-        position: 'top-center',
+        id: `login-welcome-${toastId}`,
+        position: 'top-right',
         duration: 5000,
         classNames: {
             title: welcomeToastTitleClass(pageProps),
@@ -56,16 +57,11 @@ function LoginWelcomeToast({
     useEffect(() => {
         showLoginWelcomeToast(initialPageProps);
 
-        const removeSuccessListener = router.on('success', (event) => {
-            showLoginWelcomeToast(event.detail.page.props as SharedData);
-        });
-
         const removeNavigateListener = router.on('navigate', (event) => {
             showLoginWelcomeToast(event.detail.page.props as SharedData);
         });
 
         return () => {
-            removeSuccessListener();
             removeNavigateListener();
         };
     }, [initialPageProps]);

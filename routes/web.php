@@ -16,14 +16,15 @@ use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\InventoryController;
-use App\Http\Controllers\Location\PropertyController;
 use App\Http\Controllers\Location\CountryController;
+use App\Http\Controllers\Location\PropertyController;
 use App\Http\Controllers\Location\ProvinceController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OperationsRuntimeHealthController;
 use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\Settings\LanguageController;
+use App\Http\Controllers\ShareholderController;
 use App\Http\Controllers\ToolReferenceController;
 use Illuminate\Support\Facades\Route;
 
@@ -117,6 +118,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('reports/exports/{filename}/download', [ReportsController::class, 'downloadExport'])
             ->where('filename', '[A-Za-z0-9_\-\.]+')
             ->name('reports.exports.download');
+    });
+
+    Route::middleware('can:'.PermissionEnum::SHAREHOLDERS_VIEW->value)->group(function () {
+        Route::get('shareholders', [ShareholderController::class, 'index'])->name('shareholders.index');
+        Route::get('shareholders/{shareholder}/documents/{document}', [ShareholderController::class, 'downloadDocument'])
+            ->name('shareholders.documents.download');
+    });
+    Route::middleware('can:'.PermissionEnum::SHAREHOLDERS_MANAGE->value)->group(function () {
+        Route::post('shareholders', [ShareholderController::class, 'store'])->name('shareholders.store');
+        Route::put('shareholders/{shareholder}', [ShareholderController::class, 'update'])->name('shareholders.update');
+        Route::post('shareholders/{shareholder}/toggle', [ShareholderController::class, 'toggle'])->name('shareholders.toggle');
+        Route::post('shareholders/{shareholder}/documents', [ShareholderController::class, 'uploadDocuments'])->name('shareholders.documents.store');
+        Route::delete('shareholders/{shareholder}/documents/{document}', [ShareholderController::class, 'destroyDocument'])->name('shareholders.documents.destroy');
+        Route::post('shareholders/{shareholder}/shareholdings', [ShareholderController::class, 'assign'])->name('shareholders.shareholdings.store');
+        Route::post('shareholders/{shareholder}/shareholdings/{shareholding}/close', [ShareholderController::class, 'closeAssignment'])->name('shareholders.shareholdings.close');
     });
 
     // Inventory

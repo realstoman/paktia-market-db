@@ -1,6 +1,5 @@
 import InputError from '@/components/input-error';
 import { NumericInput } from '@/components/shared/numeric-input';
-import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -29,8 +28,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useLocalization } from '@/lib/localization';
-import { useAuthorization } from '@/lib/permissions';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
     Select,
@@ -47,16 +44,19 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { formatNumber } from '@/utils/format';
 import { Textarea } from '@/components/ui/textarea';
+import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
+import { useLocalization } from '@/lib/localization';
+import { useAuthorization } from '@/lib/permissions';
 import {
-    Property,
     Employee,
     EmployeePosition,
     EmploymentType,
+    Property,
     SharedData,
     Shift,
 } from '@/types';
+import { formatNumber } from '@/utils/format';
 import { router, usePage } from '@inertiajs/react';
 import {
     Ban,
@@ -280,20 +280,23 @@ export const CellAction: React.FC<CellActionProps> = ({
                 .join(' '),
         );
 
-    const formatLocalizedDate = useCallback((value?: string | null) => {
-        if (!value) {
-            return '';
-        }
+    const formatLocalizedDate = useCallback(
+        (value?: string | null) => {
+            if (!value) {
+                return '';
+            }
 
-        return new Intl.DateTimeFormat(
-            locale === 'fa' ? 'fa-AF' : locale === 'ps' ? 'ps-AF' : 'en-US',
-            {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-            },
-        ).format(new Date(value));
-    }, [locale]);
+            return new Intl.DateTimeFormat(
+                locale === 'fa' ? 'fa-AF' : locale === 'ps' ? 'ps-AF' : 'en-US',
+                {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                },
+            ).format(new Date(value));
+        },
+        [locale],
+    );
 
     const financeEntries = useMemo(() => {
         const advanceEntries = (data.advances ?? []).map((advance) => ({
@@ -312,8 +315,10 @@ export const CellAction: React.FC<CellActionProps> = ({
         }));
 
         const payrollEntries = (data.payroll_items ?? []).map((item) => {
-            const advanceTotal = (item.advance_breakdown ?? [])
-                .reduce((sum, entry) => sum + Number(entry.amount ?? 0), 0);
+            const advanceTotal = (item.advance_breakdown ?? []).reduce(
+                (sum, entry) => sum + Number(entry.amount ?? 0),
+                0,
+            );
 
             const breakdownNotes = [
                 advanceTotal > 0
@@ -372,7 +377,13 @@ export const CellAction: React.FC<CellActionProps> = ({
             const bTime = b.date ? new Date(b.date).getTime() : 0;
             return bTime - aTime;
         });
-    }, [data.advances, data.payroll_items, data.salary_currency, formatLocalizedDate, t]);
+    }, [
+        data.advances,
+        data.payroll_items,
+        data.salary_currency,
+        formatLocalizedDate,
+        t,
+    ]);
 
     const upcomingPayment = useMemo(() => {
         const fallbackDate = (() => {
@@ -383,7 +394,10 @@ export const CellAction: React.FC<CellActionProps> = ({
 
         return {
             amount: Number(data.upcoming_payment?.amount ?? 0),
-            currency: data.upcoming_payment?.currency ?? data.salary_currency ?? 'AFN',
+            currency:
+                data.upcoming_payment?.currency ??
+                data.salary_currency ??
+                'AFN',
             status: data.upcoming_payment?.status ?? 'scheduled',
             dueDate: data.upcoming_payment?.due_date ?? fallbackDate,
             title:
@@ -472,9 +486,7 @@ export const CellAction: React.FC<CellActionProps> = ({
 
     const removeExistingAttachment = (path: string) => {
         setRemovedAttachmentPaths((current) =>
-            current.includes(path)
-                ? current
-                : [...current, path],
+            current.includes(path) ? current : [...current, path],
         );
     };
 
@@ -621,18 +633,27 @@ export const CellAction: React.FC<CellActionProps> = ({
                         align="end"
                         className={isRtl ? 'text-right' : ''}
                     >
-                        <DropdownMenuLabel className={isRtl ? 'text-right' : ''}>
+                        <DropdownMenuLabel
+                            className={isRtl ? 'text-right' : ''}
+                        >
                             {t('employees.table.actions', 'Actions')}
                         </DropdownMenuLabel>
                         {canViewEmployee ? (
-                            <DropdownMenuItem onClick={() => setIsDetailsOpen(true)}>
-                                <Eye className="mr-2 h-4 w-4" />
-                                {t('employees.actions.viewDetails', 'View Details')}
+                            <DropdownMenuItem
+                                onClick={() => setIsDetailsOpen(true)}
+                            >
+                                <Eye className="me-2 h-4 w-4" />
+                                {t(
+                                    'employees.actions.viewDetails',
+                                    'View Details',
+                                )}
                             </DropdownMenuItem>
                         ) : null}
                         {canViewEmployee ? (
-                            <DropdownMenuItem onClick={() => setIsFinanceOpen(true)}>
-                                <Wallet className="mr-2 h-4 w-4" />
+                            <DropdownMenuItem
+                                onClick={() => setIsFinanceOpen(true)}
+                            >
+                                <Wallet className="me-2 h-4 w-4" />
                                 {t(
                                     'employees.actions.employeeFinances',
                                     'Employee Finances',
@@ -646,24 +667,31 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     setIsEditOpen(true);
                                 }}
                             >
-                                <Edit className="mr-2 h-4 w-4" />
+                                <Edit className="me-2 h-4 w-4" />
                                 {t('employees.actions.edit', 'Edit')}
                             </DropdownMenuItem>
                         ) : null}
                         {canManageEmployee ? (
-                            <DropdownMenuItem onClick={() => setIsStatusOpen(true)}>
-                                <Ban className="mr-2 h-4 w-4" />
+                            <DropdownMenuItem
+                                onClick={() => setIsStatusOpen(true)}
+                            >
+                                <Ban className="me-2 h-4 w-4" />
                                 {data.is_active
                                     ? t(
                                           'employees.actions.markInactive',
                                           'Mark Inactive',
                                       )
-                                    : t('employees.actions.markActive', 'Mark Active')}
+                                    : t(
+                                          'employees.actions.markActive',
+                                          'Mark Active',
+                                      )}
                             </DropdownMenuItem>
                         ) : null}
                         {canDeleteEmployee ? (
-                            <DropdownMenuItem onClick={() => setIsDeleteOpen(true)}>
-                                <Trash className="mr-2 h-4 w-4 text-red-600" />
+                            <DropdownMenuItem
+                                onClick={() => setIsDeleteOpen(true)}
+                            >
+                                <Trash className="me-2 h-4 w-4 text-red-600" />
                                 {t('employees.common.delete', 'Delete')}
                             </DropdownMenuItem>
                         ) : null}
@@ -694,7 +722,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                                             src={currentProfilePictureUrl}
                                             alt={
                                                 data.full_name ??
-                                                t('employees.page.title', 'Employee')
+                                                t(
+                                                    'employees.page.title',
+                                                    'Employee',
+                                                )
                                             }
                                             className="h-24 w-24 rounded-xl border object-cover"
                                         />
@@ -746,48 +777,82 @@ export const CellAction: React.FC<CellActionProps> = ({
                             <div className="grid gap-4 sm:grid-cols-2">
                                 <div className="rounded-lg border p-4">
                                     <p className="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-                                        {t('employees.details.contact', 'Contact')}
+                                        {t(
+                                            'employees.details.contact',
+                                            'Contact',
+                                        )}
                                     </p>
                                     <div className="space-y-2 text-sm">
                                         <p>
                                             <span className="font-medium">
-                                                {t('employees.form.phone', 'Phone')}:
+                                                {t(
+                                                    'employees.form.phone',
+                                                    'Phone',
+                                                )}
+                                                :
                                             </span>{' '}
                                             {data.phone ||
-                                                t('employees.common.empty', '—')}
+                                                t(
+                                                    'employees.common.empty',
+                                                    '—',
+                                                )}
                                         </p>
                                         <p>
                                             <span className="font-medium">
-                                                {t('employees.form.address', 'Address')}:
+                                                {t(
+                                                    'employees.form.address',
+                                                    'Address',
+                                                )}
+                                                :
                                             </span>{' '}
                                             {data.address ||
-                                                t('employees.common.empty', '—')}
+                                                t(
+                                                    'employees.common.empty',
+                                                    '—',
+                                                )}
                                         </p>
                                     </div>
                                 </div>
                                 <div className="rounded-lg border p-4">
                                     <p className="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-                                        {t('employees.details.employment', 'Employment')}
+                                        {t(
+                                            'employees.details.employment',
+                                            'Employment',
+                                        )}
                                     </p>
                                     <div className="space-y-2 text-sm">
                                         <p>
                                             <span className="font-medium">
-                                                {t('employees.filters.property', 'Property')}:
+                                                {t(
+                                                    'employees.filters.property',
+                                                    'Property',
+                                                )}
+                                                :
                                             </span>{' '}
                                             {(typeof data.property === 'string'
                                                 ? data.property
                                                 : data.property?.name) ||
-                                                t('employees.common.empty', '—')}
+                                                t(
+                                                    'employees.common.empty',
+                                                    '—',
+                                                )}
                                         </p>
                                         <p>
                                             <span className="font-medium">
-                                                {t('employees.table.salary', 'Salary')}:
+                                                {t(
+                                                    'employees.table.salary',
+                                                    'Salary',
+                                                )}
+                                                :
                                             </span>{' '}
                                             {data.contract_amount
                                                 ? `${formatNumber(Number(data.contract_amount))} ${data.salary_currency ?? 'AFN'} (${t('employees.common.contract', 'Contract')})`
                                                 : data.salary
                                                   ? `${formatNumber(Number(data.salary))} ${data.salary_currency ?? 'AFN'}`
-                                                  : t('employees.common.empty', '—')}
+                                                  : t(
+                                                        'employees.common.empty',
+                                                        '—',
+                                                    )}
                                         </p>
                                         <p>
                                             <span className="font-medium">
@@ -804,14 +869,24 @@ export const CellAction: React.FC<CellActionProps> = ({
                                             {data.contract_start_date &&
                                             data.contract_end_date
                                                 ? `${formatLocalizedDate(data.contract_start_date)} - ${formatLocalizedDate(data.contract_end_date)}`
-                                                : t('employees.common.empty', '—')}
+                                                : t(
+                                                      'employees.common.empty',
+                                                      '—',
+                                                  )}
                                         </p>
                                         <p>
                                             <span className="font-medium">
-                                                {t('employees.filters.shift', 'Shift')}:
+                                                {t(
+                                                    'employees.filters.shift',
+                                                    'Shift',
+                                                )}
+                                                :
                                             </span>{' '}
                                             {data.shift ||
-                                                t('employees.common.empty', '—')}
+                                                t(
+                                                    'employees.common.empty',
+                                                    '—',
+                                                )}
                                         </p>
                                     </div>
                                 </div>
@@ -819,7 +894,10 @@ export const CellAction: React.FC<CellActionProps> = ({
 
                             <div className="rounded-lg border p-4">
                                 <p className="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-                                    {t('employees.common.description', 'Description')}
+                                    {t(
+                                        'employees.common.description',
+                                        'Description',
+                                    )}
                                 </p>
                                 <p className="text-sm text-muted-foreground">
                                     {data.description ||
@@ -832,7 +910,10 @@ export const CellAction: React.FC<CellActionProps> = ({
 
                             <div className="rounded-lg border p-4">
                                 <p className="mb-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-                                    {t('employees.form.attachments', 'Attachments')}
+                                    {t(
+                                        'employees.form.attachments',
+                                        'Attachments',
+                                    )}
                                 </p>
                                 {existingAttachments.length > 0 ? (
                                     <div className="space-y-2">
@@ -873,10 +954,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                 <DialogContent className="sm:max-w-4xl">
                     <DialogHeader>
                         <DialogTitle>
-                            {t(
-                                'employees.finance.title',
-                                'Employee Finances',
-                            )}
+                            {t('employees.finance.title', 'Employee Finances')}
                         </DialogTitle>
                         <DialogDescription>
                             {t(
@@ -912,8 +990,14 @@ export const CellAction: React.FC<CellActionProps> = ({
                                             )}
                                         </div>
                                         <div className="rounded-md border bg-white/70 px-3 py-2 text-sm dark:bg-neutral-900/60">
-                                        {t('employees.finance.dueDate', 'Due date')}:{' '}
-                                        {formatLocalizedDate(upcomingPayment.dueDate)}
+                                            {t(
+                                                'employees.finance.dueDate',
+                                                'Due date',
+                                            )}
+                                            :{' '}
+                                            {formatLocalizedDate(
+                                                upcomingPayment.dueDate,
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -946,62 +1030,81 @@ export const CellAction: React.FC<CellActionProps> = ({
                                                     )}
                                                 </TableHead>
                                                 <TableHead>
-                                                    {t('employees.finance.table.type', 'Type')}
+                                                    {t(
+                                                        'employees.finance.table.type',
+                                                        'Type',
+                                                    )}
                                                 </TableHead>
                                                 <TableHead>
-                                                    {t('employees.finance.table.amount', 'Amount')}
+                                                    {t(
+                                                        'employees.finance.table.amount',
+                                                        'Amount',
+                                                    )}
                                                 </TableHead>
                                                 <TableHead>
-                                                    {t('employees.finance.table.note', 'Note')}
+                                                    {t(
+                                                        'employees.finance.table.note',
+                                                        'Note',
+                                                    )}
                                                 </TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
                                             {financeEntries.length > 0 ? (
-                                                financeEntries.map((payment) => (
-                                                    <TableRow key={payment.id}>
-                                                        <TableCell>
-                                                            {formatLocalizedDate(
-                                                                payment.date,
-                                                            )}
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <span
-                                                                className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                                                                    payment.type ===
-                                                                    t(
-                                                                        'employees.finance.salaryType',
-                                                                        'Salary',
-                                                                    )
-                                                                        ? 'bg-blue-100 text-blue-700'
-                                                                        : payment.type ===
-                                                                            t(
-                                                                                'employees.finance.contractType',
-                                                                                'Contract Payment',
-                                                                            )
-                                                                          ? 'bg-violet-100 text-violet-700'
-                                                                        : 'bg-amber-100 text-amber-700'
-                                                                }`}
-                                                            >
-                                                                {payment.type}
-                                                            </span>
-                                                        </TableCell>
-                                                        <TableCell className="font-medium">
-                                                            {`${formatNumber(payment.amount)} ${payment.currency}`}
-                                                        </TableCell>
-                                                        <TableCell className="text-muted-foreground">
-                                                            <div className="space-y-1">
-                                                                <p>{payment.note}</p>
-                                                                <p className="text-xs">
-                                                                    {t(
-                                                                        `employees.finance.paymentStatus.${payment.status}`,
-                                                                        payment.status,
-                                                                    )}
-                                                                </p>
-                                                            </div>
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ))
+                                                financeEntries.map(
+                                                    (payment) => (
+                                                        <TableRow
+                                                            key={payment.id}
+                                                        >
+                                                            <TableCell>
+                                                                {formatLocalizedDate(
+                                                                    payment.date,
+                                                                )}
+                                                            </TableCell>
+                                                            <TableCell>
+                                                                <span
+                                                                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                                                                        payment.type ===
+                                                                        t(
+                                                                            'employees.finance.salaryType',
+                                                                            'Salary',
+                                                                        )
+                                                                            ? 'bg-blue-100 text-blue-700'
+                                                                            : payment.type ===
+                                                                                t(
+                                                                                    'employees.finance.contractType',
+                                                                                    'Contract Payment',
+                                                                                )
+                                                                              ? 'bg-violet-100 text-violet-700'
+                                                                              : 'bg-amber-100 text-amber-700'
+                                                                    }`}
+                                                                >
+                                                                    {
+                                                                        payment.type
+                                                                    }
+                                                                </span>
+                                                            </TableCell>
+                                                            <TableCell className="font-medium">
+                                                                {`${formatNumber(payment.amount)} ${payment.currency}`}
+                                                            </TableCell>
+                                                            <TableCell className="text-muted-foreground">
+                                                                <div className="space-y-1">
+                                                                    <p>
+                                                                        {
+                                                                            payment.note
+                                                                        }
+                                                                    </p>
+                                                                    <p className="text-xs">
+                                                                        {t(
+                                                                            `employees.finance.paymentStatus.${payment.status}`,
+                                                                            payment.status,
+                                                                        )}
+                                                                    </p>
+                                                                </div>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ),
+                                                )
                                             ) : (
                                                 <TableRow>
                                                     <TableCell
@@ -1042,7 +1145,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                         <div className="grid gap-4 px-1 sm:grid-cols-2">
                             <div className="grid gap-2">
                                 <Label htmlFor={`edit-first-name-${data.id}`}>
-                                    {t('employees.form.firstName', 'First name')}
+                                    {t(
+                                        'employees.form.firstName',
+                                        'First name',
+                                    )}
                                 </Label>
                                 <Input
                                     id={`edit-first-name-${data.id}`}
@@ -1080,7 +1186,12 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <InputError message={editErrors.phone} />
                             </div>
                             <div className="grid gap-2">
-                                <Label>{t('employees.filters.property', 'Property')}</Label>
+                                <Label>
+                                    {t(
+                                        'employees.filters.property',
+                                        'Property',
+                                    )}
+                                </Label>
                                 <Select
                                     value={editPropertyId}
                                     onValueChange={setEditPropertyId}
@@ -1142,7 +1253,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </div>
                             <div className="grid gap-2">
                                 <Label>
-                                    {t('employees.form.employeePosition', 'Employee position')}
+                                    {t(
+                                        'employees.form.employeePosition',
+                                        'Employee position',
+                                    )}
                                 </Label>
                                 <Select
                                     value={editEmployeePositionId}
@@ -1172,7 +1286,9 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label>{t('employees.filters.shift', 'Shift')}</Label>
+                                <Label>
+                                    {t('employees.filters.shift', 'Shift')}
+                                </Label>
                                 <Select
                                     value={editShiftId}
                                     onValueChange={setEditShiftId}
@@ -1323,7 +1439,9 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label>{t('employees.table.status', 'Status')}</Label>
+                                <Label>
+                                    {t('employees.table.status', 'Status')}
+                                </Label>
                                 <Select
                                     value={editStatus}
                                     onValueChange={setEditStatus}
@@ -1364,7 +1482,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </div>
                             <div className="grid gap-2 sm:col-span-2">
                                 <Label htmlFor={`edit-description-${data.id}`}>
-                                    {t('employees.common.description', 'Description')}
+                                    {t(
+                                        'employees.common.description',
+                                        'Description',
+                                    )}
                                 </Label>
                                 <Textarea
                                     id={`edit-description-${data.id}`}
@@ -1378,7 +1499,10 @@ export const CellAction: React.FC<CellActionProps> = ({
 
                             <div className="grid gap-2 sm:col-span-2">
                                 <Label>
-                                    {t('employees.form.profilePicture', 'Profile picture')}
+                                    {t(
+                                        'employees.form.profilePicture',
+                                        'Profile picture',
+                                    )}
                                 </Label>
                                 <div className="rounded-lg border border-dashed border-neutral-300 p-4 dark:border-neutral-700">
                                     <div className="flex items-center justify-between gap-3">
@@ -1435,7 +1559,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                                                 />
                                                 <button
                                                     type="button"
-                                                    className="absolute top-1 right-1 rounded bg-black/65 p-1 text-white"
+                                                    className="absolute end-1 top-1 rounded bg-black/65 p-1 text-white"
                                                     onClick={() =>
                                                         setEditProfilePicture(
                                                             null,
@@ -1458,7 +1582,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     {t(
                                         'employees.edit.attachmentsLabel',
                                         'Attachments (up to :count total)',
-                                    ).replace(':count', String(MAX_ATTACHMENTS))}
+                                    ).replace(
+                                        ':count',
+                                        String(MAX_ATTACHMENTS),
+                                    )}
                                 </Label>
                                 <div className="rounded-lg border border-dashed border-neutral-300 p-4 dark:border-neutral-700">
                                     <div className="flex items-center justify-between gap-3">
@@ -1584,7 +1711,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             onClick={() => setIsEditOpen(false)}
                             disabled={isSubmitting}
                         >
-                            <X className="mr-2 h-4 w-4" />
+                            <X className="me-2 h-4 w-4" />
                             {t('common.cancel', 'Cancel')}
                         </Button>
                         <Button
@@ -1603,7 +1730,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 isSubmitting
                             }
                         >
-                            <Save className="mr-2 h-4 w-4" />
+                            <Save className="me-2 h-4 w-4" />
                             {t('employees.edit.saveChanges', 'Save Changes')}
                         </Button>
                     </DialogFooter>
@@ -1638,7 +1765,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel disabled={isSubmitting}>
-                            <X className="mr-2 h-4 w-4" />
+                            <X className="me-2 h-4 w-4" />
                             {t('common.cancel', 'Cancel')}
                         </AlertDialogCancel>
                         <AlertDialogAction
@@ -1648,7 +1775,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                         >
                             {data.is_active ? (
                                 <>
-                                    <Ban className="mr-2 h-4 w-4" />
+                                    <Ban className="me-2 h-4 w-4" />
                                     {t(
                                         'employees.actions.markInactive',
                                         'Mark Inactive',
@@ -1656,8 +1783,11 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 </>
                             ) : (
                                 <>
-                                    <CheckCircle className="mr-2 h-4 w-4" />
-                                    {t('employees.actions.markActive', 'Mark Active')}
+                                    <CheckCircle className="me-2 h-4 w-4" />
+                                    {t(
+                                        'employees.actions.markActive',
+                                        'Mark Active',
+                                    )}
                                 </>
                             )}
                         </AlertDialogAction>
@@ -1681,7 +1811,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                             <AlertDialogCancel disabled={isSubmitting}>
-                                <X className="mr-2 h-4 w-4" />
+                                <X className="me-2 h-4 w-4" />
                                 {t('common.cancel', 'Cancel')}
                             </AlertDialogCancel>
                             <AlertDialogAction
@@ -1689,7 +1819,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 onClick={handleDelete}
                                 disabled={isSubmitting}
                             >
-                                <Trash2 className="mr-2 h-4 w-4" />
+                                <Trash2 className="me-2 h-4 w-4" />
                                 {t(
                                     'employees.delete.confirmButton',
                                     'Delete employee',

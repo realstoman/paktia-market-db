@@ -25,6 +25,10 @@ enum PermissionEnum: string
     case PROPERTY_UPDATE = 'property.update';
     case PROPERTY_DELETE = 'property.delete';
 
+    // Shareholders
+    case SHAREHOLDERS_VIEW = 'shareholders.view';
+    case SHAREHOLDERS_MANAGE = 'shareholders.manage';
+
     // Banners
     case BANNERS_VIEW = 'banners.view';
     case BANNERS_CREATE = 'banners.create';

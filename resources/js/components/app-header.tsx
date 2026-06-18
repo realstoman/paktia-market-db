@@ -34,6 +34,7 @@ import {
     ChevronDown,
     ClipboardList,
     Globe2,
+    Handshake,
     LayoutGrid,
     MapPinned,
     Menu,
@@ -69,25 +70,18 @@ const primaryNavConfig: HeaderNavConfig[] = [
         can: 'property.view',
     },
     {
+        titleKey: 'navigation.shareholders',
+        fallbackTitle: 'Shareholders',
+        href: '/shareholders',
+        icon: Handshake,
+        can: 'shareholders.view',
+    },
+    {
         titleKey: 'navigation.finance',
         fallbackTitle: 'Finance',
         href: '/finance',
         icon: Banknote,
         canAny: ['finance.view', 'payroll.view'],
-    },
-    {
-        titleKey: 'navigation.inventory',
-        fallbackTitle: 'Inventory',
-        href: '/inventory',
-        icon: Warehouse,
-        can: 'inventory.view',
-    },
-    {
-        titleKey: 'navigation.employees',
-        fallbackTitle: 'Employees',
-        href: '/employees',
-        icon: BriefcaseBusiness,
-        can: 'employees.view',
     },
     {
         titleKey: 'navigation.reports',
@@ -99,6 +93,27 @@ const primaryNavConfig: HeaderNavConfig[] = [
 ];
 
 const toolNavConfig: HeaderNavConfig[] = [
+    {
+        titleKey: 'navigation.toolInventory',
+        fallbackTitle: 'Inventory',
+        href: '/inventory',
+        icon: Warehouse,
+        can: 'inventory.view',
+    },
+    {
+        titleKey: 'navigation.toolEmployees',
+        fallbackTitle: 'Employees',
+        href: '/employees',
+        icon: BriefcaseBusiness,
+        can: 'employees.view',
+    },
+    {
+        titleKey: 'navigation.toolShareholders',
+        fallbackTitle: 'Shareholders',
+        href: '/shareholders',
+        icon: Handshake,
+        can: 'shareholders.view',
+    },
     {
         titleKey: 'navigation.users',
         fallbackTitle: 'Users',

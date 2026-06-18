@@ -1,4 +1,5 @@
 import InputError from '@/components/input-error';
+import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { Button } from '@/components/ui/button';
 import {
@@ -464,12 +465,12 @@ function NumericField({
 }) {
     return (
         <Field label={label}>
-            <Input
-                type="number"
+            <NumericInput
                 min="0"
                 step="any"
                 value={value}
-                onChange={(event) => set(event.target.value)}
+                onValueChange={set}
+                showControls={false}
             />
         </Field>
     );

@@ -1,5 +1,6 @@
 import InputError from '@/components/input-error';
 import { EditPropertyDialog } from '@/components/properties/edit-property-dialog';
+import { NumericInput } from '@/components/shared/numeric-input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -534,33 +535,33 @@ function AddFloor({ property }: { property: Property }) {
                         label={t('propertyWorkspace.fields.levelNumber')}
                         error={form.errors.level_number}
                     >
-                        <Input
-                            type="number"
+                        <NumericInput
                             value={form.data.level_number}
-                            onChange={(e) =>
-                                form.setData('level_number', e.target.value)
+                            onValueChange={(value) =>
+                                form.setData('level_number', value)
                             }
+                            showControls={false}
                         />
                     </Field>
                     <Field label={t('propertyWorkspace.fields.area')}>
-                        <Input
-                            type="number"
+                        <NumericInput
                             min="0"
                             step="any"
                             value={form.data.area_sqm}
-                            onChange={(e) =>
-                                form.setData('area_sqm', e.target.value)
+                            onValueChange={(value) =>
+                                form.setData('area_sqm', value)
                             }
+                            showControls={false}
                         />
                     </Field>
                     <Field label={t('propertyWorkspace.fields.plannedSpaces')}>
-                        <Input
-                            type="number"
+                        <NumericInput
                             min="0"
                             value={form.data.planned_units}
-                            onChange={(e) =>
-                                form.setData('planned_units', e.target.value)
+                            onValueChange={(value) =>
+                                form.setData('planned_units', value)
                             }
+                            showControls={false}
                         />
                     </Field>
                     <Field
@@ -654,38 +655,38 @@ function AddUnit({
                         />
                     </Field>
                     <Field label={t('propertyWorkspace.fields.area')}>
-                        <Input
-                            type="number"
+                        <NumericInput
                             min="0"
                             step="any"
                             value={form.data.area_sqm}
-                            onChange={(e) =>
-                                form.setData('area_sqm', e.target.value)
+                            onValueChange={(value) =>
+                                form.setData('area_sqm', value)
                             }
+                            showControls={false}
                         />
                     </Field>
                     {isMarket ? (
                         <>
                             <Field label={t('propertyWorkspace.fields.width')}>
-                                <Input
-                                    type="number"
+                                <NumericInput
                                     min="0"
                                     step="any"
                                     value={form.data.width_m}
-                                    onChange={(e) =>
-                                        form.setData('width_m', e.target.value)
+                                    onValueChange={(value) =>
+                                        form.setData('width_m', value)
                                     }
+                                    showControls={false}
                                 />
                             </Field>
                             <Field label={t('propertyWorkspace.fields.length')}>
-                                <Input
-                                    type="number"
+                                <NumericInput
                                     min="0"
                                     step="any"
                                     value={form.data.length_m}
-                                    onChange={(e) =>
-                                        form.setData('length_m', e.target.value)
+                                    onValueChange={(value) =>
+                                        form.setData('length_m', value)
                                     }
+                                    showControls={false}
                                 />
                             </Field>
                         </>
@@ -852,12 +853,12 @@ function CountInput({
         <Field label={label}>
             <div className="relative">
                 <Icon className="absolute start-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
+                <NumericInput
                     className="ps-9"
-                    type="number"
                     min="0"
                     value={value}
-                    onChange={(e) => set(e.target.value)}
+                    onValueChange={set}
+                    showControls={false}
                 />
             </div>
         </Field>

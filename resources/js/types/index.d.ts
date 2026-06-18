@@ -449,7 +449,9 @@ export interface Property {
     address: string;
     address_translations?: Partial<Record<'fa' | 'ps' | 'en', string>> | null;
     description: string;
-    description_translations?: Partial<Record<'fa' | 'ps' | 'en', string>> | null;
+    description_translations?: Partial<
+        Record<'fa' | 'ps' | 'en', string>
+    > | null;
     property_type?: 'market' | 'mall' | 'block' | 'house';
     usage_type?: 'commercial' | 'residential' | 'mixed';
     image_url?: string | null;
@@ -469,23 +471,97 @@ export interface Property {
     floors_count?: number;
     units_count?: number;
     floors?: PropertyFloor[];
+    shareholdings?: PropertyShareholding[];
     created_at: string;
     updated_at: string;
     [key: string]: unknown;
 }
 
+export interface Shareholder {
+    id: number;
+    full_name: string;
+    father_name?: string | null;
+    grandfather_name?: string | null;
+    gender?: 'male' | 'female' | 'other' | null;
+    date_of_birth?: string | null;
+    country_of_birth_id?: number | null;
+    country_of_birth?: Country | null;
+    citizenship_country_id?: number | null;
+    citizenship_country?: Country | null;
+    nid_type: 'electronic' | 'paper' | 'passport' | 'other';
+    nid_number: string;
+    phone?: string | null;
+    whatsapp?: string | null;
+    email?: string | null;
+    occupation?: string | null;
+    address?: string | null;
+    photo_url?: string | null;
+    notes?: string | null;
+    is_active: boolean;
+    documents?: ShareholderDocument[];
+    shareholdings?: PropertyShareholding[];
+    shareholdings_count?: number;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface ShareholderDocument {
+    id: number;
+    shareholder_id: number;
+    document_type: string;
+    title: string;
+    document_number?: string | null;
+    expires_at?: string | null;
+    original_name: string;
+    mime_type?: string | null;
+    size_bytes?: number | null;
+}
+
+export interface PropertyShareholding {
+    id: number;
+    property_id: number;
+    shareholder_id: number;
+    percentage: string | number;
+    capital_contribution?: string | number | null;
+    currency_id?: number | null;
+    effective_from: string;
+    effective_to?: string | null;
+    notes?: string | null;
+    property?: Property;
+    shareholder?: Shareholder;
+    currency?: Currency | null;
+}
+
 export interface PropertyFloor {
-    id: number; property_id: number; name: string; level_number: number;
-    area_sqm?: string | null; planned_units?: number | null; usage_type?: string | null;
-    description?: string | null; is_active: boolean; units?: PropertyUnit[];
+    id: number;
+    property_id: number;
+    name: string;
+    level_number: number;
+    area_sqm?: string | null;
+    planned_units?: number | null;
+    usage_type?: string | null;
+    description?: string | null;
+    is_active: boolean;
+    units?: PropertyUnit[];
 }
 
 export interface PropertyUnit {
-    id: number; property_floor_id: number; unit_type: 'shop' | 'apartment'; unit_number: string;
-    area_sqm?: string | null; width_m?: string | null; length_m?: string | null;
-    rooms_count?: number | null; kitchens_count?: number | null; halls_count?: number | null;
-    bathrooms_count?: number | null; occupancy_status: 'vacant' | 'occupied' | 'reserved' | 'maintenance';
-    electricity_meter?: string | null; water_meter?: string | null; description?: string | null; is_active: boolean;
+    id: number;
+    property_floor_id: number;
+    unit_type: 'shop' | 'apartment';
+    unit_number: string;
+    area_sqm?: string | null;
+    width_m?: string | null;
+    length_m?: string | null;
+    rooms_count?: number | null;
+    kitchens_count?: number | null;
+    halls_count?: number | null;
+    bathrooms_count?: number | null;
+    occupancy_status: 'vacant' | 'occupied' | 'reserved' | 'maintenance';
+    electricity_meter?: string | null;
+    water_meter?: string | null;
+    description?: string | null;
+    is_active: boolean;
 }
 
 export interface Country {

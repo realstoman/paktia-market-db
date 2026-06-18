@@ -14,38 +14,69 @@ interface NumericInputProps
     showControls?: boolean;
 }
 
-const sanitizeNumeric = (value: string): string =>
-    normalizeLocalizedDigits(value).replace(/[^\d]/g, '');
+const decimalPlaces = (step: NumericInputProps['step']): number | null => {
+    if (step === 'any') {
+        return null;
+    }
 
-const normalizeValue = (value: string | number): string => {
-    const raw = normalizeLocalizedDigits(String(value ?? ''))
+    const raw = String(step ?? '1');
+    if (raw.includes('e-')) {
+        return Number(raw.split('e-')[1]);
+    }
+
+    return raw.includes('.') ? raw.split('.')[1].length : 0;
+};
+
+const sanitizeNumeric = (
+    value: string,
+    allowDecimal: boolean,
+    allowNegative: boolean,
+): string => {
+    const normalized = normalizeLocalizedDigits(value)
+        .replaceAll('٫', '.')
+        .replaceAll('٬', '')
         .replaceAll(',', '')
         .trim();
-    if (!raw) {
-        return '';
+    const negative = allowNegative && normalized.startsWith('-');
+    const unsigned = normalized.replace(/[^\d.]/g, '');
+    const [integerPart = '', ...fractionParts] = unsigned.split('.');
+    const integer = integerPart.replace(/^0+(?=\d)/, '');
+    const hasDecimalPoint = allowDecimal && unsigned.includes('.');
+    const fraction = allowDecimal ? fractionParts.join('') : '';
+    const number = `${integer || (hasDecimalPoint ? '0' : '')}${
+        hasDecimalPoint ? `.${fraction}` : ''
+    }`;
+
+    if (!number) {
+        return negative ? '-' : '';
     }
 
-    const parsed = Number(raw);
-    if (Number.isFinite(parsed)) {
-        return String(Math.trunc(parsed));
-    }
-
-    return sanitizeNumeric(raw);
+    return `${negative ? '-' : ''}${number}`;
 };
+
+const normalizeValue = (
+    value: string | number,
+    allowDecimal: boolean,
+    allowNegative: boolean,
+): string => sanitizeNumeric(String(value ?? ''), allowDecimal, allowNegative);
 
 const formatWithCommas = (value: string): string => {
     if (!value) {
         return '';
     }
 
-    const normalized = String(Number(value));
-    if (normalized === '0' && value !== '0') {
-        return '';
+    if (value === '-') {
+        return '-';
     }
 
-    return new Intl.NumberFormat('en-US', {
-        maximumFractionDigits: 0,
-    }).format(Number(normalized));
+    const negative = value.startsWith('-');
+    const unsigned = negative ? value.slice(1) : value;
+    const [integer = '', fraction] = unsigned.split('.');
+    const grouped = integer.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+    return `${negative ? '-' : ''}${grouped}${
+        fraction !== undefined ? `.${fraction}` : ''
+    }`;
 };
 
 const parseBoundary = (
@@ -96,47 +127,71 @@ export function NumericInput({
     showControls = true,
     ...props
 }: NumericInputProps) {
-    const displayValue = formatWithCommas(normalizeValue(value));
     const min = parseBoundary(props.min);
     const max = parseBoundary(props.max);
     const step = parseStep(props.step);
-    const normalizedCurrentValue = normalizeValue(value);
-    const currentNumericValue = normalizedCurrentValue
-        ? Number(normalizedCurrentValue)
-        : null;
+    const scale = decimalPlaces(props.step);
+    const allowDecimal = scale === null || scale > 0;
+    const allowNegative = min === null || min < 0;
+    const normalizedCurrentValue = normalizeValue(
+        value,
+        allowDecimal,
+        allowNegative,
+    );
+    const displayValue = formatWithCommas(normalizedCurrentValue);
+    const parsedCurrentValue = Number(normalizedCurrentValue);
+    const currentNumericValue =
+        normalizedCurrentValue && Number.isFinite(parsedCurrentValue)
+            ? parsedCurrentValue
+            : null;
+
+    const serialize = (nextValue: number): string => {
+        if (!allowDecimal) {
+            return String(Math.trunc(nextValue));
+        }
+
+        if (scale === null) {
+            return String(nextValue);
+        }
+
+        return nextValue.toFixed(scale).replace(/(\.\d*?[1-9])0+$|\.0+$/, '$1');
+    };
 
     const updateClampedValue = (nextValue: number) => {
         const clamped = clampValue(nextValue, min, max);
-        onValueChange(String(Math.trunc(clamped)));
+        onValueChange(serialize(clamped));
+    };
+
+    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const sanitized = sanitizeNumeric(
+            event.target.value,
+            allowDecimal,
+            allowNegative,
+        );
+
+        onValueChange(sanitized);
+    };
+
+    const handleBlur = () => {
+        if (!normalizedCurrentValue || normalizedCurrentValue === '-') {
+            if (min !== null) {
+                onValueChange(serialize(min));
+            }
+
+            return;
+        }
+
+        updateClampedValue(Number(normalizedCurrentValue));
     };
 
     if (!showControls) {
         return (
             <Input
                 type="text"
-                inputMode="numeric"
+                inputMode={allowDecimal ? 'decimal' : 'numeric'}
                 value={displayValue}
-                onChange={(event) => {
-                    const sanitized = sanitizeNumeric(event.target.value);
-
-                    if (!sanitized) {
-                        onValueChange('');
-                        return;
-                    }
-
-                    updateClampedValue(Number(sanitized));
-                }}
-                onBlur={() => {
-                    if (!normalizedCurrentValue) {
-                        if (min !== null) {
-                            onValueChange(String(Math.trunc(min)));
-                        }
-
-                        return;
-                    }
-
-                    updateClampedValue(Number(normalizedCurrentValue));
-                }}
+                onChange={handleChange}
+                onBlur={handleBlur}
                 {...props}
             />
         );
@@ -163,29 +218,10 @@ export function NumericInput({
             </Button>
             <Input
                 type="text"
-                inputMode="numeric"
+                inputMode={allowDecimal ? 'decimal' : 'numeric'}
                 value={displayValue}
-                onChange={(event) => {
-                    const sanitized = sanitizeNumeric(event.target.value);
-
-                    if (!sanitized) {
-                        onValueChange('');
-                        return;
-                    }
-
-                    updateClampedValue(Number(sanitized));
-                }}
-                onBlur={() => {
-                    if (!normalizedCurrentValue) {
-                        if (min !== null) {
-                            onValueChange(String(Math.trunc(min)));
-                        }
-
-                        return;
-                    }
-
-                    updateClampedValue(Number(normalizedCurrentValue));
-                }}
+                onChange={handleChange}
+                onBlur={handleBlur}
                 className="h-9 rounded-none border-0 text-center shadow-none focus-visible:ring-0"
                 {...props}
             />
