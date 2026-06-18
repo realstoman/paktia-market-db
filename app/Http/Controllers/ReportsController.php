@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\PermissionEnum;
 use App\Jobs\RenderReportExportJob;
-use App\Models\Branch;
+use App\Models\Property;
 use App\Models\CashMovement;
 use App\Models\Employee;
 use App\Models\Expense;
@@ -31,7 +31,7 @@ class ReportsController extends Controller
         'inventory',
         'employees',
         'finance',
-        'branches',
+        'properties',
         'users',
     ];
 
@@ -144,7 +144,7 @@ class ReportsController extends Controller
             'range' => ['nullable', 'in:today,yesterday,this_week,this_month,last_30_days,year_to_date,custom'],
             'start_date' => ['nullable', 'date'],
             'end_date' => ['nullable', 'date'],
-            'branch_id' => ['nullable', 'exists:branches,id'],
+            'property_id' => ['nullable', 'exists:properties,id'],
             'module' => ['nullable', 'in:'.implode(',', self::MODULES)],
         ]);
 
@@ -154,7 +154,7 @@ class ReportsController extends Controller
             $validated['start_date'] ?? null,
             $validated['end_date'] ?? null,
         );
-        $branchId = isset($validated['branch_id']) ? (int) $validated['branch_id'] : null;
+        $propertyId = isset($validated['property_id']) ? (int) $validated['property_id'] : null;
         $module = $validated['module'] ?? 'inventory';
         $modules = self::MODULES;
 
@@ -168,31 +168,31 @@ class ReportsController extends Controller
             ->values()
             ->all();
 
-        $inventoryQuery = InventoryItem::query()->when($branchId, fn ($query) => $query->where('branch_id', $branchId));
+        $inventoryQuery = InventoryItem::query()->when($propertyId, fn ($query) => $query->where('property_id', $propertyId));
         $expenseQuery = Expense::query()
-            ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+            ->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))
             ->whereBetween('expense_date', [$startDate->toDateString(), $endDate->toDateString()]);
-        $employeeQuery = Employee::query()->when($branchId, fn ($query) => $query->where('branch_id', $branchId));
+        $employeeQuery = Employee::query()->when($propertyId, fn ($query) => $query->where('property_id', $propertyId));
 
         $overview = [
             ['key' => 'inventory', 'title' => __('reports.catalog.inventory.title'), 'primary' => (int) (clone $inventoryQuery)->count(), 'primaryLabel' => __('reports.overview.stock_items'), 'secondary' => (float) (clone $inventoryQuery)->selectRaw('COALESCE(SUM(quantity * unit_price), 0) as total')->value('total'), 'secondaryLabel' => __('reports.overview.stock_value'), 'secondaryFormat' => 'currency'],
             ['key' => 'employees', 'title' => __('reports.catalog.employees.title'), 'primary' => (int) (clone $employeeQuery)->count(), 'primaryLabel' => __('reports.overview.employees'), 'secondary' => (int) (clone $employeeQuery)->where('is_active', true)->count(), 'secondaryLabel' => __('reports.overview.active_employees')],
             ['key' => 'finance', 'title' => __('reports.catalog.finance.title'), 'primary' => (float) (clone $expenseQuery)->where('approval_status', 'approved')->sum('amount'), 'primaryLabel' => __('reports.overview.approved_expenses'), 'primaryFormat' => 'currency', 'secondary' => (int) (clone $expenseQuery)->where('approval_status', 'submitted')->count(), 'secondaryLabel' => __('reports.overview.pending_approvals')],
-            ['key' => 'branches', 'title' => __('reports.catalog.branches.title'), 'primary' => Branch::query()->count(), 'primaryLabel' => __('reports.overview.branches'), 'secondary' => Branch::query()->where('is_active', true)->count(), 'secondaryLabel' => __('reports.overview.active_branches')],
+            ['key' => 'properties', 'title' => __('reports.catalog.properties.title'), 'primary' => Property::query()->count(), 'primaryLabel' => __('reports.overview.properties'), 'secondary' => Property::query()->where('is_active', true)->count(), 'secondaryLabel' => __('reports.overview.active_properties')],
             ['key' => 'users', 'title' => __('reports.catalog.users.title'), 'primary' => User::query()->count(), 'primaryLabel' => __('reports.overview.accounts'), 'secondary' => User::query()->where('is_active', true)->count(), 'secondaryLabel' => __('reports.overview.active_accounts')],
         ];
 
         $activeReport = match ($module) {
             'employees' => $this->marketEmployeesReport($employeeQuery),
             'finance' => $this->marketFinanceReport($expenseQuery),
-            'branches' => $this->marketBranchesReport(),
-            'users' => $this->marketUsersReport($branchId),
+            'properties' => $this->marketPropertiesReport(),
+            'users' => $this->marketUsersReport($propertyId),
             default => $this->marketInventoryReport($inventoryQuery),
         };
 
         return [
-            'branches' => Branch::query()->orderBy('name')->get(['id', 'name'])->toArray(),
-            'filters' => ['range' => $range, 'startDate' => $startDate->toDateString(), 'endDate' => $endDate->toDateString(), 'branchId' => $branchId, 'module' => $module],
+            'properties' => Property::query()->orderBy('name')->get(['id', 'name'])->toArray(),
+            'filters' => ['range' => $range, 'startDate' => $startDate->toDateString(), 'endDate' => $endDate->toDateString(), 'propertyId' => $propertyId, 'module' => $module],
             'reportCatalog' => $catalog,
             'overview' => $overview,
             'activeReport' => $activeReport,
@@ -202,18 +202,18 @@ class ReportsController extends Controller
 
     private function marketInventoryReport(Builder $query): array
     {
-        $items = $query->with('branch:id,name')->orderBy('name')->get();
+        $items = $query->with('property:id,name')->orderBy('name')->get();
 
         return $this->marketReport('inventory', __('reports.reports.inventory.title'), __('reports.reports.inventory.description'), [
             ['key' => 'item', 'label' => __('reports.columns.item')],
-            ['key' => 'branch', 'label' => __('reports.columns.branch')],
+            ['key' => 'property', 'label' => __('reports.columns.property')],
             ['key' => 'quantity', 'label' => __('reports.columns.quantity')],
             ['key' => 'unit', 'label' => __('reports.columns.unit')],
             ['key' => 'value', 'label' => __('reports.columns.value')],
             ['key' => 'status', 'label' => __('reports.columns.status')],
         ], $items->map(fn (InventoryItem $item) => [
             'item' => $item->name,
-            'branch' => $item->branch?->name ?? __('reports.status.unassigned'),
+            'property' => $item->property?->name ?? __('reports.status.unassigned'),
             'quantity' => (float) $item->quantity,
             'unit' => $item->unit ?? '-',
             'value' => (float) $item->quantity * (float) ($item->unit_price ?? 0),
@@ -228,15 +228,15 @@ class ReportsController extends Controller
 
     private function marketEmployeesReport(Builder $query): array
     {
-        $employees = $query->with('branch:id,name')->orderBy('first_name')->get();
+        $employees = $query->with('property:id,name')->orderBy('first_name')->get();
         return $this->marketReport('employees', __('reports.reports.employees.title'), __('reports.reports.employees.description'), [
             ['key' => 'employee', 'label' => __('reports.columns.employee')],
-            ['key' => 'branch', 'label' => __('reports.columns.branch')],
+            ['key' => 'property', 'label' => __('reports.columns.property')],
             ['key' => 'position', 'label' => __('reports.columns.position')],
             ['key' => 'status', 'label' => __('reports.columns.status')],
         ], $employees->map(fn (Employee $employee) => [
             'employee' => trim($employee->first_name.' '.$employee->last_name),
-            'branch' => $employee->branch?->name ?? __('reports.status.unassigned'),
+            'property' => $employee->property?->name ?? __('reports.status.unassigned'),
             'position' => $employee->position ?? '-',
             'status' => $employee->is_active ? __('reports.status.active') : __('reports.status.inactive'),
         ])->all(), [], [
@@ -247,18 +247,18 @@ class ReportsController extends Controller
 
     private function marketFinanceReport(Builder $query): array
     {
-        $expenses = $query->with('branch:id,name')->latest('expense_date')->get();
+        $expenses = $query->with('property:id,name')->latest('expense_date')->get();
         return $this->marketReport('finance', __('reports.reports.finance.title'), __('reports.reports.finance.description'), [
             ['key' => 'date', 'label' => __('reports.columns.date')],
             ['key' => 'reference', 'label' => __('reports.columns.reference')],
-            ['key' => 'branch', 'label' => __('reports.columns.branch')],
+            ['key' => 'property', 'label' => __('reports.columns.property')],
             ['key' => 'description', 'label' => __('reports.columns.description')],
             ['key' => 'amount', 'label' => __('reports.columns.amount')],
             ['key' => 'status', 'label' => __('reports.columns.status')],
         ], $expenses->map(fn (Expense $expense) => [
             'date' => (string) $expense->expense_date,
             'reference' => __('reports.reference.expense', ['id' => $expense->id]),
-            'branch' => $expense->branch?->name ?? __('reports.status.unassigned'),
+            'property' => $expense->property?->name ?? __('reports.status.unassigned'),
             'description' => $expense->title,
             'amount' => (float) $expense->amount,
             'status' => $this->localizedReportStatus($expense->approval_status ?? 'draft'),
@@ -268,38 +268,38 @@ class ReportsController extends Controller
         ]);
     }
 
-    private function marketBranchesReport(): array
+    private function marketPropertiesReport(): array
     {
-        $branches = Branch::query()->withCount(['employees', 'inventoryItems'])->orderBy('name')->get();
-        return $this->marketReport('branches', __('reports.reports.branches.title'), __('reports.reports.branches.description'), [
-            ['key' => 'branch', 'label' => __('reports.columns.branch')],
+        $properties = Property::query()->withCount(['employees', 'inventoryItems'])->orderBy('name')->get();
+        return $this->marketReport('properties', __('reports.reports.properties.title'), __('reports.reports.properties.description'), [
+            ['key' => 'property', 'label' => __('reports.columns.property')],
             ['key' => 'status', 'label' => __('reports.columns.status')],
             ['key' => 'employees', 'label' => __('reports.columns.employees')],
             ['key' => 'inventory', 'label' => __('reports.columns.inventory')],
-        ], $branches->map(fn (Branch $branch) => [
-            'branch' => $branch->name,
-            'status' => $branch->is_active ? __('reports.status.active') : __('reports.status.inactive'),
-            'employees' => $branch->employees_count,
-            'inventory' => $branch->inventory_items_count,
+        ], $properties->map(fn (Property $property) => [
+            'property' => $property->name,
+            'status' => $property->is_active ? __('reports.status.active') : __('reports.status.inactive'),
+            'employees' => $property->employees_count,
+            'inventory' => $property->inventory_items_count,
         ])->all(), [], [
-            ['label' => __('reports.summary.branches'), 'value' => $branches->count(), 'format' => 'number'],
-            ['label' => __('reports.summary.active'), 'value' => $branches->where('is_active', true)->count(), 'format' => 'number'],
+            ['label' => __('reports.summary.properties'), 'value' => $properties->count(), 'format' => 'number'],
+            ['label' => __('reports.summary.active'), 'value' => $properties->where('is_active', true)->count(), 'format' => 'number'],
         ]);
     }
 
-    private function marketUsersReport(?int $branchId): array
+    private function marketUsersReport(?int $propertyId): array
     {
-        $users = User::query()->with(['roles:id,name', 'branch:id,name'])->when($branchId, fn ($query) => $query->where('branch_id', $branchId))->orderBy('name')->get();
+        $users = User::query()->with(['roles:id,name', 'property:id,name'])->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))->orderBy('name')->get();
         return $this->marketReport('users', __('reports.reports.users.title'), __('reports.reports.users.description'), [
             ['key' => 'user', 'label' => __('reports.columns.user')],
             ['key' => 'email', 'label' => __('reports.columns.email')],
-            ['key' => 'branch', 'label' => __('reports.columns.branch')],
+            ['key' => 'property', 'label' => __('reports.columns.property')],
             ['key' => 'roles', 'label' => __('reports.columns.roles')],
             ['key' => 'status', 'label' => __('reports.columns.status')],
         ], $users->map(fn (User $user) => [
             'user' => $user->name,
             'email' => $user->email,
-            'branch' => $user->branch?->name ?? __('reports.status.unassigned'),
+            'property' => $user->property?->name ?? __('reports.status.unassigned'),
             'roles' => $user->roles->pluck('name')->join(', '),
             'status' => $user->is_active ? __('reports.status.active') : __('reports.status.inactive'),
         ])->all(), [], [
@@ -338,11 +338,11 @@ class ReportsController extends Controller
         );
     }
 
-    private function resolveBranchName(array $data): string
+    private function resolvePropertyName(array $data): string
     {
-        $branch = collect($data['branches'])->firstWhere('id', $data['filters']['branchId']);
+        $property = collect($data['properties'])->firstWhere('id', $data['filters']['propertyId']);
 
-        return is_array($branch) ? (string) ($branch['name'] ?? 'All Branches') : 'All Branches';
+        return is_array($property) ? (string) ($property['name'] ?? 'All Properties') : 'All Properties';
     }
 
     private function resolvePeriod(

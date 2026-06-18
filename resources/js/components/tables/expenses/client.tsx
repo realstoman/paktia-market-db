@@ -44,7 +44,7 @@ import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
 import { useLocalization } from '@/lib/localization';
 import {
-    Branch,
+    Property,
     Expense,
     ExpenseCategory,
     FinanceAccount,
@@ -72,7 +72,7 @@ const APPROVAL_OPTIONS = [
 ];
 
 interface ExpenseFormState {
-    branch_id: string;
+    property_id: string;
     vendor_id: string;
     expense_category_id: string;
     account_id: string;
@@ -86,7 +86,7 @@ interface ExpenseFormState {
 }
 
 const emptyForm: ExpenseFormState = {
-    branch_id: '',
+    property_id: '',
     vendor_id: '',
     expense_category_id: '',
     account_id: '',
@@ -101,7 +101,7 @@ const emptyForm: ExpenseFormState = {
 
 interface ExpenseClientProps {
     expenses: Expense[];
-    branches: Branch[];
+    properties: Property[];
     expenseCategories: ExpenseCategory[];
     vendors: Vendor[];
     ledgerAccounts: FinanceAccount[];
@@ -111,7 +111,7 @@ interface ExpenseClientProps {
 
 export function ExpenseClient({
     expenses,
-    branches,
+    properties,
     expenseCategories,
     vendors,
     ledgerAccounts,
@@ -135,26 +135,26 @@ export function ExpenseClient({
         null,
     );
     const [form, setForm] = React.useState<ExpenseFormState>(emptyForm);
-    const [branchFilter, setBranchFilter] = React.useState('all');
+    const [propertyFilter, setPropertyFilter] = React.useState('all');
     const [categoryFilter, setCategoryFilter] = React.useState('all');
     const [statusFilter, setStatusFilter] = React.useState('all');
 
-    const branchOptions = React.useMemo(
+    const propertyOptions = React.useMemo(
         () =>
-            branches.map((branch) => ({
-                value: String(branch.id),
-                label: branch.name,
+            properties.map((property) => ({
+                value: String(property.id),
+                label: property.name,
             })),
-        [branches],
+        [properties],
     );
 
     useAutoSelectSingleOption(
-        branchOptions,
-        form.branch_id,
+        propertyOptions,
+        form.property_id,
         (value) =>
             setForm((current) => ({
                 ...current,
-                branch_id: value,
+                property_id: value,
             })),
     );
     const categoryOptions = React.useMemo(
@@ -201,7 +201,7 @@ export function ExpenseClient({
         setEditingExpense(expense);
         setReceiptFile(null);
         setForm({
-            branch_id: String(expense.branch_id),
+            property_id: String(expense.property_id),
             vendor_id: expense.vendor_id ? String(expense.vendor_id) : '',
             expense_category_id: expense.expense_category_id
                 ? String(expense.expense_category_id)
@@ -255,7 +255,7 @@ export function ExpenseClient({
 
     const submit = React.useCallback(() => {
         const payload: Record<string, string | number | null | File> = {
-            branch_id: Number(form.branch_id),
+            property_id: Number(form.property_id),
             vendor_id: form.vendor_id ? Number(form.vendor_id) : null,
             expense_category_id: Number(form.expense_category_id),
             account_id: form.account_id ? Number(form.account_id) : null,
@@ -353,8 +353,8 @@ export function ExpenseClient({
     const filteredExpenses = React.useMemo(() => {
         return expenses.filter((expense) => {
             if (
-                branchFilter !== 'all' &&
-                String(expense.branch_id) !== branchFilter
+                propertyFilter !== 'all' &&
+                String(expense.property_id) !== propertyFilter
             ) {
                 return false;
             }
@@ -375,7 +375,7 @@ export function ExpenseClient({
 
             return true;
         });
-    }, [branchFilter, categoryFilter, expenses, statusFilter]);
+    }, [propertyFilter, categoryFilter, expenses, statusFilter]);
 
     const columns = React.useMemo(
         () =>
@@ -396,26 +396,26 @@ export function ExpenseClient({
     const toolbar = (
         <div className="flex w-full flex-wrap justify-end gap-2 xl:flex-nowrap">
             <SearchableDropdown
-                value={branchFilter}
+                value={propertyFilter}
                 options={[
                     {
                         value: 'all',
                         label: t(
-                            'financeExpenses.filters.allBranches',
-                            'All Branches',
+                            'financeExpenses.filters.allProperties',
+                            'All Properties',
                         ),
                     },
-                    ...branchOptions,
+                    ...propertyOptions,
                 ]}
-                onValueChange={setBranchFilter}
-                placeholder={t('financeExpenses.filters.branch', 'Branch')}
+                onValueChange={setPropertyFilter}
+                placeholder={t('financeExpenses.filters.property', 'Property')}
                 searchPlaceholder={t(
-                    'financeExpenses.filters.searchBranches',
-                    'Search branches...',
+                    'financeExpenses.filters.searchProperties',
+                    'Search properties...',
                 )}
                 emptyText={t(
-                    'financeExpenses.filters.noBranchesFound',
-                    'No branches found.',
+                    'financeExpenses.filters.noPropertiesFound',
+                    'No properties found.',
                 )}
                 className="w-[180px] bg-white dark:bg-neutral-900"
             />
@@ -542,14 +542,14 @@ export function ExpenseClient({
                     data={filteredExpenses}
                     searchKey={[
                         'title',
-                        'branch.name',
+                        'property.name',
                         'expense_category.name',
                         'payment_method',
                         'approval_status',
                     ]}
                     searchPlaceholder={t(
                         'financeExpenses.table.searchPlaceholder',
-                        'Search expenses by title, branch, category, or status...',
+                        'Search expenses by title, property, category, or status...',
                     )}
                     toolbar={toolbar}
                 />
@@ -572,34 +572,34 @@ export function ExpenseClient({
                         <DialogDescription>
                             {t(
                                 'financeExpenses.form.description',
-                                'Record a finance expense with branch, category, payment method, amount, and optional approval status.',
+                                'Record a finance expense with property, category, payment method, amount, and optional approval status.',
                             )}
                         </DialogDescription>
                     </DialogHeader>
 
                     <div className="grid gap-4 py-2 md:grid-cols-2">
                         <div className="grid gap-2">
-                            <Label>{t('financeExpenses.form.branch', 'Branch')}</Label>
+                            <Label>{t('financeExpenses.form.property', 'Property')}</Label>
                             <SearchableDropdown
-                                value={form.branch_id}
-                                options={branchOptions}
+                                value={form.property_id}
+                                options={propertyOptions}
                                 onValueChange={(value) =>
                                     setForm((current) => ({
                                         ...current,
-                                        branch_id: value,
+                                        property_id: value,
                                     }))
                                 }
                                 placeholder={t(
-                                    'financeExpenses.form.selectBranch',
-                                    'Select branch',
+                                    'financeExpenses.form.selectProperty',
+                                    'Select property',
                                 )}
                                 searchPlaceholder={t(
-                                    'financeExpenses.filters.searchBranches',
-                                    'Search branches...',
+                                    'financeExpenses.filters.searchProperties',
+                                    'Search properties...',
                                 )}
                                 emptyText={t(
-                                    'financeExpenses.form.noBranchFound',
-                                    'No branch found.',
+                                    'financeExpenses.form.noPropertyFound',
+                                    'No property found.',
                                 )}
                             />
                         </div>
@@ -1035,10 +1035,10 @@ export function ExpenseClient({
                     }
                 }}
                 expense={printExpense}
-                branch={
+                property={
                     printExpense
-                        ? (branches.find(
-                              (branch) => branch.id === printExpense.branch_id,
+                        ? (properties.find(
+                              (property) => property.id === printExpense.property_id,
                           ) ?? null)
                         : null
                 }

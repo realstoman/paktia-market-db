@@ -24,7 +24,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
-import { Branch, Employee, EmployeeAdvance } from '@/types';
+import { Property, Employee, EmployeeAdvance } from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
 import { Link, router } from '@inertiajs/react';
 import { HandCoins, Plus } from 'lucide-react';
@@ -48,7 +48,7 @@ const REPAYMENT_METHODS = [
 
 interface AdvanceFormState {
     employee_id: string;
-    branch_id: string;
+    property_id: string;
     advance_date: string;
     amount: string;
     repayment_method: string;
@@ -58,7 +58,7 @@ interface AdvanceFormState {
 
 const emptyForm: AdvanceFormState = {
     employee_id: '',
-    branch_id: '',
+    property_id: '',
     advance_date: new Date().toISOString().slice(0, 10),
     amount: '',
     repayment_method: 'salary_deduction',
@@ -68,7 +68,7 @@ const emptyForm: AdvanceFormState = {
 
 interface EmployeeAdvanceClientProps {
     advances: EmployeeAdvance[];
-    branches: Branch[];
+    properties: Property[];
     employees: Employee[];
     printAdvanceId?: number | null;
     summary: {
@@ -84,17 +84,17 @@ function employeeLabel(employee: Employee) {
     const name =
         employee.full_name ||
         `${employee.first_name} ${employee.last_name}`.trim();
-    const branchName =
-        typeof employee.branch === 'string'
-            ? employee.branch
-            : employee.branch?.name;
+    const propertyName =
+        typeof employee.property === 'string'
+            ? employee.property
+            : employee.property?.name;
 
-    return branchName ? `${name} - ${branchName}` : name;
+    return propertyName ? `${name} - ${propertyName}` : name;
 }
 
 export function EmployeeAdvanceClient({
     advances,
-    branches,
+    properties,
     employees,
     printAdvanceId = null,
     summary,
@@ -108,26 +108,26 @@ export function EmployeeAdvanceClient({
         React.useState<EmployeeAdvance | null>(null);
     const [form, setForm] = React.useState<AdvanceFormState>(emptyForm);
     const [employeeFilter, setEmployeeFilter] = React.useState('all');
-    const [branchFilter, setBranchFilter] = React.useState('all');
+    const [propertyFilter, setPropertyFilter] = React.useState('all');
     const [statusFilter, setStatusFilter] = React.useState('all');
     const [repaymentFilter, setRepaymentFilter] = React.useState('all');
 
-    const branchOptions = React.useMemo(
+    const propertyOptions = React.useMemo(
         () =>
-            branches.map((branch) => ({
-                value: String(branch.id),
-                label: branch.name,
+            properties.map((property) => ({
+                value: String(property.id),
+                label: property.name,
             })),
-        [branches],
+        [properties],
     );
 
     useAutoSelectSingleOption(
-        branchOptions,
-        form.branch_id,
+        propertyOptions,
+        form.property_id,
         (value) =>
             setForm((current) => ({
                 ...current,
-                branch_id: value,
+                property_id: value,
             })),
     );
 
@@ -163,7 +163,7 @@ export function EmployeeAdvanceClient({
         setEditingAdvance(advance);
         setForm({
             employee_id: String(advance.employee_id),
-            branch_id: advance.branch_id ? String(advance.branch_id) : '',
+            property_id: advance.property_id ? String(advance.property_id) : '',
             advance_date: advance.advance_date.includes('T')
                 ? advance.advance_date.split('T')[0]
                 : advance.advance_date,
@@ -178,7 +178,7 @@ export function EmployeeAdvanceClient({
     const submit = React.useCallback(() => {
         const payload = {
             employee_id: Number(form.employee_id),
-            branch_id: form.branch_id ? Number(form.branch_id) : null,
+            property_id: form.property_id ? Number(form.property_id) : null,
             advance_date: form.advance_date,
             amount: Number(form.amount),
             repayment_method: form.repayment_method || null,
@@ -264,8 +264,8 @@ export function EmployeeAdvanceClient({
             }
 
             if (
-                branchFilter !== 'all' &&
-                String(advance.branch_id ?? '') !== branchFilter
+                propertyFilter !== 'all' &&
+                String(advance.property_id ?? '') !== propertyFilter
             ) {
                 return false;
             }
@@ -286,7 +286,7 @@ export function EmployeeAdvanceClient({
 
             return true;
         });
-    }, [advances, branchFilter, employeeFilter, repaymentFilter, statusFilter]);
+    }, [advances, propertyFilter, employeeFilter, repaymentFilter, statusFilter]);
 
     const columns = React.useMemo(
         () =>
@@ -331,29 +331,29 @@ export function EmployeeAdvanceClient({
                 className="w-[220px] bg-white dark:bg-neutral-900"
             />
             <SearchableDropdown
-                value={branchFilter}
+                value={propertyFilter}
                 options={[
                     {
                         value: 'all',
                         label: t(
-                            'financeEmployeeAdvances.filters.allBranches',
-                            'All Branches',
+                            'financeEmployeeAdvances.filters.allProperties',
+                            'All Properties',
                         ),
                     },
-                    ...branchOptions,
+                    ...propertyOptions,
                 ]}
-                onValueChange={setBranchFilter}
+                onValueChange={setPropertyFilter}
                 placeholder={t(
-                    'financeEmployeeAdvances.filters.branch',
-                    'Branch',
+                    'financeEmployeeAdvances.filters.property',
+                    'Property',
                 )}
                 searchPlaceholder={t(
-                    'financeEmployeeAdvances.filters.searchBranches',
-                    'Search branches...',
+                    'financeEmployeeAdvances.filters.searchProperties',
+                    'Search properties...',
                 )}
                 emptyText={t(
-                    'financeEmployeeAdvances.filters.noBranchFound',
-                    'No branch found.',
+                    'financeEmployeeAdvances.filters.noPropertyFound',
+                    'No property found.',
                 )}
                 className="w-[180px] bg-white dark:bg-neutral-900"
             />
@@ -574,17 +574,17 @@ export function EmployeeAdvanceClient({
                                 onValueChange={(value) => {
                                     const selectedEmployee =
                                         employeesById.get(value);
-                                    const selectedBranchId =
-                                        selectedEmployee?.branch_id != null
-                                            ? String(selectedEmployee.branch_id)
+                                    const selectedPropertyId =
+                                        selectedEmployee?.property_id != null
+                                            ? String(selectedEmployee.property_id)
                                             : '';
 
                                     setForm((current) => ({
                                         ...current,
                                         employee_id: value,
-                                        branch_id:
-                                            current.branch_id ||
-                                            selectedBranchId,
+                                        property_id:
+                                            current.property_id ||
+                                            selectedPropertyId,
                                     }));
                                 }}
                                 placeholder={t(
@@ -605,30 +605,30 @@ export function EmployeeAdvanceClient({
                         <div className="grid gap-2">
                             <Label>
                                 {t(
-                                    'financeEmployeeAdvances.form.branch',
-                                    'Branch',
+                                    'financeEmployeeAdvances.form.property',
+                                    'Property',
                                 )}
                             </Label>
                             <SearchableDropdown
-                                value={form.branch_id}
-                                options={branchOptions}
+                                value={form.property_id}
+                                options={propertyOptions}
                                 onValueChange={(value) =>
                                     setForm((current) => ({
                                         ...current,
-                                        branch_id: value,
+                                        property_id: value,
                                     }))
                                 }
                                 placeholder={t(
-                                    'financeEmployeeAdvances.form.selectBranch',
-                                    'Select branch',
+                                    'financeEmployeeAdvances.form.selectProperty',
+                                    'Select property',
                                 )}
                                 searchPlaceholder={t(
-                                    'financeEmployeeAdvances.filters.searchBranches',
-                                    'Search branches...',
+                                    'financeEmployeeAdvances.filters.searchProperties',
+                                    'Search properties...',
                                 )}
                                 emptyText={t(
-                                    'financeEmployeeAdvances.filters.noBranchFound',
-                                    'No branch found.',
+                                    'financeEmployeeAdvances.filters.noPropertyFound',
+                                    'No property found.',
                                 )}
                             />
                         </div>
@@ -795,10 +795,10 @@ export function EmployeeAdvanceClient({
                 open={isPrintOpen}
                 onOpenChange={setIsPrintOpen}
                 advance={printAdvance}
-                branch={
+                property={
                     printAdvance
-                        ? (branches.find(
-                              (branch) => branch.id === printAdvance.branch_id,
+                        ? (properties.find(
+                              (property) => property.id === printAdvance.property_id,
                           ) ?? null)
                         : null
                 }

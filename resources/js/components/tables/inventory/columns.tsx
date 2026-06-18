@@ -2,7 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
-    Branch,
+    Property,
     Currency,
     InventoryCategory,
     InventoryItem,
@@ -46,7 +46,7 @@ const getInitials = (value?: string) => {
 };
 
 export const buildColumns = (
-    branches: Branch[],
+    properties: Property[],
     vendors: Vendor[],
     currencies: Currency[],
     units: Unit[],
@@ -54,7 +54,7 @@ export const buildColumns = (
     inventoryTypes: InventoryType[],
     t: (key: string, fallback?: string) => string,
 ): ColumnDef<InventoryItem>[] => {
-    const branchById = new Map(branches.map((branch) => [branch.id, branch]));
+    const propertyById = new Map(properties.map((property) => [property.id, property]));
     const vendorById = new Map(vendors.map((vendor) => [vendor.id, vendor]));
 
     return [
@@ -112,12 +112,12 @@ export const buildColumns = (
             },
         },
         {
-            id: 'branch.name',
+            id: 'property.name',
             accessorFn: (row) =>
-                row.branch?.name ||
-                (row.branch_id ? branchById.get(row.branch_id)?.name : null) ||
+                row.property?.name ||
+                (row.property_id ? propertyById.get(row.property_id)?.name : null) ||
                 t('inventory.columns.unknown', 'Unknown'),
-            header: t('inventory.columns.branch', 'Branch'),
+            header: t('inventory.columns.property', 'Property'),
         },
         {
             id: 'vendor.name',
@@ -215,7 +215,7 @@ export const buildColumns = (
             cell: ({ row }) => (
                 <CellAction
                     data={row.original}
-                    branches={branches}
+                    properties={properties}
                     vendors={vendors}
                     currencies={currencies}
                     units={units}

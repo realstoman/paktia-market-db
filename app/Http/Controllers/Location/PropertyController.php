@@ -3,87 +3,87 @@
 namespace App\Http\Controllers\Location;
 
 use App\Http\Controllers\Controller;
-use App\Models\Branch;
+use App\Models\Property;
 use App\Models\Country;
 use App\Models\Province;
 use App\Models\PropertyFloor;
 use App\Models\PropertyUnit;
-use App\Services\Location\BranchService;
+use App\Services\Location\PropertyService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
-class BranchController extends Controller
+class PropertyController extends Controller
 {
-    public function index(BranchService $service)
+    public function index(PropertyService $service)
     {
-        return Inertia::render('location/branches/index', [
+        return Inertia::render('location/properties/index', [
             ...$service->getIndexData(),
             'countries' => Country::orderBy('name')->get(),
             'provinces' => Province::orderBy('name')->get(),
         ]);
     }
 
-    public function show(Branch $branch)
+    public function show(Property $property)
     {
-        return Inertia::render('location/branches/show', [
-            'branch' => $branch->load([
+        return Inertia::render('location/properties/show', [
+            'property' => $property->load([
                 'country', 'province',
                 'floors' => fn ($query) => $query->with('units')->orderBy('level_number'),
             ]),
         ]);
     }
 
-    public function update(Request $request, BranchService $service, Branch $branch)
+    public function update(Request $request, PropertyService $service, Property $property)
     {
         $validated = $this->validateProperty($request);
-        $validated = $this->storeImage($request, $validated, $branch);
+        $validated = $this->storeImage($request, $validated, $property);
 
-        $service->update($branch, $validated);
+        $service->update($property, $validated);
 
-        return redirect()->route('branches.index')
-            ->with('success', 'Branch updated successfully.');
+        return redirect()->route('properties.index')
+            ->with('success', 'Property updated successfully.');
     }
 
-    public function store(Request $request, BranchService $service)
+    public function store(Request $request, PropertyService $service)
     {
         $validated = $this->validateProperty($request);
         $validated = $this->storeImage($request, $validated);
 
         $service->create($validated);
 
-        return redirect()->route('branches.index')
-            ->with('success', 'Branch created successfully.');
+        return redirect()->route('properties.index')
+            ->with('success', 'Property created successfully.');
     }
 
-    public function disable(BranchService $service, Branch $branch)
+    public function disable(PropertyService $service, Property $property)
     {
-        $service->toggleActive($branch);
+        $service->toggleActive($property);
 
-        $message = $branch->is_active
-            ? 'Branch activated successfully.'
-            : 'Branch disabled successfully.';
+        $message = $property->is_active
+            ? 'Property activated successfully.'
+            : 'Property disabled successfully.';
 
-        return redirect()->route('branches.index')
+        return redirect()->route('properties.index')
             ->with('success', $message);
     }
 
-    public function destroy(BranchService $service, Branch $branch)
+    public function destroy(PropertyService $service, Property $property)
     {
-        $service->delete($branch);
+        $service->delete($property);
 
-        return redirect()->route('branches.index')
-            ->with('success', 'Branch deleted successfully.');
+        return redirect()->route('properties.index')
+            ->with('success', 'Property deleted successfully.');
     }
 
-    public function storeFloor(Request $request, Branch $branch)
+    public function storeFloor(Request $request, Property $property)
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100'],
             'level_number' => [
                 'required', 'integer', 'between:-10,200',
-                Rule::unique('property_floors')->where('branch_id', $branch->id),
+                Rule::unique('property_floors')->where('property_id', $property->id),
             ],
             'area_sqm' => ['nullable', 'numeric', 'min:0', 'max:9999999999'],
             'planned_units' => ['nullable', 'integer', 'min:0', 'max:10000'],
@@ -91,24 +91,24 @@ class BranchController extends Controller
             'description' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        $branch->floors()->create($validated);
+        $property->floors()->create($validated);
 
         return back()->with('success', 'Floor added successfully.');
     }
 
-    public function destroyFloor(Branch $branch, PropertyFloor $floor)
+    public function destroyFloor(Property $property, PropertyFloor $floor)
     {
-        abort_unless($floor->branch_id === $branch->id, 404);
+        abort_unless($floor->property_id === $property->id, 404);
         $floor->delete();
 
         return back()->with('success', 'Floor deleted successfully.');
     }
 
-    public function storeUnit(Request $request, Branch $branch, PropertyFloor $floor)
+    public function storeUnit(Request $request, Property $property, PropertyFloor $floor)
     {
-        abort_unless($floor->branch_id === $branch->id, 404);
+        abort_unless($floor->property_id === $property->id, 404);
 
-        $expectedType = in_array($branch->property_type, ['market', 'mall'], true) ? 'shop' : 'apartment';
+        $expectedType = in_array($property->property_type, ['market', 'mall'], true) ? 'shop' : 'apartment';
         $validated = $request->validate([
             'unit_number' => [
                 'required', 'string', 'max:50',
@@ -132,9 +132,9 @@ class BranchController extends Controller
         return back()->with('success', ucfirst($expectedType).' added successfully.');
     }
 
-    public function destroyUnit(Branch $branch, PropertyFloor $floor, PropertyUnit $unit)
+    public function destroyUnit(Property $property, PropertyFloor $floor, PropertyUnit $unit)
     {
-        abort_unless($floor->branch_id === $branch->id && $unit->property_floor_id === $floor->id, 404);
+        abort_unless($floor->property_id === $property->id && $unit->property_floor_id === $floor->id, 404);
         $unit->delete();
 
         return back()->with('success', 'Space deleted successfully.');
@@ -171,13 +171,13 @@ class BranchController extends Controller
         ]);
     }
 
-    private function storeImage(Request $request, array $validated, ?Branch $branch = null): array
+    private function storeImage(Request $request, array $validated, ?Property $property = null): array
     {
         unset($validated['image']);
 
         if ($request->hasFile('image')) {
-            if ($branch?->image_path) {
-                Storage::disk('public')->delete($branch->image_path);
+            if ($property?->image_path) {
+                Storage::disk('public')->delete($property->image_path);
             }
             $validated['image_path'] = $request->file('image')->store('properties', 'public');
         }

@@ -4,10 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class BranchSyncCredential extends Model
+class PropertySyncCredential extends Model
 {
     protected $fillable = [
-        'branch_id',
+        'property_id',
         'name',
         'token_hash',
         'abilities',
@@ -23,8 +23,8 @@ class BranchSyncCredential extends Model
         'revoked_at' => 'datetime',
     ];
 
-    public function branch()
+    public function property()
     {
-        return $this->belongsTo(Branch::class);
+        return $this->belongsTo(Property::class);
     }
 }

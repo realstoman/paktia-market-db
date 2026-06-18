@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\PaymentMethod;
 use App\Enums\PermissionEnum;
-use App\Models\Branch;
+use App\Models\Property;
 use App\Models\Employee;
 use App\Models\EmployeeAdvance;
 use App\Models\EmployeeContract;
@@ -34,10 +34,10 @@ class PayrollController extends Controller
 
         $runs = PayrollRun::query()
             ->with([
-                'branch:id,name',
+                'property:id,name',
                 'creator:id,name',
                 'approver:id,name',
-                'items.employee:id,first_name,last_name,branch_id',
+                'items.employee:id,first_name,last_name,property_id',
             ])
             ->withCount('items')
             ->orderByDesc('period_end')
@@ -53,10 +53,10 @@ class PayrollController extends Controller
 
                 return [
                     'id' => $run->id,
-                    'branch_id' => $run->branch_id,
-                    'branch' => $run->branch ? [
-                        'id' => $run->branch->id,
-                        'name' => $run->branch->name,
+                    'property_id' => $run->property_id,
+                    'property' => $run->property ? [
+                        'id' => $run->property->id,
+                        'name' => $run->property->name,
                     ] : null,
                     'period_start' => optional($run->period_start)->toDateString(),
                     'period_end' => optional($run->period_end)->toDateString(),
@@ -96,7 +96,7 @@ class PayrollController extends Controller
                                 'id' => $item->employee->id,
                                 'first_name' => $item->employee->first_name,
                                 'last_name' => $item->employee->last_name,
-                                'branch_id' => $item->employee->branch_id,
+                                'property_id' => $item->employee->property_id,
                             ] : null,
                             'salary_type' => $item->salary_type,
                             'gross_salary' => (float) $item->gross_salary,
@@ -121,11 +121,11 @@ class PayrollController extends Controller
             ->values();
 
         $activeEmployees = Employee::query()
-            ->with('branch:id,name')
+            ->with('property:id,name')
             ->where('is_active', true)
             ->orderBy('first_name')
             ->orderBy('last_name')
-            ->get(['id', 'first_name', 'last_name', 'branch_id', 'salary', 'contract_amount', 'salary_currency']);
+            ->get(['id', 'first_name', 'last_name', 'property_id', 'salary', 'contract_amount', 'salary_currency']);
 
         $outstandingAdvances = EmployeeAdvance::query()
             ->where('status', 'approved')
@@ -167,14 +167,14 @@ class PayrollController extends Controller
         ];
 
         $payrollGeneration = $this->buildPayrollGenerationStateMap(
-            Branch::query()->orderBy('name')->get(['id', 'name', 'address'])
+            Property::query()->orderBy('name')->get(['id', 'name', 'address'])
         );
 
         $contracts = Schema::hasTable('employee_contracts') && Schema::hasTable('employee_contract_payment_schedules')
             ? EmployeeContract::query()
                 ->with([
-                    'employee:id,first_name,last_name,branch_id',
-                    'branch:id,name',
+                    'employee:id,first_name,last_name,property_id',
+                    'property:id,name',
                     'schedules',
                 ])
                 ->orderByDesc('id')
@@ -190,12 +190,12 @@ class PayrollController extends Controller
                             'id' => $contract->employee->id,
                             'first_name' => $contract->employee->first_name,
                             'last_name' => $contract->employee->last_name,
-                            'branch_id' => $contract->employee->branch_id,
+                            'property_id' => $contract->employee->property_id,
                         ] : null,
-                        'branch_id' => $contract->branch_id,
-                        'branch' => $contract->branch ? [
-                            'id' => $contract->branch->id,
-                            'name' => $contract->branch->name,
+                        'property_id' => $contract->property_id,
+                        'property' => $contract->property ? [
+                            'id' => $contract->property->id,
+                            'name' => $contract->property->name,
                         ] : null,
                         'contract_amount' => (float) $contract->contract_amount,
                         'start_date' => optional($contract->start_date)->toDateString(),
@@ -237,11 +237,11 @@ class PayrollController extends Controller
         return Inertia::render('finance/payroll/index', [
             'runs' => $runs,
             'contracts' => $contracts,
-            'branches' => $payrollGeneration['branches'],
+            'properties' => $payrollGeneration['properties'],
             'employees' => $activeEmployees,
             'afghanPayrollMonths' => $payrollGeneration['months'],
             'currentAfghanPayrollMonth' => $payrollGeneration['defaultMonth'],
-            'payrollGeneration' => $payrollGeneration['stateByBranch'],
+            'payrollGeneration' => $payrollGeneration['stateByProperty'],
             'summary' => $summary,
             'canCreate' => Gate::allows(PermissionEnum::PAYROLL_CREATE->value),
             'canApprove' => Gate::allows(PermissionEnum::PAYROLL_APPROVE->value),
@@ -254,7 +254,7 @@ class PayrollController extends Controller
         Gate::authorize(PermissionEnum::PAYROLL_CREATE->value);
 
         $validated = $request->validate([
-            'branch_id' => ['nullable', 'exists:branches,id'],
+            'property_id' => ['nullable', 'exists:properties,id'],
             'afghan_year' => ['nullable', 'integer', 'min:1300', 'max:1600'],
             'afghan_month' => ['nullable', 'integer', 'min:1', 'max:12'],
             'period_start' => ['required_without:afghan_month', 'date_format:Y-m-d'],
@@ -264,14 +264,14 @@ class PayrollController extends Controller
             'notes' => ['nullable', 'string', 'max:2000'],
         ]);
 
-        $branchId = isset($validated['branch_id']) ? (int) $validated['branch_id'] : null;
+        $propertyId = isset($validated['property_id']) ? (int) $validated['property_id'] : null;
         $status = $validated['status'] ?? 'draft';
         $payrollMonth = isset($validated['afghan_year'], $validated['afghan_month'])
             ? AfghanCalendar::monthRange((int) $validated['afghan_year'], (int) $validated['afghan_month'])
             : AfghanCalendar::monthForDate($validated['period_end'] ?? null);
         $periodStart = $payrollMonth['start'];
         $periodEnd = $payrollMonth['end'];
-        $generationState = $this->resolvePayrollGenerationState($branchId);
+        $generationState = $this->resolvePayrollGenerationState($propertyId);
 
         if ($generationState['open_run']) {
             return redirect()
@@ -301,11 +301,11 @@ class PayrollController extends Controller
         }
 
         $employees = Employee::query()
-            ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+            ->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))
             ->where('is_active', true)
             ->orderBy('first_name')
             ->orderBy('last_name')
-            ->get(['id', 'branch_id', 'salary', 'contract_amount']);
+            ->get(['id', 'property_id', 'salary', 'contract_amount']);
 
         $payableEmployees = $employees
             ->map(function (Employee $employee) {
@@ -329,9 +329,9 @@ class PayrollController extends Controller
             ->where('period_start', $periodStart)
             ->where('period_end', $periodEnd)
             ->when(
-                $branchId,
-                fn ($query) => $query->where('branch_id', $branchId),
-                fn ($query) => $query->whereNull('branch_id'),
+                $propertyId,
+                fn ($query) => $query->where('property_id', $propertyId),
+                fn ($query) => $query->whereNull('property_id'),
             )
             ->exists();
 
@@ -341,9 +341,9 @@ class PayrollController extends Controller
                 ->withErrors(['payroll' => 'A payroll run for '.$payrollMonth['label'].' already exists.']);
         }
 
-        DB::transaction(function () use ($branchId, $payableEmployees, $payrollMonth, $periodEnd, $periodStart, $request, $status, $validated) {
+        DB::transaction(function () use ($propertyId, $payableEmployees, $payrollMonth, $periodEnd, $periodStart, $request, $status, $validated) {
             $run = PayrollRun::create([
-                'branch_id' => $branchId,
+                'property_id' => $propertyId,
                 'period_start' => $periodStart,
                 'period_end' => $periodEnd,
                 'status' => $status,
@@ -360,7 +360,7 @@ class PayrollController extends Controller
                         employee: $employee,
                         periodStart: Carbon::parse($periodStart),
                         periodEnd: Carbon::parse($periodEnd),
-                        branchId: $branchId,
+                        propertyId: $propertyId,
                     )
                     : [];
 
@@ -368,9 +368,9 @@ class PayrollController extends Controller
                     ? (float) $row['base_salary'] * max(1, count($coveredPeriods))
                     : (Schema::hasTable('employee_contract_payment_schedules') && Schema::hasTable('employee_contracts')
                         ? (float) EmployeeContractPaymentSchedule::query()
-                            ->whereHas('contract', function ($query) use ($employee, $branchId) {
+                            ->whereHas('contract', function ($query) use ($employee, $propertyId) {
                                 $query->where('employee_id', $employee->id)
-                                    ->when($branchId, fn ($contractQuery) => $contractQuery->where('branch_id', $branchId))
+                                    ->when($propertyId, fn ($contractQuery) => $contractQuery->where('property_id', $propertyId))
                                     ->whereIn('status', ['submitted', 'approved', 'active']);
                             })
                             ->whereBetween('due_date', [
@@ -487,8 +487,8 @@ class PayrollController extends Controller
                         ->whereHas('contract', function ($query) use ($item, $payrollRun) {
                             $query->where('employee_id', $item->employee_id)
                                 ->when(
-                                    $payrollRun->branch_id,
-                                    fn ($contractQuery) => $contractQuery->where('branch_id', $payrollRun->branch_id),
+                                    $payrollRun->property_id,
+                                    fn ($contractQuery) => $contractQuery->where('property_id', $payrollRun->property_id),
                                 );
                         })
                         ->whereBetween('due_date', [
@@ -564,7 +564,7 @@ class PayrollController extends Controller
         Employee $employee,
         Carbon $periodStart,
         Carbon $periodEnd,
-        ?int $branchId,
+        ?int $propertyId,
     ): array {
         $anchorDay = $periodEnd->day;
         $periodEndAnchor = $periodEnd->copy()->startOfDay();
@@ -582,8 +582,8 @@ class PayrollController extends Controller
             ->where('employee_id', $employee->id)
             ->where('salary_type', 'fixed_salary')
             ->when(
-                $branchId,
-                fn ($query) => $query->whereHas('payrollRun', fn ($runQuery) => $runQuery->where('branch_id', $branchId)),
+                $propertyId,
+                fn ($query) => $query->whereHas('payrollRun', fn ($runQuery) => $runQuery->where('property_id', $propertyId)),
             )
             ->get(['covered_period_dates', 'payment_date'])
             ->flatMap(function (PayrollRunItem $item) {
@@ -633,10 +633,10 @@ class PayrollController extends Controller
     }
 
     /**
-     * @param  \Illuminate\Support\Collection<int, Branch>  $branches
-     * @return array{branches:\Illuminate\Support\Collection<int, Branch>, months:array<int, array<string, mixed>>, defaultMonth:?array<string, mixed>, stateByBranch:array<string, mixed>}
+     * @param  \Illuminate\Support\Collection<int, Property>  $properties
+     * @return array{properties:\Illuminate\Support\Collection<int, Property>, months:array<int, array<string, mixed>>, defaultMonth:?array<string, mixed>, stateByProperty:array<string, mixed>}
      */
-    private function buildPayrollGenerationStateMap($branches): array
+    private function buildPayrollGenerationStateMap($properties): array
     {
         $closedThrough = Carbon::today()->subDay();
         $months = collect(AfghanCalendar::payrollMonthOptions(previous: 6, next: 0))
@@ -646,32 +646,32 @@ class PayrollController extends Controller
 
         $defaultMonth = ! empty($months) ? end($months) : null;
 
-        $stateByBranch = [
+        $stateByProperty = [
             'all' => $this->resolvePayrollGenerationState(null),
         ];
 
-        foreach ($branches as $branch) {
-            $stateByBranch[(string) $branch->id] = $this->resolvePayrollGenerationState($branch->id);
+        foreach ($properties as $property) {
+            $stateByProperty[(string) $property->id] = $this->resolvePayrollGenerationState($property->id);
         }
 
         return [
-            'branches' => $branches,
+            'properties' => $properties,
             'months' => $months,
             'defaultMonth' => $defaultMonth,
-            'stateByBranch' => $stateByBranch,
+            'stateByProperty' => $stateByProperty,
         ];
     }
 
     /**
      * @return array{next_due_month:?array<string, mixed>, open_run:?array<string, mixed>, latest_paid_month:?string}
      */
-    private function resolvePayrollGenerationState(?int $branchId): array
+    private function resolvePayrollGenerationState(?int $propertyId): array
     {
         $query = PayrollRun::query()
             ->when(
-                $branchId !== null,
-                fn ($runQuery) => $runQuery->where('branch_id', $branchId),
-                fn ($runQuery) => $runQuery->whereNull('branch_id'),
+                $propertyId !== null,
+                fn ($runQuery) => $runQuery->where('property_id', $propertyId),
+                fn ($runQuery) => $runQuery->whereNull('property_id'),
             );
 
         $openRun = (clone $query)
@@ -902,7 +902,7 @@ class PayrollController extends Controller
 
         $validated = $request->validate([
             'employee_id' => ['required', 'exists:employees,id'],
-            'branch_id' => ['nullable', 'exists:branches,id'],
+            'property_id' => ['nullable', 'exists:properties,id'],
             'contract_amount' => ['required', 'numeric', 'min:1'],
             'start_date' => ['required', 'date_format:Y-m-d'],
             'end_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:start_date'],
@@ -936,7 +936,7 @@ class PayrollController extends Controller
 
             $contract = EmployeeContract::create([
                 'employee_id' => $validated['employee_id'],
-                'branch_id' => $validated['branch_id'] ?? null,
+                'property_id' => $validated['property_id'] ?? null,
                 'contract_amount' => $validated['contract_amount'],
                 'start_date' => $validated['start_date'],
                 'end_date' => $validated['end_date'] ?? null,
@@ -1017,7 +1017,7 @@ class PayrollController extends Controller
 
         $validated = $request->validate([
             'employee_id' => ['required', 'exists:employees,id'],
-            'branch_id' => ['nullable', 'exists:branches,id'],
+            'property_id' => ['nullable', 'exists:properties,id'],
             'contract_amount' => ['required', 'numeric', 'min:1'],
             'start_date' => ['required', 'date_format:Y-m-d'],
             'end_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:start_date'],
@@ -1029,7 +1029,7 @@ class PayrollController extends Controller
 
         $contract->update([
             'employee_id' => $validated['employee_id'],
-            'branch_id' => $validated['branch_id'] ?? null,
+            'property_id' => $validated['property_id'] ?? null,
             'contract_amount' => $validated['contract_amount'],
             'start_date' => $validated['start_date'],
             'end_date' => $validated['end_date'] ?? null,

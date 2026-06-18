@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useLocalization } from '@/lib/localization';
-import { Branch, Expense } from '@/types';
+import { Property, Expense } from '@/types';
 import { formatAfn } from '@/utils/format';
 import { Printer, ReceiptText } from 'lucide-react';
 
@@ -17,7 +17,7 @@ interface ExpenseVoucherPrintDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     expense: Expense | null;
-    branch: Branch | null;
+    property: Property | null;
 }
 
 const formatDateTime = (value?: string | null) => {
@@ -58,7 +58,7 @@ export function ExpenseVoucherPrintDialog({
     open,
     onOpenChange,
     expense,
-    branch,
+    property,
 }: ExpenseVoucherPrintDialogProps) {
     const { t } = useLocalization();
     const printVoucher = () => {
@@ -149,7 +149,7 @@ export function ExpenseVoucherPrintDialog({
                             <div class="brand">
                                 <img src="${brand.logoFull.startsWith('http') ? brand.logoFull : `${window.location.origin}${brand.logoFull}`}" alt="${brand.name} Logo" />
                                 <h1>Paktia Market</h1>
-                                <p>${escapeHtml(branch?.name ?? t('financeExpenses.print.mainBranch', 'Main Branch'))} • ${escapeHtml(branch?.address ?? t('financeExpenses.print.addressNotSet', 'Address not set'))}</p>
+                                <p>${escapeHtml(property?.name ?? t('financeExpenses.print.mainProperty', 'Main Property'))} • ${escapeHtml(property?.address ?? t('financeExpenses.print.addressNotSet', 'Address not set'))}</p>
                             </div>
                             <div class="header-right">
                                 <p class="header-label">${escapeHtml(t('financeExpenses.print.document', 'Document'))}</p>
@@ -276,13 +276,13 @@ export function ExpenseVoucherPrintDialog({
                                             Paktia Market
                                         </p>
                                         <p className="text-sm text-muted-foreground">
-                                            {branch?.name ??
+                                            {property?.name ??
                                                 t(
-                                                    'financeExpenses.print.mainBranch',
-                                                    'Main Branch',
+                                                    'financeExpenses.print.mainProperty',
+                                                    'Main Property',
                                                 )}{' '}
                                             •{' '}
-                                            {branch?.address ??
+                                            {property?.address ??
                                                 t(
                                                     'financeExpenses.print.addressNotSet',
                                                     'Address not set',

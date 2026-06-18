@@ -15,7 +15,7 @@ class EmployeeContract extends Model
 
     protected $fillable = [
         'employee_id',
-        'branch_id',
+        'property_id',
         'contract_amount',
         'start_date',
         'end_date',
@@ -36,9 +36,9 @@ class EmployeeContract extends Model
         return $this->belongsTo(Employee::class);
     }
 
-    public function branch(): BelongsTo
+    public function property(): BelongsTo
     {
-        return $this->belongsTo(Branch::class);
+        return $this->belongsTo(Property::class);
     }
 
     public function schedules(): HasMany

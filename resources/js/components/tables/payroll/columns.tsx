@@ -51,10 +51,10 @@ export function buildColumns({
                     <p className="text-xs text-muted-foreground">
                         {row.original.period_start} to {row.original.period_end}{' '}
                         •{' '}
-                        {row.original.branch?.name ??
+                        {row.original.property?.name ??
                             t(
-                                'financePayroll.filters.allBranches',
-                                'All Branches',
+                                'financePayroll.filters.allProperties',
+                                'All Properties',
                             )}
                     </p>
                 </div>

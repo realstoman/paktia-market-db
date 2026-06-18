@@ -105,9 +105,9 @@ export function buildColumns({
             ),
         },
         {
-            id: 'branch.name',
-            accessorFn: (row) => row.branch?.name ?? '-',
-            header: t('financeExpenses.table.branch', 'Branch'),
+            id: 'property.name',
+            accessorFn: (row) => row.property?.name ?? '-',
+            header: t('financeExpenses.table.property', 'Property'),
         },
         {
             id: 'expense_category.name',

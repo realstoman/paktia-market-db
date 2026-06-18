@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\PaymentMethod;
-use App\Models\Branch;
+use App\Models\Property;
 use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\FinanceAccount;
@@ -41,7 +41,7 @@ class ExpenseController extends Controller
         return Inertia::render('finance/expenses/index', [
             'expenses' => Expense::query()
                 ->with([
-                    'branch:id,name',
+                    'property:id,name',
                     'vendor:id,name',
                     'expenseCategory:id,name,expense_account_id',
                     'account:id,code,name',
@@ -52,7 +52,7 @@ class ExpenseController extends Controller
                 ->orderByDesc('expense_date')
                 ->orderByDesc('id')
                 ->get(),
-            'branches' => Branch::orderBy('name')->get(['id', 'name', 'address']),
+            'properties' => Property::orderBy('name')->get(['id', 'name', 'address']),
             'expenseCategories' => ExpenseCategory::query()
                 ->where('is_active', true)
                 ->orderBy('sort_order')
@@ -82,7 +82,7 @@ class ExpenseController extends Controller
         $approvalStatus = $validated['approval_status'] ?? 'draft';
 
         $expense = Expense::create([
-            'branch_id' => $validated['branch_id'],
+            'property_id' => $validated['property_id'],
             'vendor_id' => $validated['vendor_id'] ?? null,
             'title' => $validated['title'],
             'expense_type' => $category->slug,
@@ -133,11 +133,11 @@ class ExpenseController extends Controller
         $approvalStatus = $validated['approval_status'] ?? $expense->approval_status ?? 'draft';
 
         $previousStatus = $expense->approval_status ?? 'draft';
-        $previousBranchId = $expense->branch_id;
+        $previousPropertyId = $expense->property_id;
         $previousExpenseDate = $expense->expense_date;
 
         $expense->update([
-            'branch_id' => $validated['branch_id'],
+            'property_id' => $validated['property_id'],
             'vendor_id' => $validated['vendor_id'] ?? null,
             'title' => $validated['title'],
             'expense_type' => $category->slug,
@@ -224,7 +224,7 @@ class ExpenseController extends Controller
     protected function validateExpense(Request $request): array
     {
         return $request->validate([
-            'branch_id' => ['required', 'exists:branches,id'],
+            'property_id' => ['required', 'exists:properties,id'],
             'vendor_id' => ['nullable', 'exists:vendors,id'],
             'expense_category_id' => ['required', 'exists:expense_categories,id'],
             'account_id' => ['nullable', 'exists:finance_accounts,id'],

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\PaymentMethod;
-use App\Models\Branch;
+use App\Models\Property;
 use App\Models\CashMovement;
 use App\Models\EmployeeAdvance;
 use App\Models\Expense;
@@ -37,7 +37,7 @@ class FinanceController extends Controller
             'range' => ['nullable', 'in:today,yesterday,this_week,this_month,custom'],
             'start_date' => ['nullable', 'date_format:Y-m-d'],
             'end_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:start_date'],
-            'branch_id' => ['nullable', 'exists:branches,id'],
+            'property_id' => ['nullable', 'exists:properties,id'],
             'payment_method' => ['nullable', Rule::enum(PaymentMethod::class)],
             'category' => ['nullable', 'exists:expense_categories,id'],
             'page' => ['nullable', 'integer', 'min:1'],
@@ -45,14 +45,14 @@ class FinanceController extends Controller
 
         [$startDate, $endDate, $range] = $this->resolveDateRange($validated);
 
-        $branchId = isset($validated['branch_id']) ? (int) $validated['branch_id'] : null;
+        $propertyId = isset($validated['property_id']) ? (int) $validated['property_id'] : null;
         $paymentMethod = $validated['payment_method'] ?? null;
         $category = $validated['category'] ?? null;
 
         $allEntries = $this->buildMarketLedger(
             startDate: $startDate,
             endDate: $endDate,
-            branchId: $branchId,
+            propertyId: $propertyId,
             category: $category,
             limit: null,
         );
@@ -75,11 +75,11 @@ class FinanceController extends Controller
                 'range' => $range,
                 'startDate' => $startDate->toDateString(),
                 'endDate' => $endDate->toDateString(),
-                'branchId' => $branchId,
+                'propertyId' => $propertyId,
                 'paymentMethod' => $paymentMethod,
                 'category' => $category,
             ],
-            'branches' => Branch::orderBy('name')->get(['id', 'name']),
+            'properties' => Property::orderBy('name')->get(['id', 'name']),
             'expenseCategories' => ExpenseCategory::query()
                 ->where('is_active', true)
                 ->orderBy('sort_order')
@@ -109,16 +109,16 @@ class FinanceController extends Controller
             'range' => ['nullable', 'in:today,yesterday,this_week,this_month,custom'],
             'start_date' => ['nullable', 'date_format:Y-m-d'],
             'end_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:start_date'],
-            'branch_id' => ['nullable', 'exists:branches,id'],
+            'property_id' => ['nullable', 'exists:properties,id'],
             'page' => ['nullable', 'integer', 'min:1'],
         ]);
 
         [$startDate, $endDate, $range] = $this->resolveDateRange($validated);
-        $branchId = isset($validated['branch_id']) ? (int) $validated['branch_id'] : null;
+        $propertyId = isset($validated['property_id']) ? (int) $validated['property_id'] : null;
 
         $valuationItems = InventoryItem::query()
-            ->with(['branch:id,name', 'vendor:id,name'])
-            ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+            ->with(['property:id,name', 'vendor:id,name'])
+            ->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))
             ->orderByDesc(DB::raw('quantity * unit_price'))
             ->orderBy('name')
             ->get()
@@ -136,7 +136,7 @@ class FinanceController extends Controller
                 return [
                     'id' => $item->id,
                     'name' => $item->name,
-                    'branch' => $item->branch?->name ?? 'Unassigned',
+                    'property' => $item->property?->name ?? 'Unassigned',
                     'vendor' => $item->vendor?->name ?? '-',
                     'quantity' => (float) $item->quantity,
                     'unit' => $item->unit ?? 'unit',
@@ -149,8 +149,8 @@ class FinanceController extends Controller
 
         $transactionBaseQuery = DB::table('inventory_transactions')
             ->join('inventory_items', 'inventory_items.id', '=', 'inventory_transactions.inventory_item_id')
-            ->leftJoin('branches', 'branches.id', '=', 'inventory_items.branch_id')
-            ->when($branchId, fn ($query) => $query->where('inventory_items.branch_id', $branchId))
+            ->leftJoin('properties', 'properties.id', '=', 'inventory_items.property_id')
+            ->when($propertyId, fn ($query) => $query->where('inventory_items.property_id', $propertyId))
             ->whereBetween('inventory_transactions.created_at', [$startDate, $endDate]);
 
         $costExpression = 'COALESCE(inventory_transactions.total_cost, ABS(inventory_transactions.quantity) * inventory_items.unit_price)';
@@ -192,7 +192,7 @@ class FinanceController extends Controller
                 'inventory_items.name as item_name',
                 'inventory_items.unit as item_unit',
                 'inventory_items.unit_price as fallback_unit_price',
-                'branches.name as branch_name',
+                'properties.name as property_name',
             ])
             ->orderByDesc('inventory_transactions.created_at')
             ->get()
@@ -206,7 +206,7 @@ class FinanceController extends Controller
                     'date' => (string) $row->created_at,
                     'action' => str($row->action)->replace('_', ' ')->title()->toString(),
                     'itemName' => (string) $row->item_name,
-                    'branch' => $row->branch_name ?? 'Unassigned',
+                    'property' => $row->property_name ?? 'Unassigned',
                     'quantity' => (float) $row->quantity,
                     'unit' => $row->item_unit ?? 'unit',
                     'unitCost' => $row->unit_cost !== null
@@ -239,9 +239,9 @@ class FinanceController extends Controller
                 'range' => $range,
                 'startDate' => $startDate->toDateString(),
                 'endDate' => $endDate->toDateString(),
-                'branchId' => $branchId,
+                'propertyId' => $propertyId,
             ],
-            'branches' => Branch::orderBy('name')->get(['id', 'name']),
+            'properties' => Property::orderBy('name')->get(['id', 'name']),
             'summary' => $summary,
             'valuationItems' => $valuationItems->take(40)->values(),
             'movementEntries' => $paginatedMovements->items(),
@@ -283,33 +283,33 @@ class FinanceController extends Controller
             'range' => ['nullable', 'in:today,yesterday,this_week,this_month,custom'],
             'start_date' => ['nullable', 'date_format:Y-m-d'],
             'end_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:start_date'],
-            'branch_id' => ['nullable', 'exists:branches,id'],
+            'property_id' => ['nullable', 'exists:properties,id'],
             'payment_method' => ['nullable', Rule::enum(PaymentMethod::class)],
             'category' => ['nullable', 'exists:expense_categories,id'],
         ]);
 
         [$startDate, $endDate, $range] = $this->resolveDateRange($validated);
-        $branchId = isset($validated['branch_id']) ? (int) $validated['branch_id'] : null;
+        $propertyId = isset($validated['property_id']) ? (int) $validated['property_id'] : null;
         $paymentMethod = $validated['payment_method'] ?? null;
         $category = $validated['category'] ?? null;
 
         $expenseQuery = Expense::query()
-            ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+            ->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))
             ->when($category, fn ($query) => $query->where('expense_category_id', $category))
             ->where('approval_status', 'approved')
             ->whereBetween('expense_date', [$startDate->toDateString(), $endDate->toDateString()]);
 
         $expensesTotal = (float) (clone $expenseQuery)->sum('amount');
         $inventoryValue = (float) InventoryItem::query()
-            ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+            ->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))
             ->selectRaw('COALESCE(SUM(quantity * unit_price), 0) as total')
             ->value('total');
         $supplierBalances = (float) InventoryItem::query()
-            ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+            ->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))
             ->selectRaw('COALESCE(SUM(CASE WHEN (quantity * unit_price) > paid_amount THEN (quantity * unit_price) - paid_amount ELSE 0 END), 0) as total')
             ->value('total');
         $cashPosition = (float) CashMovement::query()
-            ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+            ->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))
             ->where('approval_status', 'approved')
             ->selectRaw("COALESCE(SUM(CASE WHEN direction = 'in' THEN amount ELSE -amount END), 0) as total")
             ->value('total');
@@ -340,28 +340,28 @@ class FinanceController extends Controller
             ->limit(6)
             ->get();
 
-        $generalLedger = $this->buildMarketLedger($startDate, $endDate, $branchId, $category, 12);
+        $generalLedger = $this->buildMarketLedger($startDate, $endDate, $propertyId, $category, 12);
 
         return Inertia::render('finance/index', [
             'filters' => [
                 'range' => $range,
                 'startDate' => $startDate->toDateString(),
                 'endDate' => $endDate->toDateString(),
-                'branchId' => $branchId,
+                'propertyId' => $propertyId,
                 'paymentMethod' => $paymentMethod,
                 'category' => $category,
             ],
-            'branches' => Branch::orderBy('name')->get(['id', 'name']),
+            'properties' => Property::orderBy('name')->get(['id', 'name']),
             'expenseCategories' => ExpenseCategory::query()->where('is_active', true)->orderBy('sort_order')->orderBy('name')->get(['id', 'name'])->map(fn ($item) => ['value' => (string) $item->id, 'label' => $item->name]),
             'projectionHealth' => [
                 'usesProjectionData' => false,
                 'status' => 'unavailable',
                 'message' => 'Finance metrics use live accounting records.',
                 'latestProjectionAt' => null,
-                'staleBranchCount' => 0,
-                'criticalBranchCount' => 0,
-                'warningBranchCount' => 0,
-                'branches' => [],
+                'stalePropertyCount' => 0,
+                'criticalPropertyCount' => 0,
+                'warningPropertyCount' => 0,
+                'properties' => [],
             ],
             'dashboard' => [
                 'summary' => [
@@ -375,7 +375,7 @@ class FinanceController extends Controller
                     'supplierBalances' => $supplierBalances,
                 ],
                 'trend' => $trend,
-                'branchRevenue' => [],
+                'propertyRevenue' => [],
                 'topExpenseCategories' => $topExpenseCategories,
                 'paymentBreakdown' => [],
                 'ledgerStats' => [
@@ -405,13 +405,13 @@ class FinanceController extends Controller
     private function buildMarketLedger(
         Carbon $startDate,
         Carbon $endDate,
-        ?int $branchId,
+        ?int $propertyId,
         ?string $category,
         ?int $limit,
     ) {
         $expenses = Expense::query()
-            ->with('branch:id,name')
-            ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+            ->with('property:id,name')
+            ->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))
             ->when($category, fn ($query) => $query->where('expense_category_id', $category))
             ->whereBetween('expense_date', [$startDate->toDateString(), $endDate->toDateString()])
             ->get()
@@ -419,7 +419,7 @@ class FinanceController extends Controller
                 'date' => (string) $expense->expense_date,
                 'reference' => 'Expense #'.$expense->id,
                 'type' => 'Expense',
-                'branch' => $expense->branch?->name ?? 'Unassigned',
+                'property' => $expense->property?->name ?? 'Unassigned',
                 'account' => $expense->expense_type ?? 'Expense',
                 'description' => $expense->title,
                 'debit' => (float) $expense->amount,
@@ -428,15 +428,15 @@ class FinanceController extends Controller
             ]);
 
         $movements = CashMovement::query()
-            ->with('branch:id,name')
-            ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+            ->with('property:id,name')
+            ->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))
             ->whereBetween('movement_date', [$startDate->toDateString(), $endDate->toDateString()])
             ->get()
             ->map(fn (CashMovement $movement) => [
                 'date' => (string) $movement->movement_date,
                 'reference' => 'Cash #'.$movement->id,
                 'type' => 'Cash Movement',
-                'branch' => $movement->branch?->name ?? 'Unassigned',
+                'property' => $movement->property?->name ?? 'Unassigned',
                 'account' => $movement->movement_type ?? 'Cash',
                 'description' => $movement->description ?? $movement->title ?? 'Cash movement',
                 'debit' => $movement->direction === 'out' ? (float) $movement->amount : 0,

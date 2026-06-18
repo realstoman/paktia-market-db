@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Services\Caching\CatalogCacheService;
-use App\Models\Branch;
+use App\Models\Property;
 use App\Models\Currency;
 use App\Models\InventoryCategory;
 use App\Models\InventoryItem;
@@ -79,7 +79,7 @@ class InventoryController extends Controller
     public function index()
     {
         $inventoryItems = InventoryItem::with([
-            'branch',
+            'property',
             'vendor',
             'unitReference',
             'categoryReference',
@@ -95,7 +95,7 @@ class InventoryController extends Controller
 
         return Inertia::render('inventory/index', [
             'inventoryItems' => $inventoryItems,
-            'branches' => Branch::orderBy('name')->get(['id', 'name']),
+            'properties' => Property::orderBy('name')->get(['id', 'name']),
             'vendors' => Vendor::orderBy('name')->get(),
             'currencies' => Currency::orderBy('name')->get(),
             'units' => Unit::orderBy('name')->get(),
@@ -107,7 +107,7 @@ class InventoryController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'branch_id' => 'required|exists:branches,id',
+            'property_id' => 'required|exists:properties,id',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
             'inventory_type_id' => 'required|exists:inventory_types,id',
@@ -151,7 +151,7 @@ class InventoryController extends Controller
             }
 
             $item = InventoryItem::create([
-                'branch_id' => $validated['branch_id'],
+                'property_id' => $validated['property_id'],
                 'vendor_id' => $validated['vendor_id'] ?? null,
                 'unit_id' => $validated['unit_id'] ?? null,
                 'category_id' => $validated['category_id'] ?? null,
@@ -301,7 +301,7 @@ class InventoryController extends Controller
     public function update(Request $request, InventoryItem $inventory)
     {
         $validated = $request->validate([
-            'branch_id' => 'required|exists:branches,id',
+            'property_id' => 'required|exists:properties,id',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
             'inventory_type_id' => 'required|exists:inventory_types,id',
@@ -368,7 +368,7 @@ class InventoryController extends Controller
             $newQuantity = (float) $validated['quantity'];
 
             $payload = [
-                'branch_id' => $validated['branch_id'],
+                'property_id' => $validated['property_id'],
                 'vendor_id' => $validated['vendor_id'] ?? null,
                 'unit_id' => $validated['unit_id'] ?? null,
                 'category_id' => $validated['category_id'] ?? null,
@@ -430,7 +430,7 @@ class InventoryController extends Controller
         $this->authorizeInventoryDeletion($request);
 
         $itemName = $inventory->name;
-        $branchName = $inventory->branch?->name;
+        $propertyName = $inventory->property?->name;
 
         DB::transaction(function () use ($inventory) {
             $imagePaths = $inventory->images()
@@ -460,7 +460,7 @@ class InventoryController extends Controller
                 'category' => 'inventory',
                 'title' => 'Inventory item removed',
                 'description' => "{$itemName} was removed from inventory.",
-                'meta' => $branchName,
+                'meta' => $propertyName,
                 'href' => '/inventory',
                 'priority' => 'high',
             ])

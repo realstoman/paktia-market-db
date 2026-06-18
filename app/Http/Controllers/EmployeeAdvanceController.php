@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Branch;
+use App\Models\Property;
 use App\Models\Employee;
 use App\Models\EmployeeAdvance;
 use Illuminate\Http\Request;
@@ -13,23 +13,23 @@ class EmployeeAdvanceController extends Controller
     public function index(Request $request)
     {
         $validated = $request->validate([
-            'branch_id' => ['nullable', 'exists:branches,id'],
+            'property_id' => ['nullable', 'exists:properties,id'],
             'employee_id' => ['nullable', 'exists:employees,id'],
             'status' => ['nullable', 'in:draft,submitted,approved,paid'],
         ]);
 
-        $branchId = isset($validated['branch_id']) ? (int) $validated['branch_id'] : null;
+        $propertyId = isset($validated['property_id']) ? (int) $validated['property_id'] : null;
         $employeeId = isset($validated['employee_id']) ? (int) $validated['employee_id'] : null;
         $status = $validated['status'] ?? null;
 
         $baseQuery = EmployeeAdvance::query()
             ->with([
-                'employee:id,first_name,last_name,branch_id',
-                'branch:id,name',
+                'employee:id,first_name,last_name,property_id',
+                'property:id,name',
                 'creator:id,name',
                 'approver:id,name',
             ])
-            ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+            ->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))
             ->when($employeeId, fn ($query) => $query->where('employee_id', $employeeId))
             ->when($status, fn ($query, $value) => $query->where('status', $value));
 
@@ -39,13 +39,13 @@ class EmployeeAdvanceController extends Controller
             ->get();
 
         $summaryQuery = EmployeeAdvance::query()
-            ->when($branchId, fn ($query) => $query->where('branch_id', $branchId))
+            ->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))
             ->when($employeeId, fn ($query) => $query->where('employee_id', $employeeId))
             ->when($status, fn ($query, $value) => $query->where('status', $value));
 
         return Inertia::render('finance/employee-advances/index', [
             'filters' => [
-                'branchId' => $branchId,
+                'propertyId' => $propertyId,
                 'employeeId' => $employeeId,
                 'status' => $status,
             ],
@@ -57,13 +57,13 @@ class EmployeeAdvanceController extends Controller
                 'paidCount' => (int) (clone $summaryQuery)->where('status', 'paid')->count(),
             ],
             'advances' => $advances,
-            'branches' => Branch::query()->orderBy('name')->get(['id', 'name', 'address']),
+            'properties' => Property::query()->orderBy('name')->get(['id', 'name', 'address']),
             'employees' => Employee::query()
-                ->with('branch:id,name')
+                ->with('property:id,name')
                 ->where('is_active', true)
                 ->orderBy('first_name')
                 ->orderBy('last_name')
-                ->get(['id', 'first_name', 'last_name', 'branch_id']),
+                ->get(['id', 'first_name', 'last_name', 'property_id']),
             'printAdvanceId' => session('print_advance_id'),
         ]);
     }
@@ -75,7 +75,7 @@ class EmployeeAdvanceController extends Controller
 
         $advance = EmployeeAdvance::create([
             'employee_id' => $validated['employee_id'],
-            'branch_id' => $validated['branch_id'] ?? null,
+            'property_id' => $validated['property_id'] ?? null,
             'advance_date' => $validated['advance_date'],
             'amount' => $validated['amount'],
             'deducted_amount' => 0,
@@ -112,7 +112,7 @@ class EmployeeAdvanceController extends Controller
 
         $employeeAdvance->update([
             'employee_id' => $validated['employee_id'],
-            'branch_id' => $validated['branch_id'] ?? null,
+            'property_id' => $validated['property_id'] ?? null,
             'advance_date' => $validated['advance_date'],
             'amount' => $validated['amount'],
             'remaining_balance' => max(
@@ -164,7 +164,7 @@ class EmployeeAdvanceController extends Controller
     {
         return $request->validate([
             'employee_id' => ['required', 'exists:employees,id'],
-            'branch_id' => ['nullable', 'exists:branches,id'],
+            'property_id' => ['nullable', 'exists:properties,id'],
             'advance_date' => ['required', 'date_format:Y-m-d'],
             'amount' => ['required', 'numeric', 'min:1'],
             'repayment_method' => ['nullable', 'string', 'max:100'],

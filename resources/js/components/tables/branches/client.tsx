@@ -1,24 +1,24 @@
 import Heading from '@/components/shared/heading';
 import { DataTable } from '@/components/ui/table/data-table';
 import { useLocalization } from '@/lib/localization';
-import { Branch, Country, Province } from '@/types';
+import { Property, Country, Province } from '@/types';
 import { formatNumber } from '@/utils/format';
 import { useMemo } from 'react';
 import { buildColumns } from './columns';
 
-interface BranchesClientProps {
-    data: Branch[];
+interface PropertiesClientProps {
+    data: Property[];
     countries: Country[];
     provinces: Province[];
     isLoading?: boolean;
 }
 
-export function BranchesClient({
+export function PropertiesClient({
     data,
     countries,
     provinces,
     isLoading = false,
-}: BranchesClientProps) {
+}: PropertiesClientProps) {
     const { t, locale } = useLocalization();
     const columns = useMemo(
         () => buildColumns(countries, provinces, t, locale),
@@ -28,10 +28,10 @@ export function BranchesClient({
     return (
         <div className="space-y-4">
             <Heading
-                title={`${t('branches.page.title', 'Branches')}: ${formatNumber(data.length)}`}
+                title={`${t('properties.page.title', 'Properties')}: ${formatNumber(data.length)}`}
                 description={t(
-                    'branches.page.description',
-                    'Manage market branches',
+                    'properties.page.description',
+                    'Manage market properties',
                 )}
             />
             <DataTable
@@ -40,8 +40,8 @@ export function BranchesClient({
                 data={data}
                 isLoading={isLoading}
                 searchPlaceholder={t(
-                    'branches.filters.searchPlaceholder',
-                    'Search branches...',
+                    'properties.filters.searchPlaceholder',
+                    'Search properties...',
                 )}
             />
         </div>
