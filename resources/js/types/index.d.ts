@@ -29,6 +29,7 @@ export interface NavItem {
 
 export interface SharedData {
     name: string;
+    name_translations?: Partial<Record<'fa' | 'ps' | 'en', string>> | null;
     quote: { message: string; author: string };
     auth: Auth;
     branding: {
@@ -55,6 +56,11 @@ export interface SharedData {
         }[];
     };
     notifications?: AppNotification[];
+    flash?: {
+        loginWelcome?: {
+            id: string;
+        } | null;
+    };
     unauthorizedAccess?: {
         show: boolean;
         path?: string | null;
@@ -99,8 +105,8 @@ export interface User {
     country_id?: number | null;
     province?: string | null;
     province_id?: number | null;
-    branch?: string | null;
-    branch_id?: number | null;
+    property?: string | null;
+    property_id?: number | null;
     is_active?: boolean;
     is_internal_user?: boolean;
     avatar?: string;
@@ -153,8 +159,8 @@ export interface Employee {
     description?: string | null;
     profile_picture?: string | null;
     attachments?: string[] | null;
-    branch?: string | Branch | null;
-    branch_id?: number | null;
+    property?: string | Property | null;
+    property_id?: number | null;
     employment_type?: string | null;
     employment_type_id?: number | null;
     employee_position?: string | null;
@@ -188,8 +194,8 @@ export interface EmployeeAdvance {
     id: number;
     employee_id: number;
     employee?: Employee | null;
-    branch_id?: number | null;
-    branch?: Branch | null;
+    property_id?: number | null;
+    property?: Property | null;
     advance_date: string;
     amount: number | string;
     deducted_amount?: number | string;
@@ -235,15 +241,15 @@ export interface PayrollRunItem {
         period_start?: string | null;
         period_end?: string | null;
         paid_at?: string | null;
-        branch?: Branch | null;
+        property?: Property | null;
     } | null;
     [key: string]: unknown;
 }
 
 export interface PayrollRun {
     id: number;
-    branch_id?: number | null;
-    branch?: Branch | null;
+    property_id?: number | null;
+    property?: Property | null;
     period_start: string;
     period_end: string;
     status: string;
@@ -287,8 +293,8 @@ export interface EmployeeContract {
     id: number;
     employee_id: number;
     employee?: Employee | null;
-    branch_id?: number | null;
-    branch?: Branch | null;
+    property_id?: number | null;
+    property?: Property | null;
     contract_amount: number | string;
     start_date: string;
     end_date?: string | null;
@@ -327,8 +333,8 @@ export interface FinanceAccount {
     type: string;
     parent_id?: number | null;
     parent?: Pick<FinanceAccount, 'id' | 'code' | 'name'> | null;
-    branch_id?: number | null;
-    branch?: Branch | null;
+    property_id?: number | null;
+    property?: Property | null;
     currency_code?: string | null;
     is_postable?: boolean;
     is_system?: boolean;
@@ -357,7 +363,7 @@ export interface ExpenseCategory {
 
 export interface Expense {
     id: number;
-    branch_id: number;
+    property_id: number;
     vendor_id?: number | null;
     title: string;
     expense_type?: string | null;
@@ -367,7 +373,7 @@ export interface Expense {
     account?: FinanceAccount | null;
     paid_from_account_id?: number | null;
     paid_from_account?: FinanceAccount | null;
-    branch?: Branch | null;
+    property?: Property | null;
     vendor?: Vendor | null;
     amount: number | string;
     payment_method?: string | null;
@@ -387,8 +393,8 @@ export interface Expense {
 
 export interface CashMovement {
     id: number;
-    branch_id?: number | null;
-    branch?: Branch | null;
+    property_id?: number | null;
+    property?: Property | null;
     movement_type: string;
     direction: 'in' | 'out';
     movement_date: string;
@@ -427,8 +433,11 @@ export interface CashMovementType {
     [key: string]: unknown;
 }
 
-export interface Branch {
+export interface Property {
     id: number;
+    parent_property_id?: number | null;
+    parent_property?: Property | null;
+    related_locations?: Property[];
     name: string;
     country?: Country | string | null;
     country_id?: number | null;
@@ -438,10 +447,45 @@ export interface Branch {
     province_object?: Province | null;
     is_active?: boolean;
     address: string;
+    address_translations?: Partial<Record<'fa' | 'ps' | 'en', string>> | null;
     description: string;
+    description_translations?: Partial<Record<'fa' | 'ps' | 'en', string>> | null;
+    property_type?: 'market' | 'mall' | 'block' | 'house';
+    usage_type?: 'commercial' | 'residential' | 'mixed';
+    image_url?: string | null;
+    distance_from_city_km?: string | null;
+    land_area_sqm?: string | null;
+    building_area_sqm?: string | null;
+    declared_floors?: number | null;
+    declared_units?: number | null;
+    rooms_count?: number | null;
+    kitchens_count?: number | null;
+    halls_count?: number | null;
+    bathrooms_count?: number | null;
+    parking_spaces?: number | null;
+    year_built?: number | null;
+    amenities?: string[] | null;
+    notes?: string | null;
+    floors_count?: number;
+    units_count?: number;
+    floors?: PropertyFloor[];
     created_at: string;
     updated_at: string;
     [key: string]: unknown;
+}
+
+export interface PropertyFloor {
+    id: number; property_id: number; name: string; level_number: number;
+    area_sqm?: string | null; planned_units?: number | null; usage_type?: string | null;
+    description?: string | null; is_active: boolean; units?: PropertyUnit[];
+}
+
+export interface PropertyUnit {
+    id: number; property_floor_id: number; unit_type: 'shop' | 'apartment'; unit_number: string;
+    area_sqm?: string | null; width_m?: string | null; length_m?: string | null;
+    rooms_count?: number | null; kitchens_count?: number | null; halls_count?: number | null;
+    bathrooms_count?: number | null; occupancy_status: 'vacant' | 'occupied' | 'reserved' | 'maintenance';
+    electricity_meter?: string | null; water_meter?: string | null; description?: string | null; is_active: boolean;
 }
 
 export interface Country {
@@ -452,7 +496,7 @@ export interface Country {
     currency_symbol: string;
     is_active?: boolean;
     provinces?: Province[];
-    branches?: Branch[];
+    properties?: Property[];
     created_at: string;
     updated_at: string;
     [key: string]: unknown;
@@ -492,12 +536,12 @@ export interface InventoryTransaction {
 
 export interface InventoryItem {
     id: number;
-    branch_id: number;
+    property_id: number;
     vendor_id?: number | null;
     unit_id?: number | null;
     category_id?: number | null;
     inventory_type_id?: number | null;
-    branch?: Branch | null;
+    property?: Property | null;
     vendor?: Vendor | null;
     unitReference?: Unit | null;
     categoryReference?: InventoryCategory | null;

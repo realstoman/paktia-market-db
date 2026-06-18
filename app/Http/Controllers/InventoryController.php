@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\Caching\CatalogCacheService;
-use App\Models\Branch;
 use App\Models\Currency;
 use App\Models\InventoryCategory;
 use App\Models\InventoryItem;
 use App\Models\InventoryType;
+use App\Models\Property;
 use App\Models\Unit;
 use App\Models\Vendor;
+use App\Services\Caching\CatalogCacheService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -79,7 +79,7 @@ class InventoryController extends Controller
     public function index()
     {
         $inventoryItems = InventoryItem::with([
-            'branch',
+            'property',
             'vendor',
             'unitReference',
             'categoryReference',
@@ -95,7 +95,7 @@ class InventoryController extends Controller
 
         return Inertia::render('inventory/index', [
             'inventoryItems' => $inventoryItems,
-            'branches' => Branch::orderBy('name')->get(['id', 'name']),
+            'properties' => Property::orderBy('name')->get(['id', 'name', 'name_translations']),
             'vendors' => Vendor::orderBy('name')->get(),
             'currencies' => Currency::orderBy('name')->get(),
             'units' => Unit::orderBy('name')->get(),
@@ -107,7 +107,7 @@ class InventoryController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'branch_id' => 'required|exists:branches,id',
+            'property_id' => 'required|exists:properties,id',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
             'inventory_type_id' => 'required|exists:inventory_types,id',
@@ -138,7 +138,7 @@ class InventoryController extends Controller
                 strtoupper($validated['currency_code']),
             )->firstOrFail();
             $unit = null;
-            if (!empty($validated['unit_id'])) {
+            if (! empty($validated['unit_id'])) {
                 $unit = Unit::find($validated['unit_id']);
             }
             $inventoryType = InventoryType::findOrFail(
@@ -151,7 +151,7 @@ class InventoryController extends Controller
             }
 
             $item = InventoryItem::create([
-                'branch_id' => $validated['branch_id'],
+                'property_id' => $validated['property_id'],
                 'vendor_id' => $validated['vendor_id'] ?? null,
                 'unit_id' => $validated['unit_id'] ?? null,
                 'category_id' => $validated['category_id'] ?? null,
@@ -201,7 +201,7 @@ class InventoryController extends Controller
         ]);
 
         DB::transaction(function () use ($inventory, $validated, $request) {
-            if (!empty($validated['apply_new_price'])) {
+            if (! empty($validated['apply_new_price'])) {
                 $currency = Currency::where(
                     'code',
                     strtoupper($validated['currency_code']),
@@ -239,7 +239,7 @@ class InventoryController extends Controller
                 'action' => 'restock',
                 'quantity' => $validated['quantity'],
                 'note' => $validated['note']
-                    ?? (!empty($validated['apply_new_price'])
+                    ?? (! empty($validated['apply_new_price'])
                         ? 'Restocked with updated price.'
                         : null),
             ]);
@@ -301,7 +301,7 @@ class InventoryController extends Controller
     public function update(Request $request, InventoryItem $inventory)
     {
         $validated = $request->validate([
-            'branch_id' => 'required|exists:branches,id',
+            'property_id' => 'required|exists:properties,id',
             'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
             'inventory_type_id' => 'required|exists:inventory_types,id',
@@ -357,7 +357,7 @@ class InventoryController extends Controller
                 strtoupper($validated['currency_code']),
             )->firstOrFail();
             $unit = null;
-            if (!empty($validated['unit_id'])) {
+            if (! empty($validated['unit_id'])) {
                 $unit = Unit::find($validated['unit_id']);
             }
             $inventoryType = InventoryType::findOrFail(
@@ -368,7 +368,7 @@ class InventoryController extends Controller
             $newQuantity = (float) $validated['quantity'];
 
             $payload = [
-                'branch_id' => $validated['branch_id'],
+                'property_id' => $validated['property_id'],
                 'vendor_id' => $validated['vendor_id'] ?? null,
                 'unit_id' => $validated['unit_id'] ?? null,
                 'category_id' => $validated['category_id'] ?? null,
@@ -430,7 +430,7 @@ class InventoryController extends Controller
         $this->authorizeInventoryDeletion($request);
 
         $itemName = $inventory->name;
-        $branchName = $inventory->branch?->name;
+        $propertyName = $inventory->property?->name;
 
         DB::transaction(function () use ($inventory) {
             $imagePaths = $inventory->images()
@@ -460,7 +460,7 @@ class InventoryController extends Controller
                 'category' => 'inventory',
                 'title' => 'Inventory item removed',
                 'description' => "{$itemName} was removed from inventory.",
-                'meta' => $branchName,
+                'meta' => $propertyName,
                 'href' => '/inventory',
                 'priority' => 'high',
             ])

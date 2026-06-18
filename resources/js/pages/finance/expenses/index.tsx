@@ -2,7 +2,7 @@ import { ExpenseClient } from '@/components/tables/expenses/client';
 import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
 import {
-    Branch,
+    Property,
     BreadcrumbItem,
     Expense,
     ExpenseCategory,
@@ -13,7 +13,7 @@ import { Head } from '@inertiajs/react';
 
 interface ExpensesPageProps {
     expenses: Expense[];
-    branches: Branch[];
+    properties: Property[];
     expenseCategories: ExpenseCategory[];
     vendors: Vendor[];
     ledgerAccounts: FinanceAccount[];
@@ -23,7 +23,7 @@ interface ExpensesPageProps {
 
 export default function ExpensesPage({
     expenses,
-    branches,
+    properties,
     expenseCategories,
     vendors,
     ledgerAccounts,
@@ -45,7 +45,7 @@ export default function ExpensesPage({
             <Head title={t('financeExpenses.pageTitle', 'Expenses')} />
             <ExpenseClient
                 expenses={expenses}
-                branches={branches}
+                properties={properties}
                 expenseCategories={expenseCategories}
                 vendors={vendors}
                 ledgerAccounts={ledgerAccounts}

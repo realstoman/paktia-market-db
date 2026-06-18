@@ -32,7 +32,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
 import {
-    Branch,
+    Property,
     Employee,
     EmployeePosition,
     EmploymentType,
@@ -59,7 +59,7 @@ import { buildColumns } from './columns';
 
 interface EmployeeClientProps {
     data: Employee[];
-    branches: Branch[];
+    properties: Property[];
     employmentTypes: EmploymentType[];
     employeePositions: EmployeePosition[];
     shifts: Shift[];
@@ -98,7 +98,7 @@ const formatTimeTo12Hour = (time?: string | null) => {
 
 export const EmployeeClient: React.FC<EmployeeClientProps> = ({
     data,
-    branches,
+    properties,
     employmentTypes,
     employeePositions,
     shifts,
@@ -114,7 +114,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [phone, setPhone] = useState('');
-    const [branchId, setBranchId] = useState('');
+    const [propertyId, setPropertyId] = useState('');
     const [employmentTypeId, setEmploymentTypeId] = useState('');
     const [employeePositionId, setEmployeePositionId] = useState('');
     const [shiftId, setShiftId] = useState('');
@@ -169,23 +169,23 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
     const [deleteShiftTarget, setDeleteShiftTarget] = useState<Shift | null>(
         null,
     );
-    const [selectedBranchFilter, setSelectedBranchFilter] =
+    const [selectedPropertyFilter, setSelectedPropertyFilter] =
         useState(FILTER_ALL);
     const [selectedEmploymentTypeFilter, setSelectedEmploymentTypeFilter] =
         useState(FILTER_ALL);
     const [selectedPositionFilter, setSelectedPositionFilter] =
         useState(FILTER_ALL);
     const [selectedShiftFilter, setSelectedShiftFilter] = useState(FILTER_ALL);
-    const branchSelectOptions = useMemo(
+    const propertySelectOptions = useMemo(
         () =>
-            branches.map((branch) => ({
-                value: String(branch.id),
-                label: branch.name,
+            properties.map((property) => ({
+                value: String(property.id),
+                label: property.name,
             })),
-        [branches],
+        [properties],
     );
 
-    useAutoSelectSingleOption(branchSelectOptions, branchId, setBranchId);
+    useAutoSelectSingleOption(propertySelectOptions, propertyId, setPropertyId);
 
     const profilePicturePreview = useMemo(
         () => (profilePicture ? URL.createObjectURL(profilePicture) : null),
@@ -204,7 +204,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
         setFirstName('');
         setLastName('');
         setPhone('');
-        setBranchId('');
+        setPropertyId('');
         setEmploymentTypeId('');
         setEmployeePositionId('');
         setShiftId('');
@@ -281,7 +281,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
         if (
             !firstName.trim() ||
             !lastName.trim() ||
-            !branchId ||
+            !propertyId ||
             isSubmitting
         ) {
             return;
@@ -295,7 +295,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                 first_name: firstName.trim(),
                 last_name: lastName.trim(),
                 phone: phone.trim() || null,
-                branch_id: Number(branchId),
+                property_id: Number(propertyId),
                 employment_type_id: employmentTypeId
                     ? Number(employmentTypeId)
                     : null,
@@ -661,7 +661,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
     const tableColumns = useMemo(
         () =>
             buildColumns(
-                branches,
+                properties,
                 employmentTypes,
                 employeePositions,
                 shifts,
@@ -670,7 +670,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                 locale,
             ),
         [
-            branches,
+            properties,
             canDelete,
             employmentTypes,
             employeePositions,
@@ -687,9 +687,9 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
         )?.[1];
     const filteredData = useMemo(() => {
         return data.filter((employee) => {
-            const branchMatch =
-                selectedBranchFilter === FILTER_ALL ||
-                String(employee.branch_id ?? '') === selectedBranchFilter;
+            const propertyMatch =
+                selectedPropertyFilter === FILTER_ALL ||
+                String(employee.property_id ?? '') === selectedPropertyFilter;
             const employmentTypeMatch =
                 selectedEmploymentTypeFilter === FILTER_ALL ||
                 String(employee.employment_type_id ?? '') ===
@@ -703,7 +703,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                 String(employee.shift_id ?? '') === selectedShiftFilter;
 
             return (
-                branchMatch &&
+                propertyMatch &&
                 employmentTypeMatch &&
                 positionMatch &&
                 shiftMatch
@@ -711,7 +711,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
         });
     }, [
         data,
-        selectedBranchFilter,
+        selectedPropertyFilter,
         selectedEmploymentTypeFilter,
         selectedPositionFilter,
         selectedShiftFilter,
@@ -782,7 +782,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                 searchKey={[
                     'full_name',
                     'phone',
-                    'branch',
+                    'property',
                     'employee_position',
                     'employment_type',
                     'status',
@@ -792,34 +792,34 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                 isLoading={isLoading}
                 searchPlaceholder={t(
                     'employees.filters.searchPlaceholder',
-                    'Search employees by name, phone, or branch...',
+                    'Search employees by name, phone, or property...',
                 )}
                 toolbar={
                     <div className="flex w-full flex-wrap justify-end gap-2">
                         <SearchableDropdown
-                            value={selectedBranchFilter}
-                            onValueChange={setSelectedBranchFilter}
+                            value={selectedPropertyFilter}
+                            onValueChange={setSelectedPropertyFilter}
                             options={[
                                 {
                                     value: FILTER_ALL,
                                     label: t(
-                                        'employees.filters.allBranches',
-                                        'All Branches',
+                                        'employees.filters.allProperties',
+                                        'All Properties',
                                     ),
                                 },
-                                ...branches.map((branch) => ({
-                                    value: String(branch.id),
-                                    label: branch.name,
+                                ...properties.map((property) => ({
+                                    value: String(property.id),
+                                    label: property.name,
                                 })),
                             ]}
-                            placeholder={t('employees.filters.branch', 'Branch')}
+                            placeholder={t('employees.filters.property', 'Property')}
                             searchPlaceholder={t(
-                                'employees.filters.searchBranches',
-                                'Search branches...',
+                                'employees.filters.searchProperties',
+                                'Search properties...',
                             )}
                             emptyText={t(
-                                'employees.filters.noBranches',
-                                'No branches found.',
+                                'employees.filters.noProperties',
+                                'No properties found.',
                             )}
                             className={filterControlClassName}
                         />
@@ -1554,31 +1554,31 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                 <InputError message={createErrors.phone} />
                             </div>
                             <div className="grid gap-2">
-                                <Label>{t('employees.filters.branch', 'Branch')}</Label>
+                                <Label>{t('employees.filters.property', 'Property')}</Label>
                                 <Select
-                                    value={branchId}
-                                    onValueChange={setBranchId}
+                                    value={propertyId}
+                                    onValueChange={setPropertyId}
                                 >
                                     <SelectTrigger>
                                         <SelectValue
                                             placeholder={t(
-                                                'employees.form.selectBranch',
-                                                'Select branch',
+                                                'employees.form.selectProperty',
+                                                'Select property',
                                             )}
                                         />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {branches.map((branch) => (
+                                        {properties.map((property) => (
                                             <SelectItem
-                                                key={branch.id}
-                                                value={String(branch.id)}
+                                                key={property.id}
+                                                value={String(property.id)}
                                             >
-                                                {branch.name}
+                                                {property.name}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <InputError message={createErrors.branch_id} />
+                                <InputError message={createErrors.property_id} />
                             </div>
                             <div className="grid gap-2">
                                 <Label>
@@ -1995,7 +1995,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                             disabled={
                                 !firstName.trim() ||
                                 !lastName.trim() ||
-                                !branchId ||
+                                !propertyId ||
                                 !contractStartDate ||
                                 !contractEndDate ||
                                 (isContractBased &&

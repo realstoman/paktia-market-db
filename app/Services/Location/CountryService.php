@@ -8,7 +8,7 @@ class CountryService
 {
     public function getIndexData(): array
     {
-        $countries = Country::with(['provinces', 'branches'])->get();
+        $countries = Country::with(['provinces', 'properties'])->get();
 
         $countries->transform(function (Country $country) {
             return [
@@ -21,7 +21,7 @@ class CountryService
                 'created_at' => $country->created_at,
                 'updated_at' => $country->updated_at,
                 'provinces' => $country->provinces,
-                'branches' => $country->branches,
+                'properties' => $country->properties,
             ];
         });
 

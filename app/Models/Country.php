@@ -19,8 +19,8 @@ class Country extends Model
         return $this->hasMany(Province::class);
     }
 
-    public function branches()
+    public function properties()
     {
-        return $this->hasMany(Branch::class);
+        return $this->hasMany(Property::class);
     }
 }

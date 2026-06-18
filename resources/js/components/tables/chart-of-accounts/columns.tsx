@@ -64,11 +64,11 @@ export function buildColumns({
             ),
         },
         {
-            id: 'branch.name',
+            id: 'property.name',
             accessorFn: (row) =>
-                row.branch?.name ??
-                t('financeChartOfAccounts.filters.allBranches', 'All Branches'),
-            header: t('financeChartOfAccounts.table.branch', 'Branch'),
+                row.property?.name ??
+                t('financeChartOfAccounts.filters.allProperties', 'All Properties'),
+            header: t('financeChartOfAccounts.table.property', 'Property'),
         },
         {
             accessorKey: 'currency_code',

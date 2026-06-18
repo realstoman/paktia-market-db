@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\Branch;
+use App\Models\Property;
 use App\Models\Country;
 use App\Models\Province;
 use App\Models\User;
@@ -24,7 +24,7 @@ test('dashboard exposes overall and project portfolio statistics', function () {
         'country_id' => $country->id,
         'name' => 'Kabul',
     ]);
-    $branch = Branch::query()->create([
+    $property = Property::query()->create([
         'name' => 'Paktia Market',
         'country_id' => $country->id,
         'province_id' => $province->id,
@@ -38,7 +38,7 @@ test('dashboard exposes overall and project portfolio statistics', function () {
             ->component('dashboard')
             ->where('data.portfolio.totalProjects', 1)
             ->where('data.portfolio.activeProjects', 1)
-            ->where('data.portfolio.projects.0.id', $branch->id)
+            ->where('data.portfolio.projects.0.id', $property->id)
             ->where('data.portfolio.projects.0.name', 'Paktia Market')
             ->where('data.portfolio.projects.0.rent.collectedAfn', 0)
             ->where('data.portfolio.projects.0.rent.collectedUsd', 0)

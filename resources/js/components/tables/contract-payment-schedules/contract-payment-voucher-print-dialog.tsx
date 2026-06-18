@@ -8,7 +8,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Branch, EmployeeContractPaymentSchedule } from '@/types';
+import { Property, EmployeeContractPaymentSchedule } from '@/types';
 import { formatAfn } from '@/utils/format';
 import { Printer, ReceiptText } from 'lucide-react';
 
@@ -16,7 +16,7 @@ interface ContractPaymentVoucherPrintDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     schedule: EmployeeContractPaymentSchedule | null;
-    branch: Branch | null;
+    property: Property | null;
 }
 
 const escapeHtml = (value: string) =>
@@ -39,7 +39,7 @@ export function ContractPaymentVoucherPrintDialog({
     open,
     onOpenChange,
     schedule,
-    branch,
+    property,
 }: ContractPaymentVoucherPrintDialogProps) {
     const printVoucher = () => {
         if (!schedule) {
@@ -107,7 +107,7 @@ export function ContractPaymentVoucherPrintDialog({
                             <div class="brand">
                                 <img src="${brand.logoFull.startsWith('http') ? brand.logoFull : `${window.location.origin}${brand.logoFull}`}" alt="${brand.name} Logo" />
                                 <h1>Paktia Market</h1>
-                                <p>${escapeHtml(branch?.name ?? 'Main Branch')} • ${escapeHtml(branch?.address ?? 'Address not set')}</p>
+                                <p>${escapeHtml(property?.name ?? 'Main Property')} • ${escapeHtml(property?.address ?? 'Address not set')}</p>
                             </div>
                             <div class="header-right">
                                 <p class="header-label">Document</p>
@@ -204,8 +204,8 @@ export function ContractPaymentVoucherPrintDialog({
                                             Paktia Market
                                         </p>
                                         <p className="text-sm text-muted-foreground">
-                                            {branch?.name ?? 'Main Branch'} •{' '}
-                                            {branch?.address ??
+                                            {property?.name ?? 'Main Property'} •{' '}
+                                            {property?.address ??
                                                 'Address not set'}
                                         </p>
                                     </div>

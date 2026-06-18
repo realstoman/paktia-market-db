@@ -1,14 +1,14 @@
 <?php
 
-use App\Models\Branch;
-use App\Models\BranchSyncCredential;
 use App\Models\Country;
+use App\Models\Property;
+use App\Models\PropertySyncCredential;
 use App\Models\Province;
-use App\Services\BranchSync\BranchSyncCredentialService;
+use App\Services\PropertySync\PropertySyncCredentialService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-function createBranchSyncBranch(bool $isActive = true): Branch
+function createPropertySyncProperty(bool $isActive = true): Property
 {
     $country = Country::create([
         'name' => 'Afghanistan',
@@ -23,10 +23,10 @@ function createBranchSyncBranch(bool $isActive = true): Branch
         'name' => 'Kabul',
     ]);
 
-    return Branch::create([
+    return Property::create([
         'country_id' => $country->id,
         'province_id' => $province->id,
-        'name' => 'Branch Sync HQ',
+        'name' => 'Property Sync HQ',
         'address' => 'Kabul',
         'description' => 'For sync tests',
         'is_active' => $isActive,
@@ -34,15 +34,15 @@ function createBranchSyncBranch(bool $isActive = true): Branch
 }
 
 test('issue persists an HMAC-prefixed token hash that validates back to the credential', function () {
-    $branch = createBranchSyncBranch();
-    $service = app(BranchSyncCredentialService::class);
+    $property = createPropertySyncProperty();
+    $service = app(PropertySyncCredentialService::class);
 
-    $issued = $service->issue($branch, 'branch-server', ['health.read']);
+    $issued = $service->issue($property, 'property-server', ['health.read']);
 
     $credential = $issued['credential'];
     $token = $issued['plain_text_token'];
 
-    expect($credential)->toBeInstanceOf(BranchSyncCredential::class);
+    expect($credential)->toBeInstanceOf(PropertySyncCredential::class);
     expect($credential->fresh()->token_hash)->toStartWith('hmac-sha256$');
     expect($token)->toMatch('/^[A-Za-z0-9]{40,}$/');
 
@@ -52,9 +52,9 @@ test('issue persists an HMAC-prefixed token hash that validates back to the cred
 });
 
 test('validate returns null for missing, malformed, or short tokens without DB lookup', function () {
-    $branch = createBranchSyncBranch();
-    $service = app(BranchSyncCredentialService::class);
-    $service->issue($branch, 'branch-server');
+    $property = createPropertySyncProperty();
+    $service = app(PropertySyncCredentialService::class);
+    $service->issue($property, 'property-server');
 
     DB::enableQueryLog();
 
@@ -68,12 +68,12 @@ test('validate returns null for missing, malformed, or short tokens without DB l
 });
 
 test('validate accepts legacy SHA-256 hashes and upgrades them to the HMAC scheme on use', function () {
-    $branch = createBranchSyncBranch();
-    $service = app(BranchSyncCredentialService::class);
+    $property = createPropertySyncProperty();
+    $service = app(PropertySyncCredentialService::class);
 
     $plainTextToken = Str::random(64);
-    $credential = BranchSyncCredential::query()->create([
-        'branch_id' => $branch->id,
+    $credential = PropertySyncCredential::query()->create([
+        'property_id' => $property->id,
         'name' => 'legacy-credential',
         'token_hash' => hash('sha256', $plainTextToken),
         'abilities' => ['*'],
@@ -90,12 +90,12 @@ test('validate accepts legacy SHA-256 hashes and upgrades them to the HMAC schem
 });
 
 test('validate refreshes last_used_at no more often than the configured throttle window', function () {
-    $branch = createBranchSyncBranch();
-    $service = app(BranchSyncCredentialService::class);
+    $property = createPropertySyncProperty();
+    $service = app(PropertySyncCredentialService::class);
 
     config()->set('pos.sync.last_used_throttle_seconds', 60);
 
-    $issued = $service->issue($branch, 'branch-server');
+    $issued = $service->issue($property, 'property-server');
     $token = $issued['plain_text_token'];
 
     $service->validate($token);
@@ -114,51 +114,51 @@ test('validate refreshes last_used_at no more often than the configured throttle
         ->toBeTrue();
 });
 
-test('validate rejects expired, revoked, or inactive-branch credentials and unknown abilities', function () {
-    $branch = createBranchSyncBranch();
-    $service = app(BranchSyncCredentialService::class);
+test('validate rejects expired, revoked, or inactive-property credentials and unknown abilities', function () {
+    $property = createPropertySyncProperty();
+    $service = app(PropertySyncCredentialService::class);
 
-    $expired = $service->issue($branch, 'expired', ['health.read'], now()->subMinute());
+    $expired = $service->issue($property, 'expired', ['health.read'], now()->subMinute());
     expect($service->validate($expired['plain_text_token']))->toBeNull();
 
-    $revoked = $service->issue($branch, 'revoked', ['health.read']);
+    $revoked = $service->issue($property, 'revoked', ['health.read']);
     $service->revoke($revoked['credential']);
     expect($service->validate($revoked['plain_text_token']))->toBeNull();
 
-    $scoped = $service->issue($branch, 'scoped', ['health.read']);
+    $scoped = $service->issue($property, 'scoped', ['health.read']);
     expect($service->validate($scoped['plain_text_token'], 'orders.write'))->toBeNull();
     expect($service->validate($scoped['plain_text_token'], 'health.read'))->not->toBeNull();
 
-    $branch->forceFill(['is_active' => false])->save();
-    $stillActive = $service->issue($branch, 'will-fail', ['health.read']);
+    $property->forceFill(['is_active' => false])->save();
+    $stillActive = $service->issue($property, 'will-fail', ['health.read']);
     expect($service->validate($stillActive['plain_text_token']))->toBeNull();
 });
 
 test('issue rejects wildcard abilities by default and accepts them with allowWildcard', function () {
-    $branch = createBranchSyncBranch();
-    $service = app(BranchSyncCredentialService::class);
+    $property = createPropertySyncProperty();
+    $service = app(PropertySyncCredentialService::class);
 
-    expect(fn () => $service->issue($branch, 'wildcard', ['*']))
-        ->toThrow(\InvalidArgumentException::class);
+    expect(fn () => $service->issue($property, 'wildcard', ['*']))
+        ->toThrow(InvalidArgumentException::class);
 
-    expect(fn () => $service->issue($branch, 'wildcard', ['health.read', '*']))
-        ->toThrow(\InvalidArgumentException::class);
+    expect(fn () => $service->issue($property, 'wildcard', ['health.read', '*']))
+        ->toThrow(InvalidArgumentException::class);
 
-    $issued = $service->issue($branch, 'wildcard', ['*'], allowWildcard: true);
+    $issued = $service->issue($property, 'wildcard', ['*'], allowWildcard: true);
     expect($issued['credential']->abilities)->toContain('*');
 
     config()->set('pos.sync.allow_wildcard_ability', true);
-    $configIssued = $service->issue($branch, 'wildcard-config', ['*']);
+    $configIssued = $service->issue($property, 'wildcard-config', ['*']);
     expect($configIssued['credential']->abilities)->toContain('*');
 });
 
 test('issue defaults to health.read when no abilities are provided', function () {
-    $branch = createBranchSyncBranch();
-    $service = app(BranchSyncCredentialService::class);
+    $property = createPropertySyncProperty();
+    $service = app(PropertySyncCredentialService::class);
 
-    $issued = $service->issue($branch, 'defaults');
+    $issued = $service->issue($property, 'defaults');
     expect($issued['credential']->abilities)->toBe(['health.read']);
 
-    $issued = $service->issue($branch, 'defaults-empty', []);
+    $issued = $service->issue($property, 'defaults-empty', []);
     expect($issued['credential']->abilities)->toBe(['health.read']);
 });

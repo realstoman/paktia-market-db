@@ -1,7 +1,7 @@
 import { EmployeeAdvanceClient } from '@/components/tables/employee-advances/client';
 import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
-import { Branch, BreadcrumbItem, Employee, EmployeeAdvance } from '@/types';
+import { Property, BreadcrumbItem, Employee, EmployeeAdvance } from '@/types';
 import { Head } from '@inertiajs/react';
 
 interface EmployeeAdvancePageProps {
@@ -13,14 +13,14 @@ interface EmployeeAdvancePageProps {
         approvedCount: number;
     };
     advances: EmployeeAdvance[];
-    branches: Branch[];
+    properties: Property[];
     employees: Employee[];
 }
 
 export default function EmployeeAdvancesPage({
     summary,
     advances,
-    branches,
+    properties,
     employees,
     printAdvanceId,
 }: EmployeeAdvancePageProps) {
@@ -47,7 +47,7 @@ export default function EmployeeAdvancesPage({
             />
             <EmployeeAdvanceClient
                 advances={advances}
-                branches={branches}
+                properties={properties}
                 employees={employees}
                 printAdvanceId={printAdvanceId ?? null}
                 summary={summary}

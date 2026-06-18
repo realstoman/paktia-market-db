@@ -1,17 +1,16 @@
 <?php
 
-use App\Http\Middleware\EnsureBranchSyncAuthenticated;
 use App\Http\Middleware\EnsureIdempotentRequests;
+use App\Http\Middleware\EnsurePropertySyncAuthenticated;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\HandleLocale;
 use App\Http\Middleware\SetSecurityHeaders;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response as HttpResponse;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Spatie\Permission\Middleware\PermissionMiddleware;
 use Spatie\Permission\Middleware\RoleMiddleware;
@@ -33,7 +32,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->alias([
-            'branch.sync' => EnsureBranchSyncAuthenticated::class,
+            'property.sync' => EnsurePropertySyncAuthenticated::class,
             'idempotency' => EnsureIdempotentRequests::class,
             'role' => RoleMiddleware::class,
             'permission' => PermissionMiddleware::class,
@@ -56,7 +55,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectUsersTo('/dashboard');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->respond(function (Response $response, \Throwable $exception, Request $request) {
+        $exceptions->respond(function (Response $response, Throwable $exception, Request $request) {
             $status = $response->getStatusCode();
 
             if ($request->is('api/*') || $request->expectsJson()) {

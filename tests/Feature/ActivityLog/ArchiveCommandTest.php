@@ -20,14 +20,14 @@ test('pos:archive-audit-logs archives old rows and prunes them', function () {
 
     createAuditLog([
         'action' => 'created',
-        'auditable_type' => 'App\\Models\\Branch',
+        'auditable_type' => 'App\\Models\\Property',
         'auditable_id' => 1,
         'new_values' => ['name' => 'A'],
     ], now()->subMonths(3)->startOfMonth()->addDays(5));
 
     createAuditLog([
         'action' => 'updated',
-        'auditable_type' => 'App\\Models\\Branch',
+        'auditable_type' => 'App\\Models\\Property',
         'auditable_id' => 1,
         'old_values' => ['name' => 'A'],
         'new_values' => ['name' => 'B'],
@@ -81,7 +81,7 @@ test('dry-run does not delete records', function () {
 
     createAuditLog([
         'action' => 'created',
-        'auditable_type' => 'App\\Models\\Branch',
+        'auditable_type' => 'App\\Models\\Property',
         'auditable_id' => 1,
         'new_values' => ['name' => 'A'],
     ], now()->subMonths(4)->startOfMonth());

@@ -9,7 +9,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Branch, PayrollRun, PayrollRunItem } from '@/types';
+import { Property, PayrollRun, PayrollRunItem } from '@/types';
 import { formatAfghanDate, formatAfghanMonthLabel } from '@/utils/afghan-calendar';
 import { formatAfn } from '@/utils/format';
 import { Printer, ReceiptText } from 'lucide-react';
@@ -19,7 +19,7 @@ interface PayrollVoucherPrintDialogProps {
     onOpenChange: (open: boolean) => void;
     run: PayrollRun | null;
     item: PayrollRunItem | null;
-    branch: Branch | null;
+    property: Property | null;
 }
 
 const escapeHtml = (value: string) =>
@@ -86,7 +86,7 @@ export function PayrollVoucherPrintDialog({
     onOpenChange,
     run,
     item,
-    branch,
+    property,
 }: PayrollVoucherPrintDialogProps) {
     const { t } = useLocalization();
     const monthLabel =
@@ -210,7 +210,7 @@ export function PayrollVoucherPrintDialog({
                             <div class="brand">
                                 <img src="${brand.logoFull.startsWith('http') ? brand.logoFull : `${window.location.origin}${brand.logoFull}`}" alt="${brand.name} Logo" />
                                 <h1>Paktia Market</h1>
-                                <p>${escapeHtml(branch?.name ?? 'Main Branch')} • ${escapeHtml(branch?.address ?? 'Address not set')}</p>
+                                <p>${escapeHtml(property?.name ?? 'Main Property')} • ${escapeHtml(property?.address ?? 'Address not set')}</p>
                             </div>
                             <div class="header-right">
                                 <p class="header-label">Document</p>
@@ -229,14 +229,14 @@ export function PayrollVoucherPrintDialog({
                                     <thead>
                                         <tr>
                                             <th>Description</th>
-                                            <th>Branch</th>
+                                            <th>Property</th>
                                             <th class="right">Amount</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         <tr>
                                             <td>${escapeHtml(title)} for month ${escapeHtml(monthLabel)}</td>
-                                            <td>${escapeHtml(branch?.name ?? 'All Branches')}</td>
+                                            <td>${escapeHtml(property?.name ?? 'All Properties')}</td>
                                             <td class="right">${escapeHtml(net)}</td>
                                         </tr>
                                     </tbody>
@@ -348,8 +348,8 @@ export function PayrollVoucherPrintDialog({
                                             Paktia Market
                                         </p>
                                         <p className="text-sm text-muted-foreground">
-                                            {branch?.name ?? 'Main Branch'} •{' '}
-                                            {branch?.address ??
+                                            {property?.name ?? 'Main Property'} •{' '}
+                                            {property?.address ??
                                                 'Address not set'}
                                         </p>
                                     </div>
@@ -427,8 +427,8 @@ export function PayrollVoucherPrintDialog({
                                                 </th>
                                                 <th className="px-2 py-3 text-left text-xs tracking-[0.08em] text-muted-foreground uppercase">
                                                     {t(
-                                                        'financePayroll.filters.branch',
-                                                        'Branch',
+                                                        'financePayroll.filters.property',
+                                                        'Property',
                                                     )}
                                                 </th>
                                                 <th className="px-2 py-3 text-right text-xs tracking-[0.08em] text-muted-foreground uppercase">
@@ -459,8 +459,8 @@ export function PayrollVoucherPrintDialog({
                                                     {monthLabel}
                                                 </td>
                                                 <td className="px-2 py-4">
-                                                    {branch?.name ??
-                                                        'All Branches'}
+                                                    {property?.name ??
+                                                        'All Properties'}
                                                 </td>
                                                 <td className="px-2 py-4 text-right">
                                                     {formatAfn(item.net_salary)}

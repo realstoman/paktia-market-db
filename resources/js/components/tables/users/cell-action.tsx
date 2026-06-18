@@ -37,7 +37,7 @@ import {
 import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
 import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
-import { Branch, Country, Province, Role, User } from '@/types';
+import { Property, Country, Province, Role, User } from '@/types';
 import { router, usePage } from '@inertiajs/react';
 import {
     Ban,
@@ -60,7 +60,7 @@ interface CellActionProps {
     roles: Role[];
     countries: Country[];
     provinces: Province[];
-    branches: Branch[];
+    properties: Property[];
 }
 
 export const CellAction: React.FC<CellActionProps> = ({
@@ -68,7 +68,7 @@ export const CellAction: React.FC<CellActionProps> = ({
     roles,
     countries,
     provinces,
-    branches,
+    properties,
 }) => {
     const { t } = useLocalization();
     const { auth } = usePage().props as {
@@ -90,8 +90,8 @@ export const CellAction: React.FC<CellActionProps> = ({
     const [editProvinceId, setEditProvinceId] = useState(
         data.province_id ? String(data.province_id) : '',
     );
-    const [editBranchId, setEditBranchId] = useState(
-        data.branch_id ? String(data.branch_id) : '',
+    const [editPropertyId, setEditPropertyId] = useState(
+        data.property_id ? String(data.property_id) : '',
     );
     const [editPassword, setEditPassword] = useState('');
     const [editPasswordConfirmation, setEditPasswordConfirmation] =
@@ -140,33 +140,33 @@ export const CellAction: React.FC<CellActionProps> = ({
             }),
         [provinces, editCountryId],
     );
-    const editBranchOptions = useMemo(
+    const editPropertyOptions = useMemo(
         () =>
-            branches.filter((branch) => {
+            properties.filter((property) => {
                 const matchesCountry = editCountryId
-                    ? String(branch.country_id ?? '') === editCountryId
+                    ? String(property.country_id ?? '') === editCountryId
                     : true;
                 const matchesProvince = editProvinceId
-                    ? String(branch.province_id ?? '') === editProvinceId
+                    ? String(property.province_id ?? '') === editProvinceId
                     : true;
 
                 return matchesCountry && matchesProvince;
             }),
-        [branches, editCountryId, editProvinceId],
+        [properties, editCountryId, editProvinceId],
     );
-    const editBranchSelectOptions = useMemo(
+    const editPropertySelectOptions = useMemo(
         () =>
-            editBranchOptions.map((branch) => ({
-                value: String(branch.id),
-                label: branch.name,
+            editPropertyOptions.map((property) => ({
+                value: String(property.id),
+                label: property.name,
             })),
-        [editBranchOptions],
+        [editPropertyOptions],
     );
 
     useAutoSelectSingleOption(
-        editBranchSelectOptions,
-        editBranchId,
-        setEditBranchId,
+        editPropertySelectOptions,
+        editPropertyId,
+        setEditPropertyId,
     );
 
     const resetEdit = () => {
@@ -175,7 +175,7 @@ export const CellAction: React.FC<CellActionProps> = ({
         setEditRoleId(data.role_ids?.[0] ? String(data.role_ids[0]) : '');
         setEditCountryId(data.country_id ? String(data.country_id) : '');
         setEditProvinceId(data.province_id ? String(data.province_id) : '');
-        setEditBranchId(data.branch_id ? String(data.branch_id) : '');
+        setEditPropertyId(data.property_id ? String(data.property_id) : '');
         setEditPassword('');
         setEditPasswordConfirmation('');
         setEditErrors({});
@@ -198,7 +198,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                 roles: editRoleId ? [Number(editRoleId)] : [],
                 country_id: editCountryId ? Number(editCountryId) : null,
                 province_id: editProvinceId ? Number(editProvinceId) : null,
-                branch_id: editBranchId ? Number(editBranchId) : null,
+                property_id: editPropertyId ? Number(editPropertyId) : null,
             },
             {
                 preserveScroll: true,
@@ -513,7 +513,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     setEditCountryId(value);
                                     if (value !== editCountryId) {
                                         setEditProvinceId('');
-                                        setEditBranchId('');
+                                        setEditPropertyId('');
                                     }
                                 }}
                             >
@@ -547,7 +547,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 onValueChange={(value) => {
                                     setEditProvinceId(value);
                                     if (value !== editProvinceId) {
-                                        setEditBranchId('');
+                                        setEditPropertyId('');
                                     }
                                 }}
                                 disabled={
@@ -577,32 +577,32 @@ export const CellAction: React.FC<CellActionProps> = ({
                             <InputError message={editErrors.province_id} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>{t('users.fields.branch', 'Branch')}</Label>
+                            <Label>{t('users.fields.property', 'Property')}</Label>
                             <Select
-                                value={editBranchId}
-                                onValueChange={setEditBranchId}
-                                disabled={editBranchOptions.length === 0}
+                                value={editPropertyId}
+                                onValueChange={setEditPropertyId}
+                                disabled={editPropertyOptions.length === 0}
                             >
                                 <SelectTrigger>
                                     <SelectValue
                                         placeholder={t(
-                                            'users.placeholders.selectBranch',
-                                            'Select branch',
+                                            'users.placeholders.selectProperty',
+                                            'Select property',
                                         )}
                                     />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {editBranchOptions.map((branch) => (
+                                    {editPropertyOptions.map((property) => (
                                         <SelectItem
-                                            key={branch.id}
-                                            value={String(branch.id)}
+                                            key={property.id}
+                                            value={String(property.id)}
                                         >
-                                            {branch.name}
+                                            {property.name}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
-                            <InputError message={editErrors.branch_id} />
+                            <InputError message={editErrors.property_id} />
                         </div>
                     </div>
 

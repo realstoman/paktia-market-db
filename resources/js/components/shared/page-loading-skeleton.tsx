@@ -204,7 +204,7 @@ export function PageLoadingSkeleton() {
 
     if (
         component.endsWith('/index') ||
-        component.includes('/branches') ||
+        component.includes('/properties') ||
         component.includes('/users') ||
         component.includes('/roles') ||
         component.includes('/orders') ||

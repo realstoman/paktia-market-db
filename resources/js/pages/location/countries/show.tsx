@@ -29,7 +29,7 @@ export default function CountryShow({ country }: CountryShowProps) {
     ];
 
     const provinces = country.provinces ?? [];
-    const branches = country.branches ?? [];
+    const properties = country.properties ?? [];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -112,21 +112,21 @@ export default function CountryShow({ country }: CountryShowProps) {
                             </TableRow>
                             <TableRow>
                                 <TableCell className="font-medium">
-                                    Branches
+                                    Properties
                                 </TableCell>
                                 <TableCell>
-                                    {branches.length === 0 ? (
+                                    {properties.length === 0 ? (
                                         <span className="text-sm text-muted-foreground">
-                                            No branches
+                                            No properties
                                         </span>
                                     ) : (
                                         <div className="flex flex-wrap gap-1">
-                                            {branches.map((branch) => (
+                                            {properties.map((property) => (
                                                 <Badge
-                                                    key={branch.id}
+                                                    key={property.id}
                                                     variant="secondary"
                                                 >
-                                                    {branch.name}
+                                                    {property.name}
                                                 </Badge>
                                             ))}
                                         </div>

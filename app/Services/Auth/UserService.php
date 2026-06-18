@@ -11,6 +11,7 @@ class UserService
     {
         $user = User::create($data);
         $user->syncRoles($data['roles'] ?? []);
+
         return $user;
     }
 
@@ -18,6 +19,7 @@ class UserService
     {
         $user->update($data);
         $user->syncRoles($data['roles'] ?? []);
+
         return $user;
     }
 
@@ -28,6 +30,7 @@ class UserService
         } else {
             $user->unblock();
         }
+
         return $user;
     }
 
@@ -53,17 +56,17 @@ class UserService
                 'roles:name,id',
                 'country:id,name',
                 'province:id,name',
-                'branch:id,name',
+                'property:id,name,name_translations',
             ]);
 
         // Apply search
-        if (!empty($search)) {
+        if (! empty($search)) {
             $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', '%' . $search . '%')
-                  ->orWhere('email', 'like', '%' . $search . '%')
-                  ->orWhereHas('roles', function ($roleQuery) use ($search) {
-                      $roleQuery->where('name', 'like', '%' . $search . '%');
-                  });
+                $q->where('name', 'like', '%'.$search.'%')
+                    ->orWhere('email', 'like', '%'.$search.'%')
+                    ->orWhereHas('roles', function ($roleQuery) use ($search) {
+                        $roleQuery->where('name', 'like', '%'.$search.'%');
+                    });
             });
         }
 
@@ -99,14 +102,14 @@ class UserService
             'country_id' => $user->country_id,
             'province' => $user->province ? $user->province->name : null,
             'province_id' => $user->province_id,
-            'branch' => $user->branch ? $user->branch->name : null,
-            'branch_id' => $user->branch_id,
+            'property' => $user->property ? $user->property->name : null,
+            'property_id' => $user->property_id,
             'is_internal_user' => $user->is_internal_user,
 
             // Include full relationship objects if needed
             'country_object' => $user->country,
             'province_object' => $user->province,
-            'branch_object' => $user->branch,
+            'property_object' => $user->property,
         ];
     }
 }

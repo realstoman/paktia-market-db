@@ -4,16 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Enums\EmployeeStatus;
 use App\Enums\PermissionEnum;
-use App\Models\Branch;
 use App\Models\Employee;
 use App\Models\EmployeeAdvance;
 use App\Models\EmployeeContractPaymentSchedule;
 use App\Models\EmployeePosition;
 use App\Models\EmploymentType;
 use App\Models\PayrollRunItem;
+use App\Models\Property;
 use App\Models\Shift;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -26,14 +27,14 @@ class EmployeeController extends Controller
         Gate::authorize(PermissionEnum::EMPLOYEES_VIEW->value);
 
         $employees = Employee::query()
-            ->with(['branch:id,name', 'employmentType:id,name', 'employeePosition:id,name', 'shift:id,name,start_time,end_time'])
+            ->with(['property:id,name,name_translations', 'employmentType:id,name', 'employeePosition:id,name', 'shift:id,name,start_time,end_time'])
             ->orderByDesc('id')
             ->get();
 
         $employeeIds = $employees->pluck('id');
 
         $advancesByEmployee = EmployeeAdvance::query()
-            ->with(['branch:id,name'])
+            ->with(['property:id,name,name_translations'])
             ->whereIn('employee_id', $employeeIds)
             ->orderByDesc('advance_date')
             ->orderByDesc('id')
@@ -41,14 +42,14 @@ class EmployeeController extends Controller
             ->groupBy('employee_id');
 
         $payrollItemsByEmployee = PayrollRunItem::query()
-            ->with(['payrollRun:id,branch_id,period_start,period_end,status,paid_at', 'payrollRun.branch:id,name'])
+            ->with(['payrollRun:id,property_id,period_start,period_end,status,paid_at', 'payrollRun.property:id,name,name_translations'])
             ->whereIn('employee_id', $employeeIds)
             ->orderByDesc('id')
             ->get()
             ->groupBy('employee_id');
 
         $contractSchedulesByEmployee = EmployeeContractPaymentSchedule::query()
-            ->with(['contract:id,employee_id,branch_id,contract_amount,start_date,end_date,status', 'contract.branch:id,name'])
+            ->with(['contract:id,employee_id,property_id,contract_amount,start_date,end_date,status', 'contract.property:id,name,name_translations'])
             ->whereHas('contract', fn ($query) => $query->whereIn('employee_id', $employeeIds))
             ->orderBy('due_date')
             ->orderBy('id')
@@ -66,8 +67,8 @@ class EmployeeController extends Controller
                 'description' => $employee->description,
                 'profile_picture' => $employee->profile_picture,
                 'attachments' => $employee->attachments,
-                'branch' => $employee->branch?->name,
-                'branch_id' => $employee->branch_id,
+                'property' => $employee->property?->name,
+                'property_id' => $employee->property_id,
                 'employment_type' => $employee->employmentType?->name,
                 'employment_type_id' => $employee->employment_type_id,
                 'employee_position' => $employee->employeePosition?->name,
@@ -93,9 +94,9 @@ class EmployeeController extends Controller
                         'status' => $advance->status,
                         'reason' => $advance->reason,
                         'repayment_method' => $advance->repayment_method,
-                        'branch' => $advance->branch ? [
-                            'id' => $advance->branch->id,
-                            'name' => $advance->branch->name,
+                        'property' => $advance->property ? [
+                            'id' => $advance->property->id,
+                            'name' => $advance->property->name,
                         ] : null,
                         'created_at' => $advance->created_at?->toIso8601String(),
                     ])
@@ -131,9 +132,9 @@ class EmployeeController extends Controller
                             'period_start' => $item->payrollRun->period_start?->toDateString(),
                             'period_end' => $item->payrollRun->period_end?->toDateString(),
                             'paid_at' => $item->payrollRun->paid_at?->toIso8601String(),
-                            'branch' => $item->payrollRun->branch ? [
-                                'id' => $item->payrollRun->branch->id,
-                                'name' => $item->payrollRun->branch->name,
+                            'property' => $item->payrollRun->property ? [
+                                'id' => $item->payrollRun->property->id,
+                                'name' => $item->payrollRun->property->name,
                             ] : null,
                         ] : null,
                     ])
@@ -153,9 +154,9 @@ class EmployeeController extends Controller
                             'contract_amount' => $schedule->contract->contract_amount,
                             'start_date' => $schedule->contract->start_date?->toDateString(),
                             'end_date' => $schedule->contract->end_date?->toDateString(),
-                            'branch' => $schedule->contract->branch ? [
-                                'id' => $schedule->contract->branch->id,
-                                'name' => $schedule->contract->branch->name,
+                            'property' => $schedule->contract->property ? [
+                                'id' => $schedule->contract->property->id,
+                                'name' => $schedule->contract->property->name,
                             ] : null,
                         ] : null,
                     ])
@@ -172,7 +173,7 @@ class EmployeeController extends Controller
 
         return Inertia::render('employees/index', [
             'employees' => $employees,
-            'branches' => Branch::orderBy('name')->get(['id', 'name']),
+            'properties' => Property::orderBy('name')->get(['id', 'name', 'name_translations']),
             'employmentTypes' => EmploymentType::orderBy('name')->get(['id', 'name', 'description']),
             'employeePositions' => EmployeePosition::orderBy('name')->get(['id', 'name', 'description']),
             'shifts' => Shift::orderBy('name')->get(['id', 'name', 'start_time', 'end_time', 'description']),
@@ -182,8 +183,8 @@ class EmployeeController extends Controller
 
     private function resolveUpcomingPayment(
         Employee $employee,
-        \Illuminate\Support\Collection $contractSchedules,
-        \Illuminate\Support\Collection $payrollItems,
+        Collection $contractSchedules,
+        Collection $payrollItems,
     ): array {
         $nextSchedule = $contractSchedules
             ->first(fn (EmployeeContractPaymentSchedule $schedule) => $schedule->status !== 'paid');
@@ -522,7 +523,7 @@ class EmployeeController extends Controller
     private function rules(): array
     {
         return [
-            'branch_id' => ['required', 'exists:branches,id'],
+            'property_id' => ['required', 'exists:properties,id'],
             'employment_type_id' => ['nullable', 'exists:employment_types,id'],
             'employee_position_id' => ['nullable', 'exists:employee_positions,id'],
             'shift_id' => ['nullable', 'exists:shifts,id'],

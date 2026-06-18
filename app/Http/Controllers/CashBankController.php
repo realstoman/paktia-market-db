@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Enums\PaymentMethod;
-use App\Models\Branch;
 use App\Models\CashMovement;
 use App\Models\CashMovementType;
 use App\Models\FinanceAccount;
+use App\Models\Property;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -22,7 +22,7 @@ class CashBankController extends Controller
         return Inertia::render('finance/cash-bank/index', [
             'movements' => CashMovement::query()
                 ->with([
-                    'branch:id,name',
+                    'property:id,name,name_translations',
                     'account:id,code,name',
                     'counterpartyAccount:id,code,name',
                     'creator:id,name',
@@ -31,9 +31,9 @@ class CashBankController extends Controller
                 ->orderByDesc('movement_date')
                 ->orderByDesc('id')
                 ->get(),
-            'branches' => Branch::query()
+            'properties' => Property::query()
                 ->orderBy('name')
-                ->get(['id', 'name', 'address']),
+                ->get(['id', 'name', 'name_translations', 'address', 'address_translations']),
             'sourceAccounts' => $sourceAccounts,
             'targetAccounts' => $sourceAccounts,
             'movementTypes' => CashMovementType::query()
@@ -53,8 +53,8 @@ class CashBankController extends Controller
             ->first();
 
         $validated = $request->validate([
-            'branch_id' => ['nullable', 'exists:branches,id'],
-            'destination_branch_id' => ['nullable', 'exists:branches,id'],
+            'property_id' => ['nullable', 'exists:properties,id'],
+            'destination_property_id' => ['nullable', 'exists:properties,id'],
             'movement_type' => [
                 'required',
                 Rule::exists('cash_movement_types', 'slug')->where(
@@ -93,11 +93,12 @@ class CashBankController extends Controller
                     $approvalStatus,
                     $attachmentPath
                 );
+
                 return;
             }
 
             $createdMovement = CashMovement::create([
-                'branch_id' => $validated['branch_id'] ?? null,
+                'property_id' => $validated['property_id'] ?? null,
                 'movement_type' => $validated['movement_type'],
                 'direction' => $this->resolveDirection(
                     movementType: $validated['movement_type'],
@@ -171,8 +172,8 @@ class CashBankController extends Controller
             ->first();
 
         $validated = $request->validate([
-            'branch_id' => ['nullable', 'exists:branches,id'],
-            'destination_branch_id' => ['nullable', 'exists:branches,id'],
+            'property_id' => ['nullable', 'exists:properties,id'],
+            'destination_property_id' => ['nullable', 'exists:properties,id'],
             'movement_type' => [
                 'required',
                 Rule::exists('cash_movement_types', 'slug')->where(
@@ -233,11 +234,11 @@ class CashBankController extends Controller
                     $outgoing,
                     $incoming
                 );
-                $sourceBranchId = $validated['branch_id'] ?? $outgoing->branch_id;
-                $destinationBranchId = $validated['destination_branch_id'] ?? $incoming->branch_id ?? $sourceBranchId;
+                $sourcePropertyId = $validated['property_id'] ?? $outgoing->property_id;
+                $destinationPropertyId = $validated['destination_property_id'] ?? $incoming->property_id ?? $sourcePropertyId;
 
                 $outgoing->update([
-                    'branch_id' => $sourceBranchId,
+                    'property_id' => $sourcePropertyId,
                     'movement_type' => $validated['movement_type'],
                     'direction' => 'out',
                     'movement_date' => $validated['movement_date'],
@@ -252,7 +253,7 @@ class CashBankController extends Controller
                 ]);
 
                 $incoming->update([
-                    'branch_id' => $destinationBranchId,
+                    'property_id' => $destinationPropertyId,
                     'movement_type' => $validated['movement_type'],
                     'direction' => 'in',
                     'movement_date' => $validated['movement_date'],
@@ -267,13 +268,14 @@ class CashBankController extends Controller
                 ]);
 
                 $printMovementId = $outgoing->id;
+
                 return;
             }
 
             $attachmentPath = $this->resolveAttachmentPath($request, $cashMovement);
 
             $cashMovement->update([
-                'branch_id' => $validated['branch_id'] ?? null,
+                'property_id' => $validated['property_id'] ?? null,
                 'movement_type' => $validated['movement_type'],
                 'direction' => $this->resolveDirection(
                     movementType: $validated['movement_type'],
@@ -311,17 +313,16 @@ class CashBankController extends Controller
         array $validated,
         string $approvalStatus,
         ?string $attachmentPath = null
-    ): CashMovement
-    {
+    ): CashMovement {
         if (empty($validated['counterparty_account_id'])) {
             abort(422, 'Target account is required for transfer.');
         }
 
-        $sourceBranchId = $validated['branch_id'] ?? null;
-        $destinationBranchId = $validated['destination_branch_id'] ?? $sourceBranchId;
+        $sourcePropertyId = $validated['property_id'] ?? null;
+        $destinationPropertyId = $validated['destination_property_id'] ?? $sourcePropertyId;
 
         $outgoing = CashMovement::create([
-            'branch_id' => $sourceBranchId,
+            'property_id' => $sourcePropertyId,
             'movement_type' => $validated['movement_type'],
             'direction' => 'out',
             'movement_date' => $validated['movement_date'],
@@ -337,7 +338,7 @@ class CashBankController extends Controller
         ]);
 
         $incoming = CashMovement::create([
-            'branch_id' => $destinationBranchId,
+            'property_id' => $destinationPropertyId,
             'movement_type' => $validated['movement_type'],
             'direction' => 'in',
             'movement_date' => $validated['movement_date'],
@@ -366,8 +367,7 @@ class CashBankController extends Controller
         string $movementType,
         ?string $requestedDirection,
         ?string $defaultDirection = null
-    ): string
-    {
+    ): string {
         return match ($movementType) {
             'owner_deposit', 'bank_withdrawal' => 'in',
             'owner_withdrawal', 'bank_deposit' => 'out',

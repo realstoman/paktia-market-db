@@ -122,7 +122,7 @@ class FinanceAccountSeeder extends Seeder
 
         $this->upsertAccount([
             'code' => '1500',
-            'name' => 'Branch Petty Cash',
+            'name' => 'Property Petty Cash',
             'type' => 'asset',
             'parent_id' => $parentId,
             'currency_code' => 'AFN',

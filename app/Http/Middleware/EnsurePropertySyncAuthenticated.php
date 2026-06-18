@@ -2,22 +2,22 @@
 
 namespace App\Http\Middleware;
 
-use App\Services\BranchSync\BranchSyncCredentialService;
+use App\Services\PropertySync\PropertySyncCredentialService;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class EnsureBranchSyncAuthenticated
+class EnsurePropertySyncAuthenticated
 {
     /**
-     * Header that branch-local servers MUST use to send their sync token.
+     * Header that property-local servers MUST use to send their sync token.
      * Authorization: Bearer is intentionally not accepted here so the
      * header has unambiguous semantics and can be allow-listed in proxies.
      */
-    public const TOKEN_HEADER = 'X-Branch-Token';
+    public const TOKEN_HEADER = 'X-Property-Token';
 
     public function __construct(
-        private readonly BranchSyncCredentialService $branchSyncCredentialService,
+        private readonly PropertySyncCredentialService $propertySyncCredentialService,
     ) {}
 
     public function handle(Request $request, Closure $next, string $ability = '*'): Response
@@ -25,17 +25,17 @@ class EnsureBranchSyncAuthenticated
         $token = (string) $request->header(self::TOKEN_HEADER, '');
 
         if ($token === '') {
-            return $this->unauthorizedResponse('Missing branch sync token.');
+            return $this->unauthorizedResponse('Missing property sync token.');
         }
 
-        $credential = $this->branchSyncCredentialService->validate($token, $ability);
+        $credential = $this->propertySyncCredentialService->validate($token, $ability);
 
         if (! $credential) {
-            return $this->unauthorizedResponse('Unauthorized branch sync client.');
+            return $this->unauthorizedResponse('Unauthorized property sync client.');
         }
 
-        $request->attributes->set('branchSyncCredential', $credential);
-        $request->attributes->set('syncBranch', $credential->branch);
+        $request->attributes->set('propertySyncCredential', $credential);
+        $request->attributes->set('syncProperty', $credential->property);
 
         return $next($request);
     }

@@ -40,7 +40,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
 import {
-    Branch,
+    Property,
     Currency,
     InventoryCategory,
     InventoryItem,
@@ -67,7 +67,7 @@ import { toast } from 'sonner';
 
 interface CellActionProps {
     data: InventoryItem;
-    branches: Branch[];
+    properties: Property[];
     vendors: Vendor[];
     currencies: Currency[];
     units: Unit[];
@@ -106,7 +106,7 @@ const resolveImageUrl = (image: InventoryItemImage) => {
 
 export const CellAction: React.FC<CellActionProps> = ({
     data,
-    branches,
+    properties,
     vendors,
     currencies,
     units,
@@ -141,7 +141,7 @@ export const CellAction: React.FC<CellActionProps> = ({
     );
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [editBranchId, setEditBranchId] = useState(String(data.branch_id));
+    const [editPropertyId, setEditPropertyId] = useState(String(data.property_id));
     const [editName, setEditName] = useState(data.name);
     const [editTypeId, setEditTypeId] = useState(
         data.inventory_type_id ? String(data.inventory_type_id) : '',
@@ -224,7 +224,7 @@ export const CellAction: React.FC<CellActionProps> = ({
     }, [editImages]);
 
     const resetEditForm = () => {
-        setEditBranchId(String(data.branch_id));
+        setEditPropertyId(String(data.property_id));
         setEditName(data.name);
         setEditTypeId(
             data.inventory_type_id ? String(data.inventory_type_id) : '',
@@ -349,7 +349,7 @@ export const CellAction: React.FC<CellActionProps> = ({
     const handleUpdate = () => {
         if (
             !editName.trim() ||
-            !editBranchId ||
+            !editPropertyId ||
             !editTypeId ||
             !editQuantity ||
             !editUnitPrice ||
@@ -365,7 +365,7 @@ export const CellAction: React.FC<CellActionProps> = ({
             `/inventory/${data.id}`,
             {
                 _method: 'put',
-                branch_id: Number(editBranchId),
+                property_id: Number(editPropertyId),
                 name: editName.trim(),
                 inventory_type_id: Number(editTypeId),
                 quantity: Number(editQuantity),
@@ -591,31 +591,31 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <InputError message={editErrors.name} />
                             </div>
                             <div className="grid gap-2">
-                                <Label>{t('inventory.common.branch', 'Branch')}</Label>
+                                <Label>{t('inventory.common.property', 'Property')}</Label>
                                 <Select
-                                    value={editBranchId}
-                                    onValueChange={setEditBranchId}
+                                    value={editPropertyId}
+                                    onValueChange={setEditPropertyId}
                                 >
                                     <SelectTrigger>
                                         <SelectValue
                                             placeholder={t(
-                                                'inventory.common.selectBranch',
-                                                'Select branch',
+                                                'inventory.common.selectProperty',
+                                                'Select property',
                                             )}
                                         />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {branches.map((branch) => (
+                                        {properties.map((property) => (
                                             <SelectItem
-                                                key={branch.id}
-                                                value={String(branch.id)}
+                                                key={property.id}
+                                                value={String(property.id)}
                                             >
-                                                {branch.name}
+                                                {property.name}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <InputError message={editErrors.branch_id} />
+                                <InputError message={editErrors.property_id} />
                             </div>
                             <div className="grid gap-2">
                                 <Label>{t('inventory.common.type', 'Type')}</Label>
@@ -1039,7 +1039,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             onClick={handleUpdate}
                             disabled={
                                 !editName.trim() ||
-                                !editBranchId ||
+                                !editPropertyId ||
                                 !editTypeId ||
                                 !editQuantity ||
                                 !editUnitPrice ||
@@ -1078,10 +1078,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                         </div>
                         <div>
                             <p className="text-xs text-muted-foreground">
-                                {t('inventory.common.branch', 'Branch')}
+                                {t('inventory.common.property', 'Property')}
                             </p>
                             <p className="font-medium">
-                                {data.branch?.name ??
+                                {data.property?.name ??
                                     t('inventory.common.unknown', 'Unknown')}
                             </p>
                         </div>

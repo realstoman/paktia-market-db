@@ -37,6 +37,16 @@ return [
         'updated_description' => 'د :name د ذخیرې جزئیات تازه شول.',
         'qty_meta' => 'شمېر :quantity',
     ],
+    'generated' => [
+        'inventory_unavailable_title' => 'توکی په ګدام کې نشته',
+        'low_inventory_title' => 'د ګدام موجودي کمه ده',
+        'inventory_remaining_description' => 'د :name لپاره :quantity پاتې دي.',
+        'expense_review_title' => 'لګښت کتنې ته اړتیا لري',
+        'expense_review_description' => 'د :title لګښت د منظورۍ په تمه دی.',
+        'payroll_recorded_title' => 'د معاش تادیه ثبت شوه',
+        'payroll_recorded_description' => 'د :name معاش ثبت شو.',
+        'payroll_recorded_fallback' => 'د کارکوونکي معاش ثبت شو.',
+    ],
     'products' => [
         'added_title' => 'محصول اضافه شو',
         'updated_title' => 'محصول تازه شو',

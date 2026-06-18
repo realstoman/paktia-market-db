@@ -13,7 +13,7 @@ return new class extends Migration
             $table->date('journal_date');
             $table->string('reference_type')->nullable();
             $table->unsignedBigInteger('reference_id')->nullable();
-            $table->foreignId('branch_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignId('property_id')->nullable()->constrained()->nullOnDelete();
             $table->string('posting_status', 30)->default('draft');
             $table->string('approval_status', 30)->default('draft');
             $table->text('description')->nullable();

@@ -10,7 +10,7 @@ class Expense extends Model
     use Auditable;
 
     protected $fillable = [
-        'branch_id',
+        'property_id',
         'vendor_id',
         'title',
         'expense_type',
@@ -35,9 +35,9 @@ class Expense extends Model
         'approved_at' => 'datetime',
     ];
 
-    public function branch()
+    public function property()
     {
-        return $this->belongsTo(Branch::class);
+        return $this->belongsTo(Property::class);
     }
 
     public function vendor()

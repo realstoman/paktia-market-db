@@ -7,7 +7,6 @@ use App\Http\Resources\ActivityLogArchiveResource;
 use App\Http\Resources\ActivityLogResource;
 use App\Models\AuditLog;
 use App\Models\AuditLogArchive;
-use App\Models\Branch;
 use App\Models\CashMovement;
 use App\Models\Employee;
 use App\Models\EmployeeAdvance;
@@ -17,6 +16,7 @@ use App\Models\InventoryItem;
 use App\Models\InventoryTransaction;
 use App\Models\PayrollRun;
 use App\Models\PayrollRunItem;
+use App\Models\Property;
 use App\Models\SystemSetting;
 use App\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -37,10 +37,10 @@ class ActivityLogController extends Controller
         $this->authorize('viewAny', AuditLog::class);
 
         $paginator = QueryBuilder::for(AuditLog::class)
-            ->with(['user:id,name,email', 'branch:id,name'])
+            ->with(['user:id,name,email', 'property:id,name,name_translations'])
             ->allowedFilters([
                 AllowedFilter::exact('user_id'),
-                AllowedFilter::exact('branch_id'),
+                AllowedFilter::exact('property_id'),
                 AllowedFilter::exact('action'),
                 AllowedFilter::exact('auditable_type'),
                 AllowedFilter::exact('batch_uuid'),
@@ -81,8 +81,8 @@ class ActivityLogController extends Controller
                     ->select('id', 'name', 'email')
                     ->orderBy('name')
                     ->get(),
-                'branches' => Branch::query()
-                    ->select('id', 'name')
+                'properties' => Property::query()
+                    ->select('id', 'name', 'name_translations')
                     ->orderBy('name')
                     ->get(),
             ],
@@ -145,7 +145,7 @@ class ActivityLogController extends Controller
             EmployeeAdvance::class,
             PayrollRun::class,
             PayrollRunItem::class,
-            Branch::class,
+            Property::class,
             User::class,
             SystemSetting::class,
         ];
@@ -171,7 +171,7 @@ class ActivityLogController extends Controller
     {
         $this->authorize('view', $auditLog);
 
-        $auditLog->load(['user:id,name,email', 'branch:id,name']);
+        $auditLog->load(['user:id,name,email', 'property:id,name,name_translations']);
 
         return Inertia::render('admin/activity-logs/show', [
             'log' => (new ActivityLogResource($auditLog))->resolve(),

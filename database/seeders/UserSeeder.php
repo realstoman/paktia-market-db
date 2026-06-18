@@ -6,7 +6,7 @@ use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\Country;
 use App\Models\Province;
-use App\Models\Branch;
+use App\Models\Property;
 
 class UserSeeder extends Seeder
 {
@@ -14,7 +14,7 @@ class UserSeeder extends Seeder
     {
         $country = Country::where('code', 'AF')->first();
         $province = Province::where('name', 'Kabul')->first();
-        $branch = Branch::where('name', 'Paktia Market – Kabul')->first();
+        $property = Property::where('name', 'Paktia Market – Kabul')->first();
 
         $user = User::firstOrCreate(
             ['email' => 'stoman@email.com'],
@@ -23,7 +23,7 @@ class UserSeeder extends Seeder
                 'password' => bcrypt('password'),
                 'country_id' => $country?->id,
                 'province_id' => $province?->id,
-                'branch_id' => $branch?->id,
+                'property_id' => $property?->id,
             ]
         );
 

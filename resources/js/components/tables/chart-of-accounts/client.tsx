@@ -24,7 +24,7 @@ import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
 import { useLocalization } from '@/lib/localization';
-import { Branch, Currency, FinanceAccount, SharedData } from '@/types';
+import { Property, Currency, FinanceAccount, SharedData } from '@/types';
 import { formatNumber } from '@/utils/format';
 import { Link, router, usePage } from '@inertiajs/react';
 import { BookOpenText, Plus, Trash2 } from 'lucide-react';
@@ -50,7 +50,7 @@ interface FinanceAccountFormState {
     name: string;
     type: string;
     parent_id: string;
-    branch_id: string;
+    property_id: string;
     currency_code: string;
     is_postable: boolean;
     status: string;
@@ -62,7 +62,7 @@ const emptyForm: FinanceAccountFormState = {
     name: '',
     type: 'expense',
     parent_id: '',
-    branch_id: '',
+    property_id: '',
     currency_code: '',
     is_postable: true,
     status: 'active',
@@ -72,14 +72,14 @@ const emptyForm: FinanceAccountFormState = {
 interface ChartOfAccountsClientProps {
     accounts: FinanceAccount[];
     parentAccounts: FinanceAccount[];
-    branches: Branch[];
+    properties: Property[];
     currencies: Currency[];
 }
 
 export function ChartOfAccountsClient({
     accounts,
     parentAccounts,
-    branches,
+    properties,
     currencies,
 }: ChartOfAccountsClientProps) {
     const { auth } = usePage<SharedData>().props;
@@ -91,7 +91,7 @@ export function ChartOfAccountsClient({
     const [form, setForm] = React.useState<FinanceAccountFormState>(emptyForm);
     const [typeFilter, setTypeFilter] = React.useState('all');
     const [statusFilter, setStatusFilter] = React.useState('all');
-    const [branchFilter, setBranchFilter] = React.useState('all');
+    const [propertyFilter, setPropertyFilter] = React.useState('all');
     const [deleteTarget, setDeleteTarget] =
         React.useState<FinanceAccount | null>(null);
     const [replacementAccountId, setReplacementAccountId] =
@@ -101,22 +101,22 @@ export function ChartOfAccountsClient({
     >({});
     const [isDeleteSubmitting, setIsDeleteSubmitting] = React.useState(false);
 
-    const branchOptions = React.useMemo(
+    const propertyOptions = React.useMemo(
         () =>
-            branches.map((branch) => ({
-                value: String(branch.id),
-                label: branch.name,
+            properties.map((property) => ({
+                value: String(property.id),
+                label: property.name,
             })),
-        [branches],
+        [properties],
     );
 
     useAutoSelectSingleOption(
-        branchOptions,
-        form.branch_id,
+        propertyOptions,
+        form.property_id,
         (value) =>
             setForm((current) => ({
                 ...current,
-                branch_id: value,
+                property_id: value,
             })),
     );
 
@@ -204,7 +204,7 @@ export function ChartOfAccountsClient({
             name: account.name,
             type: account.type,
             parent_id: account.parent_id ? String(account.parent_id) : '',
-            branch_id: account.branch_id ? String(account.branch_id) : '',
+            property_id: account.property_id ? String(account.property_id) : '',
             currency_code: account.currency_code ?? '',
             is_postable: Boolean(account.is_postable),
             status: account.status ?? 'active',
@@ -219,7 +219,7 @@ export function ChartOfAccountsClient({
             name: form.name.trim(),
             type: form.type,
             parent_id: form.parent_id ? Number(form.parent_id) : null,
-            branch_id: form.branch_id ? Number(form.branch_id) : null,
+            property_id: form.property_id ? Number(form.property_id) : null,
             currency_code: form.currency_code || null,
             is_postable: form.is_postable,
             status: form.status,
@@ -305,15 +305,15 @@ export function ChartOfAccountsClient({
             }
 
             if (
-                branchFilter !== 'all' &&
-                String(account.branch_id ?? '') !== branchFilter
+                propertyFilter !== 'all' &&
+                String(account.property_id ?? '') !== propertyFilter
             ) {
                 return false;
             }
 
             return true;
         });
-    }, [accounts, branchFilter, statusFilter, typeFilter]);
+    }, [accounts, propertyFilter, statusFilter, typeFilter]);
 
     const columns = React.useMemo(
         () =>
@@ -380,29 +380,29 @@ export function ChartOfAccountsClient({
                 className="w-[170px] bg-white dark:bg-neutral-900"
             />
             <SearchableDropdown
-                value={branchFilter}
+                value={propertyFilter}
                 options={[
                     {
                         value: 'all',
                         label: t(
-                            'financeChartOfAccounts.filters.allBranches',
-                            'All Branches',
+                            'financeChartOfAccounts.filters.allProperties',
+                            'All Properties',
                         ),
                     },
-                    ...branchOptions,
+                    ...propertyOptions,
                 ]}
-                onValueChange={setBranchFilter}
+                onValueChange={setPropertyFilter}
                 placeholder={t(
-                    'financeChartOfAccounts.filters.branch',
-                    'Branch',
+                    'financeChartOfAccounts.filters.property',
+                    'Property',
                 )}
                 searchPlaceholder={t(
-                    'financeChartOfAccounts.filters.searchBranches',
-                    'Search branches...',
+                    'financeChartOfAccounts.filters.searchProperties',
+                    'Search properties...',
                 )}
                 emptyText={t(
-                    'financeChartOfAccounts.filters.noBranchFound',
-                    'No branch found.',
+                    'financeChartOfAccounts.filters.noPropertyFound',
+                    'No property found.',
                 )}
                 className="w-[180px] bg-white dark:bg-neutral-900"
             />
@@ -473,12 +473,12 @@ export function ChartOfAccountsClient({
                         'name',
                         'type',
                         'parent.name',
-                        'branch.name',
+                        'property.name',
                         'status',
                     ]}
                     searchPlaceholder={t(
                         'financeChartOfAccounts.table.searchPlaceholder',
-                        'Search accounts by code, name, type, parent, branch, or status...',
+                        'Search accounts by code, name, type, parent, property, or status...',
                     )}
                     toolbar={toolbar}
                 />
@@ -643,30 +643,30 @@ export function ChartOfAccountsClient({
                         <div className="grid gap-2">
                             <Label>
                                 {t(
-                                    'financeChartOfAccounts.form.branch',
-                                    'Branch',
+                                    'financeChartOfAccounts.form.property',
+                                    'Property',
                                 )}
                             </Label>
                             <SearchableDropdown
-                                value={form.branch_id}
-                                options={branchOptions}
+                                value={form.property_id}
+                                options={propertyOptions}
                                 onValueChange={(value) =>
                                     setForm((current) => ({
                                         ...current,
-                                        branch_id: value,
+                                        property_id: value,
                                     }))
                                 }
                                 placeholder={t(
-                                    'financeChartOfAccounts.filters.allBranches',
-                                    'All branches',
+                                    'financeChartOfAccounts.filters.allProperties',
+                                    'All properties',
                                 )}
                                 searchPlaceholder={t(
-                                    'financeChartOfAccounts.filters.searchBranches',
-                                    'Search branches...',
+                                    'financeChartOfAccounts.filters.searchProperties',
+                                    'Search properties...',
                                 )}
                                 emptyText={t(
-                                    'financeChartOfAccounts.filters.noBranchFound',
-                                    'No branch found.',
+                                    'financeChartOfAccounts.filters.noPropertyFound',
+                                    'No property found.',
                                 )}
                             />
                         </div>

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Models\BranchSyncCredential;
+use App\Models\PropertySyncCredential;
 use App\Services\Operations\RuntimeHealthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,8 +14,8 @@ class RuntimeHealthController extends Controller
         Request $request,
         RuntimeHealthService $runtimeHealthService,
     ): JsonResponse {
-        /** @var BranchSyncCredential|null $credential */
-        $credential = $request->attributes->get('branchSyncCredential');
+        /** @var PropertySyncCredential|null $credential */
+        $credential = $request->attributes->get('propertySyncCredential');
 
         return response()->json([
             'data' => $runtimeHealthService->snapshot(),
@@ -25,8 +25,8 @@ class RuntimeHealthController extends Controller
                     'appName' => (string) config('app.name'),
                     'environment' => (string) config('app.env'),
                 ],
-                'branchSync' => [
-                    'branchId' => $credential?->branch_id,
+                'propertySync' => [
+                    'propertyId' => $credential?->property_id,
                     'credentialId' => $credential?->id,
                     'credentialName' => $credential?->name,
                     'abilities' => $credential?->abilities ?? [],

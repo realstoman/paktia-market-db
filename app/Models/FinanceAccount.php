@@ -13,7 +13,7 @@ class FinanceAccount extends Model
         'name',
         'type',
         'parent_id',
-        'branch_id',
+        'property_id',
         'currency_code',
         'is_postable',
         'is_system',
@@ -36,8 +36,8 @@ class FinanceAccount extends Model
         return $this->hasMany(self::class, 'parent_id');
     }
 
-    public function branch(): BelongsTo
+    public function property(): BelongsTo
     {
-        return $this->belongsTo(Branch::class);
+        return $this->belongsTo(Property::class);
     }
 }

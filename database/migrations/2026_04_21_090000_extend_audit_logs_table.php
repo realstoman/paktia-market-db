@@ -14,14 +14,14 @@ return new class extends Migration
             $table->text('url')->nullable()->after('user_agent');
             $table->string('method', 10)->nullable()->after('url');
             $table->uuid('batch_uuid')->nullable()->after('method');
-            $table->foreignId('branch_id')->nullable()->after('batch_uuid')
-                ->constrained('branches')->nullOnDelete();
-            $table->json('meta')->nullable()->after('branch_id');
+            $table->foreignId('property_id')->nullable()->after('batch_uuid')
+                ->constrained('properties')->nullOnDelete();
+            $table->json('meta')->nullable()->after('property_id');
 
             $table->index('batch_uuid', 'audit_logs_batch_uuid_idx');
             $table->index(['user_id', 'created_at'], 'audit_logs_user_created_idx');
             $table->index(['auditable_type', 'auditable_id', 'created_at'], 'audit_logs_auditable_created_idx');
-            $table->index(['branch_id', 'created_at'], 'audit_logs_branch_created_idx');
+            $table->index(['property_id', 'created_at'], 'audit_logs_property_created_idx');
             $table->index(['action', 'created_at'], 'audit_logs_action_created_idx');
         });
     }
@@ -32,10 +32,10 @@ return new class extends Migration
             $table->dropIndex('audit_logs_batch_uuid_idx');
             $table->dropIndex('audit_logs_user_created_idx');
             $table->dropIndex('audit_logs_auditable_created_idx');
-            $table->dropIndex('audit_logs_branch_created_idx');
+            $table->dropIndex('audit_logs_property_created_idx');
             $table->dropIndex('audit_logs_action_created_idx');
 
-            $table->dropConstrainedForeignId('branch_id');
+            $table->dropConstrainedForeignId('property_id');
             $table->dropColumn([
                 'ip_address',
                 'user_agent',

@@ -10,5 +10,5 @@ Artisan::command('inspire', function () {
 
 Schedule::command('pos:prune-runtime-data')->dailyAt('02:30');
 Schedule::command('pos:archive-audit-logs')->dailyAt('02:45');
-Schedule::command('projection:refresh-recent-branch-daily-metrics --hours=36')->everyThirtyMinutes();
+Schedule::command('projection:refresh-recent-property-daily-metrics --hours=36')->everyThirtyMinutes();
 Schedule::command('projection:health-check')->hourly();

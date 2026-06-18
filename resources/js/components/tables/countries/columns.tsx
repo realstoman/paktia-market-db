@@ -105,26 +105,26 @@ export const columns: ColumnDef<Country>[] = [
         },
     },
     {
-        id: 'branches',
-        header: 'Branches',
+        id: 'properties',
+        header: 'Properties',
         cell: ({ row }) => {
-            const branches = row.original.branches ?? [];
-            const visible = branches.slice(0, MAX_VISIBLE_ITEMS);
-            const hidden = branches.slice(MAX_VISIBLE_ITEMS);
+            const properties = row.original.properties ?? [];
+            const visible = properties.slice(0, MAX_VISIBLE_ITEMS);
+            const hidden = properties.slice(MAX_VISIBLE_ITEMS);
 
-            if (branches.length === 0) {
+            if (properties.length === 0) {
                 return (
                     <span className="text-xs text-muted-foreground">
-                        No branches
+                        No properties
                     </span>
                 );
             }
 
             return (
                 <div className="flex flex-wrap gap-1">
-                    {visible.map((branch) => (
-                        <Badge key={branch.id} variant="secondary">
-                            {branch.name}
+                    {visible.map((property) => (
+                        <Badge key={property.id} variant="secondary">
+                            {property.name}
                         </Badge>
                     ))}
                     {hidden.length > 0 && (
@@ -140,12 +140,12 @@ export const columns: ColumnDef<Country>[] = [
                                 </TooltipTrigger>
                                 <TooltipContent>
                                     <div className="flex flex-wrap gap-1">
-                                        {hidden.map((branch) => (
+                                        {hidden.map((property) => (
                                             <Badge
-                                                key={branch.id}
+                                                key={property.id}
                                                 variant="secondary"
                                             >
-                                                {branch.name}
+                                                {property.name}
                                             </Badge>
                                         ))}
                                     </div>

@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Enums\PermissionEnum;
 use App\Models\Country;
 use App\Models\Province;
-use App\Models\Branch;
+use App\Models\Property;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -49,7 +49,7 @@ class UserController extends Controller
             'roles' => Role::orderBy('name')->get(),
             'countries' => Country::orderBy('name')->get(),
             'provinces' => Province::orderBy('name')->get(),
-            'branches' => Branch::orderBy('name')->get(),
+            'properties' => Property::orderBy('name')->get(),
         ]);
     }
 
@@ -73,7 +73,7 @@ class UserController extends Controller
             'roles.*' => 'exists:roles,id',
             'country_id' => 'nullable|exists:countries,id',
             'province_id' => 'nullable|exists:provinces,id',
-            'branch_id' => 'nullable|exists:branches,id',
+            'property_id' => 'nullable|exists:properties,id',
         ]);
 
         $user = $this->userService->create($validated);
@@ -87,7 +87,7 @@ class UserController extends Controller
         $this->authorize('update', $user);
 
         return Inertia::render('admin/users/edit', [
-            'user' => $user->load(['roles', 'country', 'province', 'branch']),
+            'user' => $user->load(['roles', 'country', 'province', 'property']),
             'roles' => Role::all(),
             'countries' => Country::all(),
         ]);
@@ -98,7 +98,7 @@ class UserController extends Controller
         $this->authorize('view', $user);
 
         return Inertia::render('admin/users/show', [
-            'user' => $user->load(['roles', 'country', 'province', 'branch']),
+            'user' => $user->load(['roles', 'country', 'province', 'property']),
         ]);
     }
 
@@ -114,7 +114,7 @@ class UserController extends Controller
             'roles.*' => 'exists:roles,id',
             'country_id' => 'nullable|exists:countries,id',
             'province_id' => 'nullable|exists:provinces,id',
-            'branch_id' => 'nullable|exists:branches,id',
+            'property_id' => 'nullable|exists:properties,id',
             'is_active' => 'boolean',
         ]);
 

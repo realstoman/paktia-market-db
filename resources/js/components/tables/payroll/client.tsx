@@ -41,7 +41,7 @@ import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
 import {
-    Branch,
+    Property,
     Employee,
     EmployeeContract,
     EmployeeContractPaymentSchedule,
@@ -78,7 +78,7 @@ const PAYMENT_METHOD_OPTIONS = [
 ];
 
 interface PayrollFormState {
-    branch_id: string;
+    property_id: string;
     afghan_month_key: string;
     period_start: string;
     period_end: string;
@@ -89,7 +89,7 @@ interface PayrollFormState {
 
 interface ContractFormState {
     employee_id: string;
-    branch_id: string;
+    property_id: string;
     contract_amount: string;
     start_date: string;
     end_date: string;
@@ -112,7 +112,7 @@ interface ScheduleFormState {
 }
 
 const emptyForm: PayrollFormState = {
-    branch_id: '',
+    property_id: '',
     afghan_month_key: '',
     period_start: new Date().toISOString().slice(0, 10),
     period_end: new Date().toISOString().slice(0, 10),
@@ -123,7 +123,7 @@ const emptyForm: PayrollFormState = {
 
 const emptyContractForm: ContractFormState = {
     employee_id: '',
-    branch_id: '',
+    property_id: '',
     contract_amount: '',
     start_date: new Date().toISOString().slice(0, 10),
     end_date: '',
@@ -148,7 +148,7 @@ const emptyScheduleForm: ScheduleFormState = {
 interface PayrollClientProps {
     runs: PayrollRun[];
     contracts: EmployeeContract[];
-    branches: Branch[];
+    properties: Property[];
     employees: Employee[];
     afghanPayrollMonths: AfghanPayrollMonth[];
     currentAfghanPayrollMonth: AfghanPayrollMonth | null;
@@ -254,7 +254,7 @@ function statusTone(status?: string) {
 export function PayrollClient({
     runs,
     contracts,
-    branches,
+    properties,
     employees,
     afghanPayrollMonths,
     currentAfghanPayrollMonth,
@@ -301,10 +301,10 @@ export function PayrollClient({
     const [scheduleAttachmentTarget, setScheduleAttachmentTarget] =
         React.useState<EmployeeContractPaymentSchedule | null>(null);
     const [statusFilter, setStatusFilter] = React.useState('all');
-    const [branchFilter, setBranchFilter] = React.useState('all');
+    const [propertyFilter, setPropertyFilter] = React.useState('all');
     const [contractEmployeeFilter, setContractEmployeeFilter] =
         React.useState('all');
-    const [contractBranchFilter, setContractBranchFilter] =
+    const [contractPropertyFilter, setContractPropertyFilter] =
         React.useState('all');
     const [contractStatusFilter, setContractStatusFilter] =
         React.useState('all');
@@ -318,32 +318,32 @@ export function PayrollClient({
     const [scheduleReceiptFile, setScheduleReceiptFile] =
         React.useState<File | null>(null);
 
-    const branchOptions = React.useMemo(
+    const propertyOptions = React.useMemo(
         () =>
-            branches.map((branch) => ({
-                value: String(branch.id),
-                label: branch.name,
+            properties.map((property) => ({
+                value: String(property.id),
+                label: property.name,
             })),
-        [branches],
+        [properties],
     );
 
     useAutoSelectSingleOption(
-        branchOptions,
-        form.branch_id,
+        propertyOptions,
+        form.property_id,
         (value) =>
             setForm((current) => ({
                 ...current,
-                branch_id: value,
+                property_id: value,
             })),
     );
 
     useAutoSelectSingleOption(
-        branchOptions,
-        contractForm.branch_id,
+        propertyOptions,
+        contractForm.property_id,
         (value) =>
             setContractForm((current) => ({
                 ...current,
-                branch_id: value,
+                property_id: value,
             })),
     );
 
@@ -372,15 +372,15 @@ export function PayrollClient({
             }
 
             if (
-                branchFilter !== 'all' &&
-                String(run.branch_id ?? '') !== branchFilter
+                propertyFilter !== 'all' &&
+                String(run.property_id ?? '') !== propertyFilter
             ) {
                 return false;
             }
 
             return true;
         });
-    }, [branchFilter, runs, statusFilter]);
+    }, [propertyFilter, runs, statusFilter]);
 
     const filteredContracts = React.useMemo(() => {
         return contracts.filter((contract) => {
@@ -392,8 +392,8 @@ export function PayrollClient({
             }
 
             if (
-                contractBranchFilter !== 'all' &&
-                String(contract.branch_id ?? '') !== contractBranchFilter
+                contractPropertyFilter !== 'all' &&
+                String(contract.property_id ?? '') !== contractPropertyFilter
             ) {
                 return false;
             }
@@ -408,7 +408,7 @@ export function PayrollClient({
             return true;
         });
     }, [
-        contractBranchFilter,
+        contractPropertyFilter,
         contractEmployeeFilter,
         contractStatusFilter,
         contracts,
@@ -421,7 +421,7 @@ export function PayrollClient({
                 contract: {
                     ...schedule.contract,
                     employee: contract.employee ?? null,
-                    branch: contract.branch ?? null,
+                    property: contract.property ?? null,
                     payment_plan_type: contract.payment_plan_type,
                 },
             })),
@@ -463,17 +463,17 @@ export function PayrollClient({
         [afghanPayrollMonths],
     );
     const selectedPayrollGeneration = React.useMemo(() => {
-        const branchKey = form.branch_id || 'all';
+        const propertyKey = form.property_id || 'all';
 
         return (
-            payrollGeneration[branchKey] ??
+            payrollGeneration[propertyKey] ??
             payrollGeneration.all ?? {
                 next_due_month: null,
                 open_run: null,
                 latest_paid_month: null,
             }
         );
-    }, [form.branch_id, payrollGeneration]);
+    }, [form.property_id, payrollGeneration]);
 
     const statusOptions = React.useMemo(
         () => [
@@ -591,7 +591,7 @@ export function PayrollClient({
         setEditingContract(contract);
         setContractForm({
             employee_id: String(contract.employee_id),
-            branch_id: contract.branch_id ? String(contract.branch_id) : '',
+            property_id: contract.property_id ? String(contract.property_id) : '',
             contract_amount: String(contract.contract_amount),
             start_date: contract.start_date,
             end_date: contract.end_date ?? '',
@@ -691,7 +691,7 @@ export function PayrollClient({
         router.post(
             '/finance/payroll',
             {
-                branch_id: form.branch_id ? Number(form.branch_id) : null,
+                property_id: form.property_id ? Number(form.property_id) : null,
                 afghan_year: form.afghan_month_key
                     ? Number(form.afghan_month_key.split('-')[0])
                     : null,
@@ -732,8 +732,8 @@ export function PayrollClient({
 
         const payload = {
             employee_id: Number(contractForm.employee_id),
-            branch_id: contractForm.branch_id
-                ? Number(contractForm.branch_id)
+            property_id: contractForm.property_id
+                ? Number(contractForm.property_id)
                 : null,
             contract_amount: Number(contractForm.contract_amount),
             start_date: contractForm.start_date,
@@ -1018,26 +1018,26 @@ export function PayrollClient({
     const toolbar = (
         <div className="flex w-full flex-wrap justify-end gap-2 xl:flex-nowrap">
             <SearchableDropdown
-                value={branchFilter}
+                value={propertyFilter}
                 options={[
                     {
                         value: 'all',
                         label: t(
-                            'financePayroll.filters.allBranches',
-                            'All Branches',
+                            'financePayroll.filters.allProperties',
+                            'All Properties',
                         ),
                     },
-                    ...branchOptions,
+                    ...propertyOptions,
                 ]}
-                onValueChange={setBranchFilter}
-                placeholder={t('financePayroll.filters.branch', 'Branch')}
+                onValueChange={setPropertyFilter}
+                placeholder={t('financePayroll.filters.property', 'Property')}
                 searchPlaceholder={t(
-                    'financePayroll.filters.searchBranches',
-                    'Search branches...',
+                    'financePayroll.filters.searchProperties',
+                    'Search properties...',
                 )}
                 emptyText={t(
-                    'financePayroll.filters.noBranchFound',
-                    'No branch found.',
+                    'financePayroll.filters.noPropertyFound',
+                    'No property found.',
                 )}
                 className="w-[190px] bg-white dark:bg-neutral-900"
             />
@@ -1127,26 +1127,26 @@ export function PayrollClient({
                 className="w-[175px] bg-white dark:bg-neutral-900"
             />
             <SearchableDropdown
-                value={contractBranchFilter}
+                value={contractPropertyFilter}
                 options={[
                     {
                         value: 'all',
                         label: t(
-                            'financePayroll.filters.allBranches',
-                            'All Branches',
+                            'financePayroll.filters.allProperties',
+                            'All Properties',
                         ),
                     },
-                    ...branchOptions,
+                    ...propertyOptions,
                 ]}
-                onValueChange={setContractBranchFilter}
-                placeholder={t('financePayroll.filters.branch', 'Branch')}
+                onValueChange={setContractPropertyFilter}
+                placeholder={t('financePayroll.filters.property', 'Property')}
                 searchPlaceholder={t(
-                    'financePayroll.filters.searchBranches',
-                    'Search branches...',
+                    'financePayroll.filters.searchProperties',
+                    'Search properties...',
                 )}
                 emptyText={t(
-                    'financePayroll.filters.noBranchFound',
-                    'No branch found.',
+                    'financePayroll.filters.noPropertyFound',
+                    'No property found.',
                 )}
                 className="w-[155px] bg-white dark:bg-neutral-900"
             />
@@ -1408,10 +1408,10 @@ export function PayrollClient({
                         <DataTable
                             columns={columns}
                             data={filteredRuns}
-                            searchKey={['period', 'status', 'branch.name']}
+                            searchKey={['period', 'status', 'property.name']}
                             searchPlaceholder={t(
                                 'financePayroll.register.searchPlaceholder',
-                                'Search payroll runs by period, branch, or status...',
+                                'Search payroll runs by period, property, or status...',
                             )}
                             toolbar={toolbar}
                         />
@@ -1530,7 +1530,7 @@ export function PayrollClient({
                             </CardTitle>
                             <CardDescription>
                                 {selectedRun
-                                    ? `${selectedRun.payroll_period_label ?? formatAfghanMonthLabel(selectedRun.period_end)} • ${selectedRun.branch?.name ?? t('financePayroll.filters.allBranches', 'All Branches')}`
+                                    ? `${selectedRun.payroll_period_label ?? formatAfghanMonthLabel(selectedRun.period_end)} • ${selectedRun.property?.name ?? t('financePayroll.filters.allProperties', 'All Properties')}`
                                     : t(
                                           'financePayroll.details.description',
                                           'Select a payroll run to review employee-level payroll items.',
@@ -1908,27 +1908,27 @@ export function PayrollClient({
                             )}
                         </div>
                         <div className="grid gap-2">
-                            <Label>{t('financePayroll.filters.branch', 'Branch')}</Label>
+                            <Label>{t('financePayroll.filters.property', 'Property')}</Label>
                             <SearchableDropdown
-                                value={form.branch_id}
-                                options={branchOptions}
+                                value={form.property_id}
+                                options={propertyOptions}
                                 onValueChange={(value) =>
                                     setForm((current) => ({
                                         ...current,
-                                        branch_id: value,
+                                        property_id: value,
                                     }))
                                 }
                                 placeholder={t(
-                                    'financePayroll.filters.allBranches',
-                                    'All branches',
+                                    'financePayroll.filters.allProperties',
+                                    'All properties',
                                 )}
                                 searchPlaceholder={t(
-                                    'financePayroll.filters.searchBranches',
-                                    'Search branches...',
+                                    'financePayroll.filters.searchProperties',
+                                    'Search properties...',
                                 )}
                                 emptyText={t(
-                                    'financePayroll.filters.noBranchFound',
-                                    'No branch found.',
+                                    'financePayroll.filters.noPropertyFound',
+                                    'No property found.',
                                 )}
                             />
                         </div>
@@ -2057,7 +2057,7 @@ export function PayrollClient({
                                 rows={4}
                                 placeholder={t(
                                     'financePayroll.form.notesPlaceholder',
-                                    'Optional payroll note for the period, branch context, or payout instructions.',
+                                    'Optional payroll note for the period, property context, or payout instructions.',
                                 )}
                             />
                         </div>
@@ -2146,19 +2146,19 @@ export function PayrollClient({
                             />
                         </div>
                         <div className="grid gap-2">
-                            <Label>Branch</Label>
+                            <Label>Property</Label>
                             <SearchableDropdown
-                                value={contractForm.branch_id}
-                                options={branchOptions}
+                                value={contractForm.property_id}
+                                options={propertyOptions}
                                 onValueChange={(value) =>
                                     setContractForm((current) => ({
                                         ...current,
-                                        branch_id: value,
+                                        property_id: value,
                                     }))
                                 }
-                                placeholder="Select branch"
-                                searchPlaceholder="Search branches..."
-                                emptyText="No branch found."
+                                placeholder="Select property"
+                                searchPlaceholder="Search properties..."
+                                emptyText="No property found."
                             />
                         </div>
                         <div className="grid gap-2">
@@ -2740,10 +2740,10 @@ export function PayrollClient({
                 onOpenChange={setIsPrintOpen}
                 run={printRun}
                 item={selectedPrintItem}
-                branch={
+                property={
                     printRun
-                        ? (branches.find(
-                              (branch) => branch.id === printRun.branch_id,
+                        ? (properties.find(
+                              (property) => property.id === printRun.property_id,
                           ) ?? null)
                         : null
                 }
@@ -2753,10 +2753,10 @@ export function PayrollClient({
                 open={isContractPrintOpen}
                 onOpenChange={setIsContractPrintOpen}
                 contract={printContract}
-                branch={
+                property={
                     printContract
-                        ? (branches.find(
-                              (branch) => branch.id === printContract.branch_id,
+                        ? (properties.find(
+                              (property) => property.id === printContract.property_id,
                           ) ?? null)
                         : null
                 }
@@ -2766,12 +2766,12 @@ export function PayrollClient({
                 open={isSchedulePrintOpen}
                 onOpenChange={setIsSchedulePrintOpen}
                 schedule={printSchedule}
-                branch={
+                property={
                     printSchedule
-                        ? (branches.find(
-                              (branch) =>
-                                  branch.id ===
-                                  (printSchedule.contract?.branch?.id ?? null),
+                        ? (properties.find(
+                              (property) =>
+                                  property.id ===
+                                  (printSchedule.contract?.property?.id ?? null),
                           ) ?? null)
                         : null
                 }

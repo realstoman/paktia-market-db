@@ -37,6 +37,16 @@ return [
         'updated_description' => ':name inventory details were updated.',
         'qty_meta' => 'Qty :quantity',
     ],
+    'generated' => [
+        'inventory_unavailable_title' => 'Inventory item unavailable',
+        'low_inventory_title' => 'Low inventory level',
+        'inventory_remaining_description' => ':name has :quantity remaining.',
+        'expense_review_title' => 'Expense needs review',
+        'expense_review_description' => ':title is awaiting approval.',
+        'payroll_recorded_title' => 'Payroll payment recorded',
+        'payroll_recorded_description' => 'Payroll payment for :name was recorded.',
+        'payroll_recorded_fallback' => 'Employee payroll was paid.',
+    ],
     'products' => [
         'added_title' => 'Product added',
         'updated_title' => 'Product updated',

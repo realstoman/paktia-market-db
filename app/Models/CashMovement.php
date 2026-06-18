@@ -11,7 +11,7 @@ class CashMovement extends Model
     use Auditable;
 
     protected $fillable = [
-        'branch_id',
+        'property_id',
         'movement_type',
         'direction',
         'movement_date',
@@ -33,9 +33,9 @@ class CashMovement extends Model
         'amount' => 'decimal:2',
     ];
 
-    public function branch(): BelongsTo
+    public function property(): BelongsTo
     {
-        return $this->belongsTo(Branch::class);
+        return $this->belongsTo(Property::class);
     }
 
     public function account(): BelongsTo

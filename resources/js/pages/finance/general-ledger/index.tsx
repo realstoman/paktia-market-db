@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
-import { Branch, BreadcrumbItem } from '@/types';
+import { Property, BreadcrumbItem } from '@/types';
 import { formatAfn } from '@/utils/format';
 import { Head, Link, router } from '@inertiajs/react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -37,7 +37,7 @@ interface LedgerFilters {
     range: string;
     startDate: string;
     endDate: string;
-    branchId: number | null;
+    propertyId: number | null;
     paymentMethod: string | null;
     category: string | null;
 }
@@ -46,7 +46,7 @@ interface LedgerEntry {
     date: string;
     reference: string;
     type: string;
-    branch: string;
+    property: string;
     account: string;
     description: string;
     debit: number;
@@ -55,7 +55,7 @@ interface LedgerEntry {
 }
 
 interface GeneralLedgerPageProps {
-    branches: Branch[];
+    properties: Property[];
     filters: LedgerFilters;
     expenseCategories: Array<{
         value: string;
@@ -116,7 +116,7 @@ function submitFilters(filters: {
     range: string;
     startDate: string;
     endDate: string;
-    branchId: string;
+    propertyId: string;
     paymentMethod: string;
     category: string;
 }) {
@@ -129,8 +129,8 @@ function submitFilters(filters: {
         params.end_date = filters.endDate;
     }
 
-    if (filters.branchId) {
-        params.branch_id = filters.branchId;
+    if (filters.propertyId) {
+        params.property_id = filters.propertyId;
     }
 
     if (filters.paymentMethod) {
@@ -181,7 +181,7 @@ function buildPageNumbers(currentPage: number, lastPage: number) {
 }
 
 export default function GeneralLedgerPage({
-    branches,
+    properties,
     filters,
     expenseCategories,
     entries,
@@ -199,16 +199,16 @@ export default function GeneralLedgerPage({
     const [range, setRange] = React.useState(filters.range);
     const [startDate, setStartDate] = React.useState(filters.startDate);
     const [endDate, setEndDate] = React.useState(filters.endDate);
-    const [branchId, setBranchId] = React.useState(
-        filters.branchId ? String(filters.branchId) : '',
+    const [propertyId, setPropertyId] = React.useState(
+        filters.propertyId ? String(filters.propertyId) : '',
     );
-    const branchOptions = React.useMemo(
+    const propertyOptions = React.useMemo(
         () =>
-            branches.map((branch) => ({
-                value: String(branch.id),
-                label: branch.name,
+            properties.map((property) => ({
+                value: String(property.id),
+                label: property.name,
             })),
-        [branches],
+        [properties],
     );
     const [paymentMethod, setPaymentMethod] = React.useState(
         filters.paymentMethod ?? '',
@@ -230,12 +230,12 @@ export default function GeneralLedgerPage({
         setRange(filters.range);
         setStartDate(filters.startDate);
         setEndDate(filters.endDate);
-        setBranchId(filters.branchId ? String(filters.branchId) : '');
+        setPropertyId(filters.propertyId ? String(filters.propertyId) : '');
         setPaymentMethod(filters.paymentMethod ?? '');
         setCategory(filters.category ?? '');
     }, [filters]);
 
-    useAutoSelectSingleOption(branchOptions, branchId, setBranchId);
+    useAutoSelectSingleOption(propertyOptions, propertyId, setPropertyId);
 
     const visiblePages = React.useMemo(
         () => buildPageNumbers(pagination.currentPage, pagination.lastPage),
@@ -253,8 +253,8 @@ export default function GeneralLedgerPage({
             params.end_date = endDate;
         }
 
-        if (branchId) {
-            params.branch_id = branchId;
+        if (propertyId) {
+            params.property_id = propertyId;
         }
 
         if (paymentMethod) {
@@ -323,7 +323,7 @@ export default function GeneralLedgerPage({
                         <CardDescription>
                             {t(
                                 'financeGeneralLedger.filters.description',
-                                'Narrow the ledger by period, branch, payment method, and expense category.',
+                                'Narrow the ledger by period, property, payment method, and expense category.',
                             )}
                         </CardDescription>
                     </CardHeader>
@@ -345,7 +345,7 @@ export default function GeneralLedgerPage({
                                                 range: option.value,
                                                 startDate,
                                                 endDate,
-                                                branchId,
+                                                propertyId,
                                                 paymentMethod,
                                                 category,
                                             });
@@ -398,41 +398,41 @@ export default function GeneralLedgerPage({
                             <div className="grid gap-2">
                                 <label className="text-sm font-medium">
                                     {t(
-                                        'financeDashboard.filters.branch',
-                                        'Branch',
+                                        'financeDashboard.filters.property',
+                                        'Property',
                                     )}
                                 </label>
                                 <SearchableDropdown
-                                    value={branchId || 'all'}
+                                    value={propertyId || 'all'}
                                     options={[
                                         {
                                             value: 'all',
                                             label: t(
-                                                'financeDashboard.filters.allBranches',
-                                                'All Branches',
+                                                'financeDashboard.filters.allProperties',
+                                                'All Properties',
                                             ),
                                         },
-                                        ...branches.map((branch) => ({
-                                            value: String(branch.id),
-                                            label: branch.name,
+                                        ...properties.map((property) => ({
+                                            value: String(property.id),
+                                            label: property.name,
                                         })),
                                     ]}
                                     onValueChange={(value) =>
-                                        setBranchId(
+                                        setPropertyId(
                                             value === 'all' ? '' : value,
                                         )
                                     }
                                     placeholder={t(
-                                        'financeGeneralLedger.filters.selectBranch',
-                                        'Select branch',
+                                        'financeGeneralLedger.filters.selectProperty',
+                                        'Select property',
                                     )}
                                     searchPlaceholder={t(
-                                        'financeDashboard.filters.searchBranches',
-                                        'Search branches...',
+                                        'financeDashboard.filters.searchProperties',
+                                        'Search properties...',
                                     )}
                                     emptyText={t(
-                                        'financeGeneralLedger.filters.noBranchFound',
-                                        'No branch found.',
+                                        'financeGeneralLedger.filters.noPropertyFound',
+                                        'No property found.',
                                     )}
                                 />
                             </div>
@@ -523,7 +523,7 @@ export default function GeneralLedgerPage({
                                         range,
                                         startDate,
                                         endDate,
-                                        branchId,
+                                        propertyId,
                                         paymentMethod,
                                         category,
                                     })
@@ -588,8 +588,8 @@ export default function GeneralLedgerPage({
                                             </th>
                                             <th className="px-3 py-3">
                                                 {t(
-                                                    'financeDashboard.generalLedger.columns.branch',
-                                                    'Branch',
+                                                    'financeDashboard.generalLedger.columns.property',
+                                                    'Property',
                                                 )}
                                             </th>
                                             <th className="px-3 py-3">
@@ -640,7 +640,7 @@ export default function GeneralLedgerPage({
                                                     {entry.type}
                                                 </td>
                                                 <td className="px-3 py-3 whitespace-nowrap">
-                                                    {entry.branch}
+                                                    {entry.property}
                                                 </td>
                                                 <td className="px-3 py-3 whitespace-nowrap">
                                                     {entry.account}

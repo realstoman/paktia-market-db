@@ -2,7 +2,7 @@ import { CashBankClient } from '@/components/tables/cash-bank/client';
 import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
 import {
-    Branch,
+    Property,
     BreadcrumbItem,
     CashMovement,
     CashMovementType,
@@ -12,7 +12,7 @@ import { Head } from '@inertiajs/react';
 
 interface CashBankPageProps {
     movements: CashMovement[];
-    branches: Branch[];
+    properties: Property[];
     sourceAccounts: FinanceAccount[];
     targetAccounts: FinanceAccount[];
     movementTypes: CashMovementType[];
@@ -21,7 +21,7 @@ interface CashBankPageProps {
 
 export default function CashBankPage({
     movements,
-    branches,
+    properties,
     sourceAccounts,
     targetAccounts,
     movementTypes,
@@ -42,7 +42,7 @@ export default function CashBankPage({
             <Head title={t('financeCashBank.pageTitle', 'Cash & Bank')} />
             <CashBankClient
                 movements={movements}
-                branches={branches}
+                properties={properties}
                 sourceAccounts={sourceAccounts}
                 targetAccounts={targetAccounts}
                 movementTypes={movementTypes}

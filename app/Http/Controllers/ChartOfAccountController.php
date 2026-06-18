@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Branch;
 use App\Models\Currency;
 use App\Models\FinanceAccount;
+use App\Models\Property;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -23,7 +23,7 @@ class ChartOfAccountController extends Controller
         $accounts = FinanceAccount::query()
             ->with([
                 'parent:id,code,name',
-                'branch:id,name',
+                'property:id,name,name_translations',
             ])
             ->orderBy('code')
             ->orderBy('name')
@@ -100,9 +100,9 @@ class ChartOfAccountController extends Controller
 
         return Inertia::render('finance/chart-of-accounts/index', [
             'accounts' => $accounts,
-            'branches' => Branch::query()
+            'properties' => Property::query()
                 ->orderBy('name')
-                ->get(['id', 'name']),
+                ->get(['id', 'name', 'name_translations']),
             'parentAccounts' => FinanceAccount::query()
                 ->orderBy('code')
                 ->orderBy('name')
@@ -117,7 +117,7 @@ class ChartOfAccountController extends Controller
     public function store(Request $request)
     {
         $validated = $this->validateAccount($request);
-        $resolvedCode = !empty($validated['code'])
+        $resolvedCode = ! empty($validated['code'])
             ? strtoupper($validated['code'])
             : $this->generateNextCode($validated['type']);
 
@@ -126,7 +126,7 @@ class ChartOfAccountController extends Controller
             'name' => $validated['name'],
             'type' => $validated['type'],
             'parent_id' => $validated['parent_id'] ?? null,
-            'branch_id' => $validated['branch_id'] ?? null,
+            'property_id' => $validated['property_id'] ?? null,
             'currency_code' => isset($validated['currency_code'])
                 ? strtoupper($validated['currency_code'])
                 : null,
@@ -149,7 +149,7 @@ class ChartOfAccountController extends Controller
             'name' => $validated['name'],
             'type' => $validated['type'],
             'parent_id' => $validated['parent_id'] ?? null,
-            'branch_id' => $validated['branch_id'] ?? null,
+            'property_id' => $validated['property_id'] ?? null,
             'currency_code' => isset($validated['currency_code'])
                 ? strtoupper($validated['currency_code'])
                 : null,
@@ -268,7 +268,7 @@ class ChartOfAccountController extends Controller
                 'exists:finance_accounts,id',
                 Rule::notIn([$financeAccount?->id]),
             ],
-            'branch_id' => ['nullable', 'exists:branches,id'],
+            'property_id' => ['nullable', 'exists:properties,id'],
             'currency_code' => ['nullable', 'string', 'size:3', 'exists:currencies,code'],
             'is_postable' => ['boolean'],
             'status' => ['required', Rule::in(['active', 'inactive'])],

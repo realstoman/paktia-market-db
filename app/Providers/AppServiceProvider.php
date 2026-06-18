@@ -2,8 +2,8 @@
 
 namespace App\Providers;
 
-use App\Models\Branch;
-use App\Observers\BranchObserver;
+use App\Models\Property;
+use App\Observers\PropertyObserver;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Facades\Gate;
@@ -25,7 +25,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        Branch::observe(BranchObserver::class);
+        Property::observe(PropertyObserver::class);
 
         Gate::before(function ($user, string $ability) {
             return method_exists($user, 'hasRole') && $user->hasRole('super-admin')

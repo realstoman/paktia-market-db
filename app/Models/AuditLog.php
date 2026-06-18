@@ -21,7 +21,7 @@ class AuditLog extends Model
         'url',
         'method',
         'batch_uuid',
-        'branch_id',
+        'property_id',
         'meta',
     ];
 
@@ -39,9 +39,9 @@ class AuditLog extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function branch(): BelongsTo
+    public function property(): BelongsTo
     {
-        return $this->belongsTo(Branch::class);
+        return $this->belongsTo(Property::class);
     }
 
     public function auditable(): MorphTo
@@ -54,9 +54,9 @@ class AuditLog extends Model
         return $query->where('user_id', $userId);
     }
 
-    public function scopeForBranch(Builder $query, int|string $branchId): Builder
+    public function scopeForProperty(Builder $query, int|string $propertyId): Builder
     {
-        return $query->where('branch_id', $branchId);
+        return $query->where('property_id', $propertyId);
     }
 
     public function scopeForAction(Builder $query, string $action): Builder

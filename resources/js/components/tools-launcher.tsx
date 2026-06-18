@@ -33,9 +33,9 @@ const tools = [
         icon: MapPinned,
     },
     {
-        href: '/branches',
-        labelKey: 'navigation.toolBranches',
-        fallbackLabel: 'Branches',
+        href: '/properties',
+        labelKey: 'navigation.toolProperties',
+        fallbackLabel: 'Markets & Properties',
         icon: Building2,
     },
     {

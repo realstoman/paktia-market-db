@@ -14,7 +14,7 @@ import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
 import { dashboard } from '@/routes';
 import {
-    Branch,
+    Property,
     BreadcrumbItem,
     Employee,
     EmployeePosition,
@@ -28,37 +28,37 @@ import { useMemo, useState } from 'react';
 
 interface EmployeesPageProps {
     employees: Employee[];
-    branches: Branch[];
+    properties: Property[];
     employmentTypes: EmploymentType[];
     employeePositions: EmployeePosition[];
     shifts: Shift[];
 }
 
-const BRANCH_FILTER_ALL = 'all';
+const PROPERTY_FILTER_ALL = 'all';
 
 export default function EmployeesPage({
     employees,
-    branches,
+    properties,
     employmentTypes,
     employeePositions,
     shifts,
 }: EmployeesPageProps) {
     const { t } = useLocalization();
-    const [selectedBranchId, setSelectedBranchId] = useState(BRANCH_FILTER_ALL);
-    const branchOptions = useMemo(
+    const [selectedPropertyId, setSelectedPropertyId] = useState(PROPERTY_FILTER_ALL);
+    const propertyOptions = useMemo(
         () =>
-            branches.map((branch) => ({
-                value: String(branch.id),
-                label: branch.name,
+            properties.map((property) => ({
+                value: String(property.id),
+                label: property.name,
             })),
-        [branches],
+        [properties],
     );
 
     useAutoSelectSingleOption(
-        branchOptions,
-        selectedBranchId,
-        setSelectedBranchId,
-        [BRANCH_FILTER_ALL],
+        propertyOptions,
+        selectedPropertyId,
+        setSelectedPropertyId,
+        [PROPERTY_FILTER_ALL],
     );
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -72,14 +72,14 @@ export default function EmployeesPage({
     ];
 
     const statsEmployees = useMemo(() => {
-        if (selectedBranchId === BRANCH_FILTER_ALL) {
+        if (selectedPropertyId === PROPERTY_FILTER_ALL) {
             return employees;
         }
 
         return employees.filter(
-            (employee) => String(employee.branch_id ?? '') === selectedBranchId,
+            (employee) => String(employee.property_id ?? '') === selectedPropertyId,
         );
-    }, [employees, selectedBranchId]);
+    }, [employees, selectedPropertyId]);
 
     const contractEmployeesCount = useMemo(
         () =>
@@ -105,30 +105,30 @@ export default function EmployeesPage({
                 <div className="flex justify-end">
                     <div className="w-full max-w-xs bg-white dark:bg-neutral-900">
                         <Select
-                            value={selectedBranchId}
-                            onValueChange={setSelectedBranchId}
+                            value={selectedPropertyId}
+                            onValueChange={setSelectedPropertyId}
                         >
                             <SelectTrigger className="h-10">
                                 <SelectValue
                                     placeholder={t(
-                                        'employees.page.selectBranchForStats',
-                                        'Select branch for stats',
+                                        'employees.page.selectPropertyForStats',
+                                        'Select property for stats',
                                     )}
                                 />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value={BRANCH_FILTER_ALL}>
+                                <SelectItem value={PROPERTY_FILTER_ALL}>
                                     {t(
-                                        'employees.filters.allBranches',
-                                        'All Branches',
+                                        'employees.filters.allProperties',
+                                        'All Properties',
                                     )}
                                 </SelectItem>
-                                {branches.map((branch) => (
+                                {properties.map((property) => (
                                     <SelectItem
-                                        key={branch.id}
-                                        value={String(branch.id)}
+                                        key={property.id}
+                                        value={String(property.id)}
                                     >
-                                        {branch.name}
+                                        {property.name}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -142,7 +142,7 @@ export default function EmployeesPage({
                         value={formatNumber(statsEmployees.length)}
                         description={t(
                             'employees.page.totalEmployeesDescription',
-                            'Employees visible for the selected branch scope.',
+                            'Employees visible for the selected property scope.',
                         )}
                         icon={Users}
                         variant="blue"
@@ -168,7 +168,7 @@ export default function EmployeesPage({
                 <div className="rounded-lg bg-white p-6 text-gray-900 dark:bg-brand-bg-dark">
                     <EmployeeClient
                         data={employees}
-                        branches={branches}
+                        properties={properties}
                         employmentTypes={employmentTypes}
                         employeePositions={employeePositions}
                         shifts={shifts}

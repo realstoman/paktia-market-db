@@ -14,7 +14,7 @@ class Employee extends Model
 
     protected $fillable = [
         'user_id',
-        'branch_id',
+        'property_id',
         'employment_type_id',
         'employee_position_id',
         'shift_id',
@@ -48,9 +48,9 @@ class Employee extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function branch()
+    public function property()
     {
-        return $this->belongsTo(Branch::class);
+        return $this->belongsTo(Property::class);
     }
 
     public function employmentType()

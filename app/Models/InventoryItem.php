@@ -10,7 +10,7 @@ class InventoryItem extends Model
     use Auditable;
 
     protected $fillable = [
-        'branch_id',
+        'property_id',
         'vendor_id',
         'unit_id',
         'category_id',
@@ -41,9 +41,9 @@ class InventoryItem extends Model
         'is_usable' => 'boolean',
     ];
 
-    public function branch()
+    public function property()
     {
-        return $this->belongsTo(Branch::class);
+        return $this->belongsTo(Property::class);
     }
 
     public function vendor()

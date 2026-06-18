@@ -46,9 +46,9 @@ class PayrollExpenseSyncService
             ? $item->employee
             : $item->employee()->first();
 
-        $branchId = $run->branch_id ?? $employee?->branch_id;
+        $propertyId = $run->property_id ?? $employee?->property_id;
 
-        if (! $branchId) {
+        if (! $propertyId) {
             return;
         }
 
@@ -85,7 +85,7 @@ class PayrollExpenseSyncService
 
         $expense = Expense::query()->updateOrCreate(
             [
-                'branch_id' => $branchId,
+                'property_id' => $propertyId,
                 'title' => $title,
             ],
             [

@@ -50,7 +50,7 @@ import {
 import { formatNumber } from '@/utils/format';
 import { Textarea } from '@/components/ui/textarea';
 import {
-    Branch,
+    Property,
     Employee,
     EmployeePosition,
     EmploymentType,
@@ -77,7 +77,7 @@ import { toast } from 'sonner';
 
 interface CellActionProps {
     data: Employee;
-    branches: Branch[];
+    properties: Property[];
     employmentTypes: EmploymentType[];
     employeePositions: EmployeePosition[];
     shifts: Shift[];
@@ -132,7 +132,7 @@ const fileNameFromPath = (path: string) => {
 
 export const CellAction: React.FC<CellActionProps> = ({
     data,
-    branches,
+    properties,
     employmentTypes,
     employeePositions,
     shifts,
@@ -154,8 +154,8 @@ export const CellAction: React.FC<CellActionProps> = ({
     const [editFirstName, setEditFirstName] = useState(data.first_name ?? '');
     const [editLastName, setEditLastName] = useState(data.last_name ?? '');
     const [editPhone, setEditPhone] = useState(data.phone ?? '');
-    const [editBranchId, setEditBranchId] = useState(
-        data.branch_id ? String(data.branch_id) : '',
+    const [editPropertyId, setEditPropertyId] = useState(
+        data.property_id ? String(data.property_id) : '',
     );
     const [editEmploymentTypeId, setEditEmploymentTypeId] = useState(
         data.employment_type_id ? String(data.employment_type_id) : '',
@@ -202,19 +202,19 @@ export const CellAction: React.FC<CellActionProps> = ({
 
     const [editErrors, setEditErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const branchSelectOptions = useMemo(
+    const propertySelectOptions = useMemo(
         () =>
-            branches.map((branch) => ({
-                value: String(branch.id),
-                label: branch.name,
+            properties.map((property) => ({
+                value: String(property.id),
+                label: property.name,
             })),
-        [branches],
+        [properties],
     );
 
     useAutoSelectSingleOption(
-        branchSelectOptions,
-        editBranchId,
-        setEditBranchId,
+        propertySelectOptions,
+        editPropertyId,
+        setEditPropertyId,
     );
 
     const editProfilePicturePreview = useMemo(
@@ -396,7 +396,7 @@ export const CellAction: React.FC<CellActionProps> = ({
         setEditFirstName(data.first_name ?? '');
         setEditLastName(data.last_name ?? '');
         setEditPhone(data.phone ?? '');
-        setEditBranchId(data.branch_id ? String(data.branch_id) : '');
+        setEditPropertyId(data.property_id ? String(data.property_id) : '');
         setEditEmploymentTypeId(
             data.employment_type_id ? String(data.employment_type_id) : '',
         );
@@ -482,7 +482,7 @@ export const CellAction: React.FC<CellActionProps> = ({
         if (
             !editFirstName.trim() ||
             !editLastName.trim() ||
-            !editBranchId ||
+            !editPropertyId ||
             isSubmitting
         ) {
             return;
@@ -496,7 +496,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                 first_name: editFirstName.trim(),
                 last_name: editLastName.trim(),
                 phone: editPhone.trim() || null,
-                branch_id: Number(editBranchId),
+                property_id: Number(editPropertyId),
                 employment_type_id: editEmploymentTypeId
                     ? Number(editEmploymentTypeId)
                     : null,
@@ -772,9 +772,11 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     <div className="space-y-2 text-sm">
                                         <p>
                                             <span className="font-medium">
-                                                {t('employees.filters.branch', 'Branch')}:
+                                                {t('employees.filters.property', 'Property')}:
                                             </span>{' '}
-                                            {data.branch ||
+                                            {(typeof data.property === 'string'
+                                                ? data.property
+                                                : data.property?.name) ||
                                                 t('employees.common.empty', '—')}
                                         </p>
                                         <p>
@@ -1078,31 +1080,31 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <InputError message={editErrors.phone} />
                             </div>
                             <div className="grid gap-2">
-                                <Label>{t('employees.filters.branch', 'Branch')}</Label>
+                                <Label>{t('employees.filters.property', 'Property')}</Label>
                                 <Select
-                                    value={editBranchId}
-                                    onValueChange={setEditBranchId}
+                                    value={editPropertyId}
+                                    onValueChange={setEditPropertyId}
                                 >
                                     <SelectTrigger>
                                         <SelectValue
                                             placeholder={t(
-                                                'employees.form.selectBranch',
-                                                'Select branch',
+                                                'employees.form.selectProperty',
+                                                'Select property',
                                             )}
                                         />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {branches.map((branch) => (
+                                        {properties.map((property) => (
                                             <SelectItem
-                                                key={branch.id}
-                                                value={String(branch.id)}
+                                                key={property.id}
+                                                value={String(property.id)}
                                             >
-                                                {branch.name}
+                                                {property.name}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <InputError message={editErrors.branch_id} />
+                                <InputError message={editErrors.property_id} />
                             </div>
                             <div className="grid gap-2">
                                 <Label>
@@ -1590,7 +1592,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                             disabled={
                                 !editFirstName.trim() ||
                                 !editLastName.trim() ||
-                                !editBranchId ||
+                                !editPropertyId ||
                                 !editContractStartDate ||
                                 !editContractEndDate ||
                                 (editIsContractBased &&

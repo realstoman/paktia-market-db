@@ -42,12 +42,12 @@ interface RuntimeHealthPageProps {
                 status: HealthStatus;
                 message: string;
                 latestProjectionAt?: string | null;
-                staleBranchCount: number;
-                criticalBranchCount: number;
-                warningBranchCount: number;
-                branches: Array<{
-                    branchId: number;
-                    branchName: string;
+                stalePropertyCount: number;
+                criticalPropertyCount: number;
+                warningPropertyCount: number;
+                properties: Array<{
+                    propertyId: number;
+                    propertyName: string;
                     status: string;
                     message: string;
                     latestProjectionAt?: string | null;
@@ -82,9 +82,9 @@ interface RuntimeHealthPageProps {
                 revokedCredentials: number;
                 expiredCredentials: number;
                 latestUsedAt?: string | null;
-                branches: Array<{
-                    branchId: number;
-                    branchName: string;
+                properties: Array<{
+                    propertyId: number;
+                    propertyName: string;
                     activeCredentialCount: number;
                     recentlyUsedCredentialCount: number;
                     latestUsedAt?: string | null;
@@ -166,7 +166,7 @@ export default function RuntimeHealthPage({
                                 Operations Runtime
                             </div>
                             <h1 className="text-3xl font-semibold tracking-tight text-foreground">
-                                Branch runtime health
+                                Property runtime health
                             </h1>
                             <p className="text-sm text-muted-foreground">
                                 {runtimeHealth.message}
@@ -189,7 +189,7 @@ export default function RuntimeHealthPage({
                                     Projection Health
                                 </CardTitle>
                                 <CardDescription>
-                                    Branch-day summary freshness and lag against
+                                    Property-day summary freshness and lag against
                                     recent activity.
                                 </CardDescription>
                             </CardHeader>
@@ -201,15 +201,15 @@ export default function RuntimeHealthPage({
                                 </div>
                                 <div className="grid gap-3 md:grid-cols-3">
                                     <Metric
-                                        label="Critical Branches"
+                                        label="Critical Properties"
                                         value={formatNumber(
-                                            projection.criticalBranchCount,
+                                            projection.criticalPropertyCount,
                                         )}
                                     />
                                     <Metric
-                                        label="Warning Branches"
+                                        label="Warning Properties"
                                         value={formatNumber(
-                                            projection.warningBranchCount,
+                                            projection.warningPropertyCount,
                                         )}
                                     />
                                     <Metric
@@ -220,26 +220,26 @@ export default function RuntimeHealthPage({
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    {projection.branches.length > 0 ? (
-                                        projection.branches.map((branch) => (
+                                    {projection.properties.length > 0 ? (
+                                        projection.properties.map((property) => (
                                             <div
-                                                key={branch.branchId}
+                                                key={property.propertyId}
                                                 className="rounded-2xl border border-border/60 p-3"
                                             >
                                                 <div className="flex items-center justify-between gap-3">
                                                     <div>
                                                         <p className="font-medium text-foreground">
-                                                            {branch.branchName}
+                                                            {property.propertyName}
                                                         </p>
                                                         <p className="text-sm text-muted-foreground">
-                                                            {branch.message}
+                                                            {property.message}
                                                         </p>
                                                     </div>
                                                     <span
-                                                        className={`rounded-full border px-2.5 py-1 text-xs font-medium ${statusTone(branch.status as HealthStatus)}`}
+                                                        className={`rounded-full border px-2.5 py-1 text-xs font-medium ${statusTone(property.status as HealthStatus)}`}
                                                     >
                                                         {statusLabel(
-                                                            branch.status as HealthStatus,
+                                                            property.status as HealthStatus,
                                                         )}
                                                     </span>
                                                 </div>
@@ -247,7 +247,7 @@ export default function RuntimeHealthPage({
                                         ))
                                     ) : (
                                         <p className="text-sm text-muted-foreground">
-                                            No branch-level projection issues
+                                            No property-level projection issues
                                             are currently surfaced.
                                         </p>
                                     )}
@@ -352,10 +352,10 @@ export default function RuntimeHealthPage({
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <ShieldCheck className="h-5 w-5" />
-                                Branch Sync Activity
+                                Property Sync Activity
                             </CardTitle>
                             <CardDescription>
-                                Active branch-local sync credentials and recent
+                                Active property-local sync credentials and recent
                                 usage footprint.
                             </CardDescription>
                         </CardHeader>
@@ -406,31 +406,31 @@ export default function RuntimeHealthPage({
                                 />
                             </div>
                             <div className="space-y-2">
-                                {components.sync.branches.length > 0 ? (
-                                    components.sync.branches.map((branch) => (
+                                {components.sync.properties.length > 0 ? (
+                                    components.sync.properties.map((property) => (
                                         <div
-                                            key={branch.branchId}
+                                            key={property.propertyId}
                                             className="rounded-2xl border border-border/60 p-3"
                                         >
                                             <div className="flex items-center justify-between gap-3">
                                                 <div>
                                                     <p className="font-medium text-foreground">
-                                                        {branch.branchName}
+                                                        {property.propertyName}
                                                     </p>
                                                     <p className="text-sm text-muted-foreground">
                                                         {formatNumber(
-                                                            branch.recentlyUsedCredentialCount,
+                                                            property.recentlyUsedCredentialCount,
                                                         )}{' '}
                                                         recently used of{' '}
                                                         {formatNumber(
-                                                            branch.activeCredentialCount,
+                                                            property.activeCredentialCount,
                                                         )}{' '}
                                                         active credentials
                                                     </p>
                                                 </div>
                                                 <span className="text-xs text-muted-foreground">
                                                     {formatTimestamp(
-                                                        branch.latestUsedAt,
+                                                        property.latestUsedAt,
                                                     )}
                                                 </span>
                                             </div>
@@ -438,7 +438,7 @@ export default function RuntimeHealthPage({
                                     ))
                                 ) : (
                                     <p className="text-sm text-muted-foreground">
-                                        No branch sync credentials are active
+                                        No property sync credentials are active
                                         yet.
                                     </p>
                                 )}
@@ -458,13 +458,13 @@ export default function RuntimeHealthPage({
                         <CardContent className="space-y-2 text-sm text-muted-foreground">
                             <p>
                                 Projection health tells us whether summary
-                                widgets are safe to trust for current branch
+                                widgets are safe to trust for current property
                                 activity.
                             </p>
                             <p>
                                 Queue health is the best early signal that
                                 projection jobs, sync tasks, and future
-                                branch-local replication can fall behind.
+                                property-local replication can fall behind.
                             </p>
                             <p>
                                 Redis availability matters because the
@@ -482,7 +482,7 @@ export default function RuntimeHealthPage({
                                 Redis Runtime
                             </CardTitle>
                             <CardDescription>
-                                Cache and queue readiness for branch-local
+                                Cache and queue readiness for property-local
                                 deployment.
                             </CardDescription>
                         </CardHeader>

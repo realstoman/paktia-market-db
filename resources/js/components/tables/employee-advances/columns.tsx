@@ -56,10 +56,10 @@ export function buildColumns({
                     <div>
                         <p className="font-medium">{employeeName}</p>
                         <p className="text-xs text-muted-foreground">
-                            {row.original.branch?.name ??
+                            {row.original.property?.name ??
                                 t(
-                                    'financeEmployeeAdvances.filters.allBranches',
-                                    'All Branches',
+                                    'financeEmployeeAdvances.filters.allProperties',
+                                    'All Properties',
                                 )}
                         </p>
                     </div>

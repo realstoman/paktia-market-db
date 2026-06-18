@@ -2,7 +2,7 @@
 
 namespace App\Services\Caching;
 
-use App\Models\Branch;
+use App\Models\Property;
 
 class CatalogCacheService
 {
@@ -20,7 +20,7 @@ class CatalogCacheService
         );
     }
 
-    public function invalidateBranch(?Branch $branch = null): void
+    public function invalidateProperty(?Property $property = null): void
     {
         $this->cache->invalidate(self::TOOL_REFERENCE_NAMESPACE);
     }

@@ -28,7 +28,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
 import {
-    Branch,
+    Property,
     Currency,
     InventoryCategory,
     InventoryItem,
@@ -61,7 +61,7 @@ interface SelectedImage {
 
 interface InventoryClientProps {
     data: InventoryItem[];
-    branches: Branch[];
+    properties: Property[];
     vendors: Vendor[];
     currencies: Currency[];
     units: Unit[];
@@ -79,7 +79,7 @@ const LOW_STOCK_THRESHOLD = 10;
 
 export const InventoryClient: React.FC<InventoryClientProps> = ({
     data,
-    branches,
+    properties,
     vendors,
     currencies,
     units,
@@ -106,7 +106,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [isUsageCycleOpen, setIsUsageCycleOpen] = useState(false);
     const [name, setName] = useState('');
-    const [branchId, setBranchId] = useState('');
+    const [propertyId, setPropertyId] = useState('');
     const [inventoryTypeId, setInventoryTypeId] = useState('');
     const [quantity, setQuantity] = useState('');
     const [unitPrice, setUnitPrice] = useState('');
@@ -172,7 +172,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     >({});
     const [isDeleteResourceSubmitting, setIsDeleteResourceSubmitting] =
         useState(false);
-    const [selectedBranchFilter, setSelectedBranchFilter] =
+    const [selectedPropertyFilter, setSelectedPropertyFilter] =
         useState(FILTER_ALL);
     const [selectedTypeFilter, setSelectedTypeFilter] = useState(FILTER_ALL);
     const [selectedVendorFilter, setSelectedVendorFilter] =
@@ -198,16 +198,16 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         };
     }, [images]);
 
-    const branchSelectOptions = useMemo(
+    const propertySelectOptions = useMemo(
         () =>
-            branches.map((branch) => ({
-                value: String(branch.id),
-                label: branch.name,
+            properties.map((property) => ({
+                value: String(property.id),
+                label: property.name,
             })),
-        [branches],
+        [properties],
     );
 
-    useAutoSelectSingleOption(branchSelectOptions, branchId, setBranchId);
+    useAutoSelectSingleOption(propertySelectOptions, propertyId, setPropertyId);
 
     const clearSelectedImages = () => {
         images.forEach((image) => URL.revokeObjectURL(image.preview));
@@ -216,7 +216,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
 
     const resetForm = () => {
         setName('');
-        setBranchId('');
+        setPropertyId('');
         setInventoryTypeId('');
         setQuantity('');
         setUnitPrice('');
@@ -737,7 +737,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     const handleCreate = () => {
         if (
             !name.trim() ||
-            !branchId ||
+            !propertyId ||
             !inventoryTypeId ||
             !quantity ||
             !unitPrice ||
@@ -752,7 +752,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
         router.post(
             '/inventory',
             {
-                branch_id: Number(branchId),
+                property_id: Number(propertyId),
                 name: name.trim(),
                 inventory_type_id: Number(inventoryTypeId),
                 quantity: Number(quantity),
@@ -901,7 +901,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     const tableColumns = useMemo(
         () =>
             buildColumns(
-                branches,
+                properties,
                 vendors,
                 currencies,
                 units,
@@ -909,7 +909,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                 inventoryTypes,
                 t,
             ),
-        [branches, vendors, currencies, units, categories, inventoryTypes, t],
+        [properties, vendors, currencies, units, categories, inventoryTypes, t],
     );
 
     const availableTypes = useMemo(() => {
@@ -925,9 +925,9 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     const filteredData = useMemo(() => {
         return data.filter((item) => {
             const quantity = Number(item.quantity || 0);
-            const branchMatch =
-                selectedBranchFilter === FILTER_ALL ||
-                String(item.branch_id) === selectedBranchFilter;
+            const propertyMatch =
+                selectedPropertyFilter === FILTER_ALL ||
+                String(item.property_id) === selectedPropertyFilter;
 
             const vendorMatch =
                 selectedVendorFilter === FILTER_ALL ||
@@ -946,11 +946,11 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                     quantity <= LOW_STOCK_THRESHOLD) ||
                 (selectedStockFilter === 'out_of_stock' && quantity <= 0);
 
-            return branchMatch && vendorMatch && typeMatch && stockMatch;
+            return propertyMatch && vendorMatch && typeMatch && stockMatch;
         });
     }, [
         data,
-        selectedBranchFilter,
+        selectedPropertyFilter,
         selectedVendorFilter,
         selectedTypeFilter,
         selectedStockFilter,
@@ -1178,43 +1178,43 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
             </div>
             <Separator className="bg-neutral-200/60 dark:bg-neutral-900/50" />
             <DataTable
-                searchKey={['name', 'type', 'branch.name', 'vendor.name']}
+                searchKey={['name', 'type', 'property.name', 'vendor.name']}
                 columns={tableColumns}
                 data={filteredData}
                 isLoading={isLoading}
                 searchPlaceholder={t(
                     'inventory.filters.searchPlaceholder',
-                    'Search inventory by item, type, or branch...',
+                    'Search inventory by item, type, or property...',
                 )}
                 toolbar={
                     <div className="flex flex-wrap items-center gap-2">
                         <SearchableDropdown
-                            value={selectedBranchFilter}
-                            onValueChange={setSelectedBranchFilter}
+                            value={selectedPropertyFilter}
+                            onValueChange={setSelectedPropertyFilter}
                             placeholder={t(
-                                'inventory.filters.branch',
-                                'Filter by branch',
+                                'inventory.filters.property',
+                                'Filter by property',
                             )}
                             searchPlaceholder={t(
-                                'inventory.filters.searchBranches',
-                                'Search branches...',
+                                'inventory.filters.searchProperties',
+                                'Search properties...',
                             )}
                             emptyText={t(
-                                'inventory.filters.noBranches',
-                                'No branches found.',
+                                'inventory.filters.noProperties',
+                                'No properties found.',
                             )}
                             className="w-[180px]"
                             options={[
                                 {
                                     value: FILTER_ALL,
                                     label: t(
-                                        'inventory.filters.allBranches',
-                                        'All Branches',
+                                        'inventory.filters.allProperties',
+                                        'All Properties',
                                     ),
                                 },
-                                ...branches.map((branch) => ({
-                                    value: String(branch.id),
-                                    label: branch.name,
+                                ...properties.map((property) => ({
+                                    value: String(property.id),
+                                    label: property.name,
                                 })),
                             ]}
                         />
@@ -2360,32 +2360,32 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             </div>
                             <div className="grid gap-2">
                                 <Label>
-                                    {t('inventory.common.branch', 'Branch')}
+                                    {t('inventory.common.property', 'Property')}
                                 </Label>
                                 <Select
-                                    value={branchId}
-                                    onValueChange={setBranchId}
+                                    value={propertyId}
+                                    onValueChange={setPropertyId}
                                 >
                                     <SelectTrigger>
                                         <SelectValue
                                             placeholder={t(
-                                                'inventory.common.selectBranch',
-                                                'Select branch',
+                                                'inventory.common.selectProperty',
+                                                'Select property',
                                             )}
                                         />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {branches.map((branch) => (
+                                        {properties.map((property) => (
                                             <SelectItem
-                                                key={branch.id}
-                                                value={String(branch.id)}
+                                                key={property.id}
+                                                value={String(property.id)}
                                             >
-                                                {branch.name}
+                                                {property.name}
                                             </SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <InputError message={errors.branch_id} />
+                                <InputError message={errors.property_id} />
                             </div>
                             <div className="grid gap-2">
                                 <Label>
@@ -2750,7 +2750,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                             onClick={handleCreate}
                             disabled={
                                 !name.trim() ||
-                                !branchId ||
+                                !propertyId ||
                                 !inventoryTypeId ||
                                 !quantity ||
                                 !unitPrice ||
@@ -2842,7 +2842,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                                                 value: String(
                                                                     item.id,
                                                                 ),
-                                                                label: `${item.name} (${item.branch?.name ?? `Branch #${item.branch_id}`}) - ${t(
+                                                                label: `${item.name} (${item.property?.name ?? `Property #${item.property_id}`}) - ${t(
                                                                     'inventory.usageModal.available',
                                                                     'Available',
                                                                 )}: ${Number(

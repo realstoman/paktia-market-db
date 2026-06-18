@@ -29,7 +29,7 @@ class ActivityLogResource extends JsonResource
             'url' => $this->url,
             'method' => $this->method,
             'batch_uuid' => $this->batch_uuid,
-            'branch_id' => $this->branch_id,
+            'property_id' => $this->property_id,
             'meta' => $this->meta,
             'created_at' => optional($this->created_at)->toIso8601String(),
             'user' => $this->whenLoaded('user', fn () => [
@@ -37,9 +37,9 @@ class ActivityLogResource extends JsonResource
                 'name' => $this->user?->name,
                 'email' => $this->user?->email,
             ]),
-            'branch' => $this->whenLoaded('branch', fn () => [
-                'id' => $this->branch?->id,
-                'name' => $this->branch?->name,
+            'property' => $this->whenLoaded('property', fn () => [
+                'id' => $this->property?->id,
+                'name' => $this->property?->name,
             ]),
         ];
     }

@@ -50,6 +50,9 @@ class HandleInertiaRequests extends Middleware
                 'is_super_admin' => $user?->hasRole('super-admin') ?? false,
             ],
             'notifications' => fn () => $this->buildNotifications($request),
+            'flash' => fn () => [
+                'loginWelcome' => $this->resolveLoginWelcomeToast($request),
+            ],
             'unauthorizedAccess' => fn () => $this->resolveUnauthorizedAccess($request),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'branding' => $branding,
@@ -71,6 +74,22 @@ class HandleInertiaRequests extends Middleware
                     ->values()
                     ->all(),
             ],
+        ];
+    }
+
+    /**
+     * @return array<string, string>|null
+     */
+    private function resolveLoginWelcomeToast(Request $request): ?array
+    {
+        $flash = $request->session()->get('login_welcome_toast');
+
+        if (! is_array($flash) || empty($flash['id'])) {
+            return null;
+        }
+
+        return [
+            'id' => (string) $flash['id'],
         ];
     }
 

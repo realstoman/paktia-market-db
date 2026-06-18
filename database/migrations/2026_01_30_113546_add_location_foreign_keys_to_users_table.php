@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
             $table->foreign('country_id')->references('id')->on('countries')->nullOnDelete();
             $table->foreign('province_id')->references('id')->on('provinces')->nullOnDelete();
-            $table->foreign('branch_id')->references('id')->on('branches')->nullOnDelete();
+            $table->foreign('property_id')->references('id')->on('properties')->nullOnDelete();
         });
     }
 
@@ -26,7 +26,7 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
             $table->dropForeign(['country_id']);
             $table->dropForeign(['province_id']);
-            $table->dropForeign(['branch_id']);
+            $table->dropForeign(['property_id']);
         });
     }
 };

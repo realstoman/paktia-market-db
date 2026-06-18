@@ -1,20 +1,20 @@
 import { ChartOfAccountsClient } from '@/components/tables/chart-of-accounts/client';
 import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
-import { Branch, BreadcrumbItem, Currency, FinanceAccount } from '@/types';
+import { Property, BreadcrumbItem, Currency, FinanceAccount } from '@/types';
 import { Head } from '@inertiajs/react';
 
 interface ChartOfAccountsPageProps {
     accounts: FinanceAccount[];
     parentAccounts: FinanceAccount[];
-    branches: Branch[];
+    properties: Property[];
     currencies: Currency[];
 }
 
 export default function ChartOfAccountsPage({
     accounts,
     parentAccounts,
-    branches,
+    properties,
     currencies,
 }: ChartOfAccountsPageProps) {
     const { t } = useLocalization();
@@ -41,7 +41,7 @@ export default function ChartOfAccountsPage({
             <ChartOfAccountsClient
                 accounts={accounts}
                 parentAccounts={parentAccounts}
-                branches={branches}
+                properties={properties}
                 currencies={currencies}
             />
         </AppLayout>
