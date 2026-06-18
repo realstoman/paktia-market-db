@@ -99,6 +99,43 @@ test('property ownership cannot exceed one hundred percent for an overlapping pe
     expect($property->shareholdings()->count())->toBe(1);
 });
 
+test('a shareholder can be registered with different percentages across multiple properties', function () {
+    $paktiaMarket = shareholderProperty('Paktia Market');
+    $secondProperty = shareholderProperty('Kabul Residential Block');
+
+    $this->post(route('shareholders.store'), [
+        'full_name' => 'Multi Property Owner',
+        'nid_type' => 'electronic',
+        'nid_number' => 'NID-MULTI-1001',
+        'shareholdings' => [
+            [
+                'property_id' => $paktiaMarket->id,
+                'percentage' => 25,
+                'effective_from' => '2026-01-01',
+            ],
+            [
+                'property_id' => $secondProperty->id,
+                'percentage' => 10,
+                'effective_from' => '2026-01-01',
+            ],
+        ],
+    ])->assertSessionHasNoErrors();
+
+    $shareholder = Shareholder::query()->where('nid_number', 'NID-MULTI-1001')->firstOrFail();
+
+    expect($shareholder->shareholdings()->count())->toBe(2);
+    $this->assertDatabaseHas('property_shareholdings', [
+        'shareholder_id' => $shareholder->id,
+        'property_id' => $paktiaMarket->id,
+        'percentage' => 25,
+    ]);
+    $this->assertDatabaseHas('property_shareholdings', [
+        'shareholder_id' => $shareholder->id,
+        'property_id' => $secondProperty->id,
+        'percentage' => 10,
+    ]);
+});
+
 test('historical ownership periods remain available for period based pnl', function () {
     $property = shareholderProperty();
     $shareholder = shareholderRecord('NID-3001');

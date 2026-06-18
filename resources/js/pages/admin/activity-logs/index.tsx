@@ -256,7 +256,7 @@ export default function ActivityLogsIndexPage({
             <Head title="Activity Logs" />
 
             <div className="space-y-4">
-                <div className="rounded-lg bg-white p-6 dark:bg-brand-bg-dark">
+                <div className="dark:bg-brand-bg-dark rounded-lg bg-white p-6">
                     <div className="mb-4 flex items-center justify-between gap-2">
                         <div>
                             <h2 className="text-lg font-semibold">
@@ -363,10 +363,12 @@ export default function ActivityLogsIndexPage({
                                 value={state.property_id}
                                 options={[
                                     { value: '', label: 'All properties' },
-                                    ...referenceData.properties.map((property) => ({
-                                        value: property.id.toString(),
-                                        label: property.name,
-                                    })),
+                                    ...referenceData.properties.map(
+                                        (property) => ({
+                                            value: property.id.toString(),
+                                            label: property.name,
+                                        }),
+                                    ),
                                 ]}
                                 onValueChange={(value) =>
                                     setState((s) => ({
@@ -418,7 +420,7 @@ export default function ActivityLogsIndexPage({
                     </div>
                 </div>
 
-                <div className="rounded-lg bg-white p-6 dark:bg-brand-bg-dark">
+                <div className="dark:bg-brand-bg-dark rounded-lg bg-white p-6">
                     <div className="mb-3 flex items-center justify-between">
                         <span className="text-sm text-muted-foreground">
                             {paginationLabel}
@@ -571,7 +573,7 @@ export default function ActivityLogsIndexPage({
                     )}
                 </div>
 
-                <div className="rounded-lg bg-white p-6 dark:bg-brand-bg-dark">
+                <div className="dark:bg-brand-bg-dark rounded-lg bg-white p-6">
                     <div className="mb-3">
                         <h3 className="text-base font-semibold">
                             Archived periods
@@ -687,7 +689,8 @@ export default function ActivityLogsIndexPage({
                                             '—'}
                                     </Badge>
                                     <Badge variant="secondary">
-                                        Property: {selected.property?.name ?? '—'}
+                                        Property:{' '}
+                                        {selected.property?.name ?? '—'}
                                     </Badge>
                                 </div>
 

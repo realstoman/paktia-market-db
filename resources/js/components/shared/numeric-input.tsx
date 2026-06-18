@@ -154,9 +154,7 @@ export function NumericInput({
             return String(nextValue);
         }
 
-        return nextValue
-            .toFixed(scale)
-            .replace(/(\.\d*?[1-9])0+$|\.0+$/, '$1');
+        return nextValue.toFixed(scale).replace(/(\.\d*?[1-9])0+$|\.0+$/, '$1');
     };
 
     const updateClampedValue = (nextValue: number) => {

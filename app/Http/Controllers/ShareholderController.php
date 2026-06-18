@@ -155,7 +155,7 @@ class ShareholderController extends Controller
         if ($request->has('shareholdings')) {
             $validated = $request->validate([
                 'shareholdings' => ['nullable', 'array', 'max:50'],
-                'shareholdings.*.property_id' => ['required', 'exists:properties,id'],
+                'shareholdings.*.property_id' => ['required', 'distinct', 'exists:properties,id'],
                 'shareholdings.*.percentage' => ['required', 'numeric', 'gt:0', 'max:100'],
                 'shareholdings.*.capital_contribution' => ['nullable', 'numeric', 'min:0'],
                 'shareholdings.*.currency_id' => ['nullable', 'exists:currencies,id'],

@@ -176,47 +176,56 @@ export default function ShareholdersPage({
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={t('shareholders.title', 'Shareholders')} />
-            <div className="space-y-6">
-                <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-                    <div>
-                        <div className="mb-2 flex items-center gap-2 text-sm font-medium text-muted-foreground">
-                            <ShieldCheck className="h-4 w-4" />
-                            {t('shareholders.identity', 'Identity & contact')}
+            <div className="mx-auto w-full max-w-[1600px] space-y-6">
+                <section className="relative overflow-hidden rounded-3xl border border-white/70 bg-gradient-to-br from-white via-white to-primary/8 p-6 shadow-sm sm:p-8 dark:border-neutral-800 dark:from-neutral-900 dark:via-neutral-900 dark:to-primary/10">
+                    <div className="pointer-events-none absolute -end-16 -top-20 h-56 w-56 rounded-full bg-primary/10 blur-3xl" />
+                    <div className="relative flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
+                        <div>
+                            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-3 py-1.5 text-sm font-medium text-primary">
+                                <ShieldCheck className="h-4 w-4" />
+                                {t(
+                                    'shareholders.identity',
+                                    'Identity & contact',
+                                )}
+                            </div>
+                            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+                                {t('shareholders.title', 'Shareholders')}
+                            </h1>
+                            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
+                                {t('shareholders.subtitle')}
+                            </p>
                         </div>
-                        <h1 className="text-2xl font-semibold tracking-tight">
-                            {t('shareholders.title', 'Shareholders')}
-                        </h1>
-                        <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-                            {t('shareholders.subtitle')}
-                        </p>
-                    </div>
-                    {canManage && (
-                        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-                            <DialogTrigger asChild>
-                                <Button>
-                                    <Plus className="me-2 h-4 w-4" />
-                                    {t('shareholders.register')}
-                                </Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-5xl">
-                                <DialogHeader>
-                                    <DialogTitle>
+                        {canManage && (
+                            <Dialog
+                                open={createOpen}
+                                onOpenChange={setCreateOpen}
+                            >
+                                <DialogTrigger asChild>
+                                    <Button className="h-11 rounded-xl px-5 shadow-sm">
+                                        <Plus className="me-2 h-4 w-4" />
                                         {t('shareholders.register')}
-                                    </DialogTitle>
-                                    <DialogDescription>
-                                        {t('shareholders.subtitle')}
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <ShareholderForm
-                                    countries={countries}
-                                    properties={properties}
-                                    currencies={currencies}
-                                    onSuccess={() => setCreateOpen(false)}
-                                />
-                            </DialogContent>
-                        </Dialog>
-                    )}
-                </div>
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-h-[92vh] overflow-y-auto rounded-2xl sm:max-w-5xl">
+                                    <DialogHeader>
+                                        <DialogTitle>
+                                            {t('shareholders.register')}
+                                        </DialogTitle>
+                                        <DialogDescription>
+                                            {t('shareholders.subtitle')}
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <ShareholderForm
+                                        countries={countries}
+                                        properties={properties}
+                                        currencies={currencies}
+                                        onSuccess={() => setCreateOpen(false)}
+                                    />
+                                </DialogContent>
+                            </Dialog>
+                        )}
+                    </div>
+                </section>
 
                 <div className="grid gap-3 sm:grid-cols-3">
                     <Stat
@@ -240,14 +249,16 @@ export default function ShareholdersPage({
                     />
                 </div>
 
-                <div className="relative max-w-xl">
-                    <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                        value={search}
-                        onChange={(event) => setSearch(event.target.value)}
-                        placeholder={t('shareholders.searchPlaceholder')}
-                        className="bg-white ps-10 dark:bg-neutral-900"
-                    />
+                <div className="rounded-2xl border border-white/70 bg-white p-3 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                    <div className="relative max-w-xl">
+                        <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                            value={search}
+                            onChange={(event) => setSearch(event.target.value)}
+                            placeholder={t('shareholders.searchPlaceholder')}
+                            className="h-11 rounded-xl bg-white ps-10 shadow-none dark:bg-neutral-950"
+                        />
+                    </div>
                 </div>
 
                 {visible.length === 0 ? (
@@ -257,7 +268,7 @@ export default function ShareholdersPage({
                         </CardContent>
                     </Card>
                 ) : (
-                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
                         {visible.map((shareholder) => (
                             <ShareholderCard
                                 key={shareholder.id}
@@ -314,13 +325,13 @@ function Stat({
     value: number;
 }) {
     return (
-        <Card className="shadow-none">
-            <CardContent className="flex items-center gap-4 p-4">
-                <div className="rounded-xl bg-primary/10 p-2.5 text-primary">
+        <Card className="rounded-2xl border-white/70 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+            <CardContent className="flex items-center gap-4 p-5">
+                <div className="rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 p-3 text-primary">
                     {icon}
                 </div>
                 <div>
-                    <p className="text-2xl font-semibold">
+                    <p className="text-2xl font-semibold tracking-tight">
                         {formatNumber(value)}
                     </p>
                     <p className="text-xs text-muted-foreground">{label}</p>
@@ -350,11 +361,12 @@ function ShareholderCard({
         .join('');
 
     return (
-        <Card className="overflow-hidden shadow-none transition-colors hover:border-primary/30">
-            <CardContent className="space-y-4 p-5">
+        <Card className="group relative overflow-hidden rounded-2xl border-white/80 bg-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 dark:border-neutral-800 dark:bg-neutral-900">
+            <div className="h-1 bg-gradient-to-r from-primary/80 via-primary/35 to-transparent" />
+            <CardContent className="space-y-5 p-5">
                 <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-3">
-                        <Avatar className="h-12 w-12 border">
+                        <Avatar className="h-14 w-14 border-2 border-white shadow-md ring-1 ring-neutral-200 dark:border-neutral-900 dark:ring-neutral-700">
                             <AvatarImage
                                 src={shareholder.photo_url ?? undefined}
                             />
@@ -363,7 +375,7 @@ function ShareholderCard({
                             </AvatarFallback>
                         </Avatar>
                         <div className="min-w-0">
-                            <h2 className="truncate font-semibold">
+                            <h2 className="truncate text-base font-semibold tracking-tight">
                                 {shareholder.full_name}
                             </h2>
                             <div className="mt-1 flex items-center gap-2">
@@ -432,7 +444,7 @@ function ShareholderCard({
                         current.slice(0, 2).map((holding) => (
                             <div
                                 key={holding.id}
-                                className="flex items-center justify-between rounded-lg bg-muted/60 px-3 py-2 text-sm"
+                                className="flex items-center justify-between rounded-xl border border-transparent bg-slate-50 px-3 py-2.5 text-sm transition-colors group-hover:border-primary/10 dark:bg-neutral-950/70"
                             >
                                 <span className="truncate">
                                     {holding.property?.name}
@@ -447,8 +459,17 @@ function ShareholderCard({
                             {t('shareholders.noOwnership')}
                         </p>
                     )}
+                    {current.length > 2 && (
+                        <p className="text-center text-xs font-medium text-primary">
+                            +{formatNumber(current.length - 2)}
+                        </p>
+                    )}
                 </div>
-                <Button variant="outline" className="w-full" onClick={onManage}>
+                <Button
+                    variant="outline"
+                    className="h-10 w-full rounded-xl border-primary/15 bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary"
+                    onClick={onManage}
+                >
                     <Handshake className="me-2 h-4 w-4" />
                     {t('shareholders.manage')}
                 </Button>
@@ -507,7 +528,7 @@ function ShareholderForm({
                 ...data,
                 _method: 'put',
                 documents: [],
-                property_id: '',
+                shareholdings: [],
             }));
             form.post(`/shareholders/${shareholder.id}`, {
                 forceFormData: true,
@@ -751,27 +772,156 @@ function ShareholderForm({
             {!shareholder && (
                 <>
                     <Separator />
-                    <section>
-                        <h3 className="font-semibold">
-                            {t('shareholders.addOwnership')}{' '}
-                            <span className="text-sm font-normal text-muted-foreground">
-                                ({t('shareholders.optional')})
-                            </span>
-                        </h3>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                            {t('shareholders.ownershipHelp')}
-                        </p>
-                        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                            <OwnershipFields
-                                data={form.data}
-                                errors={form.errors}
-                                setData={(field, value) =>
-                                    form.setData(field, value)
+                    <section className="space-y-4">
+                        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
+                            <div>
+                                <h3 className="font-semibold">
+                                    {t('shareholders.initialOwnership')}{' '}
+                                    <span className="text-sm font-normal text-muted-foreground">
+                                        ({t('shareholders.optional')})
+                                    </span>
+                                </h3>
+                                <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+                                    {t('shareholders.multipleOwnershipHelp')}
+                                </p>
+                            </div>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() =>
+                                    form.setData('shareholdings', [
+                                        ...form.data.shareholdings,
+                                        emptyOwnership(),
+                                    ])
                                 }
-                                properties={properties}
-                                currencies={currencies}
-                            />
+                            >
+                                <Plus className="me-2 h-4 w-4" />
+                                {t('shareholders.addPropertyShare')}
+                            </Button>
                         </div>
+
+                        {form.data.shareholdings.length === 0 ? (
+                            <button
+                                type="button"
+                                className="flex w-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed bg-muted/20 px-6 py-8 text-center transition-colors hover:border-primary/40 hover:bg-primary/5"
+                                onClick={() =>
+                                    form.setData('shareholdings', [
+                                        emptyOwnership(),
+                                    ])
+                                }
+                            >
+                                <span className="rounded-full bg-primary/10 p-3 text-primary">
+                                    <Building2 className="h-5 w-5" />
+                                </span>
+                                <span className="text-sm font-medium">
+                                    {t('shareholders.addFirstPropertyShare')}
+                                </span>
+                            </button>
+                        ) : (
+                            <div className="space-y-4">
+                                {form.data.shareholdings.map(
+                                    (assignment, index) => {
+                                        const nestedErrors = Object.fromEntries(
+                                            Object.entries(
+                                                form.errors as Record<
+                                                    string,
+                                                    string
+                                                >,
+                                            )
+                                                .filter(([key]) =>
+                                                    key.startsWith(
+                                                        `shareholdings.${index}.`,
+                                                    ),
+                                                )
+                                                .map(([key, message]) => [
+                                                    key.split('.').pop(),
+                                                    message,
+                                                ]),
+                                        ) as Partial<
+                                            Record<
+                                                keyof OwnershipFormData,
+                                                string
+                                            >
+                                        >;
+
+                                        return (
+                                            <div
+                                                key={index}
+                                                className="rounded-2xl border bg-muted/15 p-4"
+                                            >
+                                                <div className="mb-4 flex items-center justify-between">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
+                                                            {formatNumber(
+                                                                index + 1,
+                                                            )}
+                                                        </span>
+                                                        <h4 className="text-sm font-semibold">
+                                                            {t(
+                                                                'shareholders.propertyShare',
+                                                            )}
+                                                        </h4>
+                                                    </div>
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        onClick={() =>
+                                                            form.setData(
+                                                                'shareholdings',
+                                                                form.data.shareholdings.filter(
+                                                                    (
+                                                                        _,
+                                                                        itemIndex,
+                                                                    ) =>
+                                                                        itemIndex !==
+                                                                        index,
+                                                                ),
+                                                            )
+                                                        }
+                                                        title={t(
+                                                            'shareholders.remove',
+                                                        )}
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                                    <OwnershipFields
+                                                        data={assignment}
+                                                        errors={nestedErrors}
+                                                        setData={(
+                                                            field,
+                                                            value,
+                                                        ) =>
+                                                            form.setData(
+                                                                'shareholdings',
+                                                                form.data.shareholdings.map(
+                                                                    (
+                                                                        item,
+                                                                        itemIndex,
+                                                                    ) =>
+                                                                        itemIndex ===
+                                                                        index
+                                                                            ? {
+                                                                                  ...item,
+                                                                                  [field]:
+                                                                                      value,
+                                                                              }
+                                                                            : item,
+                                                                ),
+                                                            )
+                                                        }
+                                                        properties={properties}
+                                                        currencies={currencies}
+                                                    />
+                                                </div>
+                                            </div>
+                                        );
+                                    },
+                                )}
+                            </div>
+                        )}
                     </section>
                 </>
             )}
@@ -825,14 +975,14 @@ function OwnershipDialog({
 
     return (
         <Dialog open onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-5xl">
+            <DialogContent className="max-h-[92vh] overflow-y-auto rounded-2xl sm:max-w-6xl">
                 <DialogHeader>
                     <DialogTitle>{shareholder.full_name}</DialogTitle>
                     <DialogDescription>
                         {t('shareholders.ownershipHelp')}
                     </DialogDescription>
                 </DialogHeader>
-                <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
+                <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
                     <section className="space-y-4">
                         <h3 className="flex items-center gap-2 font-semibold">
                             <Handshake className="h-4 w-4" />
@@ -842,7 +992,7 @@ function OwnershipDialog({
                             holdings.map((holding) => (
                                 <div
                                     key={holding.id}
-                                    className="rounded-xl border p-4"
+                                    className="rounded-2xl border bg-white p-4 shadow-sm dark:bg-neutral-900"
                                 >
                                     <div className="flex flex-wrap items-start justify-between gap-3">
                                         <div>
@@ -914,11 +1064,18 @@ function OwnershipDialog({
                         {canManage && (
                             <form
                                 onSubmit={assign}
-                                className="rounded-xl border bg-muted/20 p-4"
+                                className="rounded-2xl border bg-slate-50/80 p-5 dark:bg-neutral-950/60"
                             >
-                                <h4 className="mb-4 font-medium">
-                                    {t('shareholders.addOwnership')}
-                                </h4>
+                                <div className="mb-4">
+                                    <h4 className="font-medium">
+                                        {t('shareholders.addPropertyShare')}
+                                    </h4>
+                                    <p className="mt-1 text-xs text-muted-foreground">
+                                        {t(
+                                            'shareholders.multipleOwnershipHelp',
+                                        )}
+                                    </p>
+                                </div>
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <OwnershipFields
                                         data={form.data}
@@ -935,7 +1092,7 @@ function OwnershipDialog({
                                     type="submit"
                                     disabled={form.processing}
                                 >
-                                    {t('shareholders.addOwnership')}
+                                    {t('shareholders.addPropertyShare')}
                                 </Button>
                             </form>
                         )}

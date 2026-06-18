@@ -2663,6 +2663,12 @@ const en = {
         ownershipHelp:
             'Percentages are effective for the selected dates and feed future P&L allocation.',
         addOwnership: 'Assign property share',
+        initialOwnership: 'Initial property shares',
+        multipleOwnershipHelp:
+            'A shareholder may own different percentages in multiple markets or properties. Add as many property shares as needed.',
+        addPropertyShare: 'Add property share',
+        addFirstPropertyShare: 'Add the first property share',
+        propertyShare: 'Property share',
         noOwnership: 'No property shares assigned yet.',
         current: 'Current',
         historical: 'Historical',
