@@ -1,17 +1,11 @@
 'use client';
 
-import { SummaryMetricCard } from '@/components/shared/summary-metric-card';
+import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { EmployeeClient } from '@/components/tables/employees/client';
 import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
+import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import {
     Property,
@@ -23,7 +17,14 @@ import {
 } from '@/types';
 import { formatNumber } from '@/utils/format';
 import { Head } from '@inertiajs/react';
-import { BriefcaseBusiness, Users } from 'lucide-react';
+import {
+    BadgeCheck,
+    BriefcaseBusiness,
+    Building2,
+    ScanFace,
+    Users,
+    type LucideIcon,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 interface EmployeesPageProps {
@@ -43,7 +44,7 @@ export default function EmployeesPage({
     employeePositions,
     shifts,
 }: EmployeesPageProps) {
-    const { t } = useLocalization();
+    const { t, isRtl } = useLocalization();
     const [selectedPropertyId, setSelectedPropertyId] = useState(PROPERTY_FILTER_ALL);
     const propertyOptions = useMemo(
         () =>
@@ -95,6 +96,25 @@ export default function EmployeesPage({
 
                 return hasContractAmount || employmentType.includes('contract');
             }).length,
+        [statsEmployees],
+    );
+    const activeEmployeesCount = useMemo(
+        () =>
+            statsEmployees.filter(
+                (employee) =>
+                    employee.is_active !== false &&
+                    String(employee.status ?? 'active').toLowerCase() ===
+                        'active',
+            ).length,
+        [statsEmployees],
+    );
+    const representedProperties = useMemo(
+        () =>
+            new Set(
+                statsEmployees
+                    .map((employee) => employee.property_id)
+                    .filter((propertyId) => propertyId !== null && propertyId !== undefined),
+            ).size,
         [statsEmployees],
     );
 
