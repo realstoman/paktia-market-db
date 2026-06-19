@@ -1,7 +1,7 @@
 export default function AppLogo() {
     return (
         <img
-            src="/brand/logo.png"
+            src="/brand/pg-logo-portrait.png"
             width="500"
             height="500"
             alt="Paktiawal Group logo"

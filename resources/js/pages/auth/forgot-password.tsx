@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 
 const AUTH_BRAND_NAME = 'Paktiawal Group';
-const AUTH_BRAND_LOGO = '/brand/logo.png';
+const AUTH_BRAND_LOGO = '/brand/pg-logo-portrait.png';
 const AUTH_BRAND_URL = 'https://paktiawalgroup.com';
 
 export default function ForgotPassword({ status }: { status?: string }) {
@@ -164,7 +164,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
                                             tabIndex={2}
                                             disabled={processing}
                                             data-test="email-password-reset-link-button"
-                                            className="mt-3 h-13.5 w-full rounded-full bg-brand-primary text-[15px] font-semibold text-white shadow-none transition-all hover:bg-brand-primary/90 hover:shadow-[0_10px_30px_rgba(11,90,165,0.28)] focus-visible:ring-brand-primary/30"
+                                            className="mt-3 h-13.5 w-full rounded-full bg-brand-primary text-[15px] font-semibold text-white shadow-none transition-all hover:bg-brand-primary/90 hover:shadow-[0_10px_30px_rgba(0,36,82,0.28)] focus-visible:ring-brand-primary/30"
                                         >
                                             {processing ? (
                                                 <LoaderCircle className="h-4 w-4 animate-spin" />

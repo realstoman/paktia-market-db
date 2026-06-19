@@ -281,7 +281,7 @@ export function AppHeader({
                     className="flex w-32 shrink-0 items-center justify-center"
                 >
                     <img
-                        src="/brand/logo.png"
+                        src="/brand/pg-logo-portrait.png"
                         alt="Paktiawal Group logo"
                         className="h-16 w-auto object-contain"
                     />
@@ -382,7 +382,7 @@ export function AppHeader({
                                 </SheetTitle>
                             </SheetHeader>
                             <img
-                                src="/brand/logo.png"
+                                src="/brand/pg-logo-portrait.png"
                                 alt="Paktiawal Group logo"
                                 className="mx-auto h-20 w-auto"
                             />

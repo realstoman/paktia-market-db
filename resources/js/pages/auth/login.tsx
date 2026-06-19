@@ -18,7 +18,7 @@ interface LoginProps {
 }
 
 const LOGIN_BRAND_NAME = 'Paktiawal Group';
-const LOGIN_BRAND_LOGO = '/brand/logo.png';
+const LOGIN_BRAND_LOGO = '/brand/pg-logo-portrait.png';
 const LOGIN_BRAND_URL = 'https://paktiawalgroup.com';
 
 export default function Login({ status, canResetPassword }: LoginProps) {
@@ -248,7 +248,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                             tabIndex={5}
                                             disabled={processing}
                                             data-test="login-button"
-                                            className="mt-3 h-13.5 w-full rounded-full bg-brand-primary text-[15px] font-semibold text-white shadow-none transition-all hover:bg-brand-primary/90 hover:shadow-[0_10px_30px_rgba(11,90,165,0.28)] focus-visible:ring-brand-primary/30"
+                                            className="mt-3 h-13.5 w-full rounded-full bg-brand-primary text-[15px] font-semibold text-white shadow-none transition-all hover:bg-brand-primary/90 hover:shadow-[0_10px_30px_rgba(0,36,82,0.28)] focus-visible:ring-brand-primary/30"
                                         >
                                             {processing ? <Spinner /> : null}
                                             {t('auth.login.submit', 'Log in')}
