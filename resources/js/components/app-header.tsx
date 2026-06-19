@@ -116,13 +116,6 @@ const toolNavConfig: HeaderNavConfig[] = [
         can: 'employees.view',
     },
     {
-        titleKey: 'navigation.toolShareholders',
-        fallbackTitle: 'Shareholders',
-        href: '/shareholders',
-        icon: Handshake,
-        can: 'shareholders.view',
-    },
-    {
         titleKey: 'navigation.users',
         fallbackTitle: 'Users',
         href: '/users',
@@ -137,13 +130,6 @@ const toolNavConfig: HeaderNavConfig[] = [
         can: 'role.view',
     },
     {
-        titleKey: 'navigation.reports',
-        fallbackTitle: 'Reports',
-        href: '/reports',
-        icon: ChartLine,
-        can: 'reports.view',
-    },
-    {
         titleKey: 'navigation.toolCountries',
         fallbackTitle: 'Countries',
         href: '/countries',
@@ -156,13 +142,6 @@ const toolNavConfig: HeaderNavConfig[] = [
         href: '/provinces',
         icon: MapPinned,
         superAdminOnly: true,
-    },
-    {
-        titleKey: 'navigation.toolProperties',
-        fallbackTitle: 'Properties',
-        href: '/properties',
-        icon: Building2,
-        can: 'property.view',
     },
     {
         titleKey: 'navigation.runtimeHealth',
@@ -207,7 +186,12 @@ export function AppHeader({
     };
 
     const primaryNavigation = primaryNavConfig.filter(canShowItem);
-    const toolsNavigation = toolNavConfig.filter(canShowItem);
+    const primaryRoutes = new Set(
+        primaryNavigation.map((item) => resolveUrl(item.href)),
+    );
+    const toolsNavigation = toolNavConfig
+        .filter(canShowItem)
+        .filter((item) => !primaryRoutes.has(resolveUrl(item.href)));
     const isActiveItem = (item: HeaderNavConfig) => {
         const href = resolveUrl(item.href);
 
