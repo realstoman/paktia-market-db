@@ -34,6 +34,7 @@ interface SearchableDropdownProps {
     onSearchChange?: (value: string) => void;
     isLoading?: boolean;
     loadingText?: string;
+    disabled?: boolean;
 }
 
 export function SearchableDropdown({
@@ -41,15 +42,16 @@ export function SearchableDropdown({
     options,
     onValueChange,
     placeholder,
-    searchPlaceholder = 'Search...',
-    emptyText = 'No results found.',
+    searchPlaceholder,
+    emptyText,
     className,
     searchValue,
     onSearchChange,
     isLoading = false,
-    loadingText = 'Loading...',
+    loadingText,
+    disabled = false,
 }: SearchableDropdownProps) {
-    const { isRtl } = useLocalization();
+    const { isRtl, t } = useLocalization();
     const [open, setOpen] = useState(false);
     const [internalSearchValue, setInternalSearchValue] = useState('');
 
@@ -68,22 +70,47 @@ export function SearchableDropdown({
         () => options.find((option) => option.value === value)?.label,
         [options, value],
     );
+    const checkIcon = (selected: boolean) => (
+        <Check
+            className={cn(
+                'size-4 shrink-0 text-brand-primary',
+                selected ? 'opacity-100' : 'opacity-0',
+            )}
+        />
+    );
 
     return (
-        <Popover open={open} onOpenChange={setOpen}>
+        <Popover
+            open={open}
+            onOpenChange={(nextOpen) => {
+                if (!disabled) {
+                    setOpen(nextOpen);
+                }
+
+                if (!nextOpen && searchValue === undefined) {
+                    setInternalSearchValue('');
+                }
+            }}
+        >
             <PopoverTrigger asChild>
                 <Button
                     dir={isRtl ? 'rtl' : 'ltr'}
                     variant="outline"
                     role="combobox"
                     aria-expanded={open}
+                    disabled={disabled}
                     className={cn(
-                        'h-10 w-full justify-between border border-input px-3 font-normal',
-                        isRtl && 'text-right',
+                        'h-10 w-full justify-between border border-input bg-white px-3 font-normal shadow-xs dark:bg-neutral-900',
+                        isRtl ? 'text-right' : 'text-left',
                         className,
                     )}
                 >
-                    <span className={cn('truncate', isRtl && 'text-right')}>
+                    <span
+                        className={cn(
+                            'min-w-0 flex-1 truncate',
+                            isRtl ? 'text-right' : 'text-left',
+                        )}
+                    >
                         {selectedLabel ?? placeholder}
                     </span>
                     <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
@@ -91,44 +118,47 @@ export function SearchableDropdown({
             </PopoverTrigger>
             <PopoverContent
                 dir={isRtl ? 'rtl' : 'ltr'}
-                align="start"
-                className="w-[--radix-popover-trigger-width] p-0"
+                align={isRtl ? 'end' : 'start'}
+                sideOffset={6}
+                className="w-[--radix-popover-trigger-width] overflow-hidden rounded-xl border-border/80 p-0 shadow-xl"
             >
                 <Command dir={isRtl ? 'rtl' : 'ltr'}>
                     <CommandInput
                         className={cn(isRtl && 'text-right')}
-                        placeholder={searchPlaceholder}
+                        placeholder={
+                            searchPlaceholder ||
+                            t('common.search', 'Search…')
+                        }
                         value={resolvedSearchValue}
                         onValueChange={handleSearchChange}
                     />
                     <CommandList>
                         <CommandEmpty>
-                            {isLoading ? loadingText : emptyText}
+                            {isLoading
+                                ? (loadingText ??
+                                  t('common.loading', 'Loading…'))
+                                : (emptyText ??
+                                  t(
+                                      'common.noResultsFound',
+                                      'No results found.',
+                                  ))}
                         </CommandEmpty>
                         <CommandGroup>
                             {options.map((option) => (
                                 <CommandItem
                                     key={option.value}
                                     value={`${option.label} ${option.value}`}
-                                    dir="ltr"
                                     className={cn(
-                                        'flex w-full items-center',
-                                        isRtl && 'text-right',
+                                        'flex w-full !flex-row items-center rounded-lg px-3 py-2.5',
+                                        isRtl ? 'text-right' : 'text-left',
                                     )}
                                     onSelect={() => {
                                         onValueChange(option.value);
                                         setOpen(false);
                                     }}
                                 >
-                                    <Check
-                                        className={cn(
-                                            'h-4 w-4 shrink-0',
-                                            !isRtl && 'mr-2',
-                                            value === option.value
-                                                ? 'opacity-100'
-                                                : 'opacity-0',
-                                        )}
-                                    />
+                                    {!isRtl &&
+                                        checkIcon(value === option.value)}
                                     <span
                                         dir={isRtl ? 'rtl' : 'ltr'}
                                         className={cn(
@@ -138,6 +168,8 @@ export function SearchableDropdown({
                                     >
                                         {option.label}
                                     </span>
+                                    {isRtl &&
+                                        checkIcon(value === option.value)}
                                 </CommandItem>
                             ))}
                         </CommandGroup>

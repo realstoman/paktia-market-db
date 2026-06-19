@@ -23,6 +23,8 @@ const ps = {
         systemBranding: 'د سيستم هويت',
         twoFactorAuth: 'دوه پړاوه تصدیق',
         logout: 'وتل',
+        search: 'لټون…',
+        loading: 'د پورته کېدو په حال کې…',
         noResultsFound: 'هیڅ پایله ونه موندل شوه.',
         rowsSelected: ':selected له :total قطارونو څخه ټاکل شوي دي.',
         previousPage: 'مخکینۍ پاڼه',

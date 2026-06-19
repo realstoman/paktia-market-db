@@ -23,6 +23,8 @@ const en = {
         systemBranding: 'System Branding',
         twoFactorAuth: 'Two-Factor Auth',
         logout: 'Log out',
+        search: 'Search…',
+        loading: 'Loading…',
         noResultsFound: 'No results found.',
         rowsSelected: ':selected of :total row(s) selected.',
         previousPage: 'Previous page',

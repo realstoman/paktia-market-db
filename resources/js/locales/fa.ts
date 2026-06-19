@@ -23,6 +23,8 @@ const fa = {
         systemBranding: 'هویت سیستم',
         twoFactorAuth: 'احراز هویت دومرحله‌ای',
         logout: 'خروج',
+        search: 'جستجو…',
+        loading: 'در حال بارگذاری…',
         noResultsFound: 'هیچ نتیجه‌ای یافت نشد.',
         rowsSelected: ':selected از :total ردیف انتخاب شده است.',
         previousPage: 'صفحه قبلی',
