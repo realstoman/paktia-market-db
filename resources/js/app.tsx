@@ -138,7 +138,8 @@ function AppWithGlobalOverlays({
     App: React.ComponentType<unknown>;
     props: Record<string, unknown>;
 }) {
-    const sharedProps = (props?.initialPage?.props ?? {}) as Partial<SharedData>;
+    const sharedProps = (props?.initialPage?.props ??
+        {}) as Partial<SharedData>;
 
     return (
         <>
