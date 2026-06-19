@@ -14,6 +14,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
+import { useLocalization } from '@/lib/localization';
 import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import { BreadcrumbItem } from '@/types';
@@ -84,11 +85,6 @@ interface ActivityLogsPageProps {
     referenceData: ReferenceData;
 }
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: dashboard().url },
-    { title: 'Activity Logs', href: '/admin/activity-logs' },
-];
-
 function formatBytes(bytes: number): string {
     if (bytes === 0) return '0 B';
     const kilo = 1024;
@@ -100,10 +96,16 @@ function formatBytes(bytes: number): string {
     return `${(bytes / Math.pow(kilo, i)).toFixed(1)} ${sizes[i]}`;
 }
 
-function formatDateTime(value?: string | null): string {
+function formatDateTime(
+    value: string | null | undefined,
+    locale: string,
+): string {
     if (!value) return '—';
     try {
-        return new Date(value).toLocaleString();
+        const dateLocale =
+            locale === 'fa' ? 'fa-AF' : locale === 'ps' ? 'ps-AF' : 'en-US';
+
+        return new Date(value).toLocaleString(dateLocale);
     } catch {
         return value;
     }
@@ -118,14 +120,33 @@ const actionBadgeVariant: Record<string, string> = {
     restored: 'bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300',
 };
 
-function ActionBadge({ action }: { action: string }) {
+const actionTranslationKeys: Record<string, string> = {
+    created: 'created',
+    updated: 'updated',
+    deleted: 'deleted',
+    restored: 'restored',
+    'auth.login': 'login',
+    'auth.logout': 'logout',
+    'auth.login_failed': 'loginFailed',
+    'auth.lockout': 'lockout',
+    'auth.password_reset': 'passwordReset',
+    'auth.registered': 'registered',
+    'auth.email_verified': 'emailVerified',
+    'auth.2fa.enabled': 'twoFactorEnabled',
+    'auth.2fa.confirmed': 'twoFactorConfirmed',
+    'auth.2fa.disabled': 'twoFactorDisabled',
+    'auth.2fa.failed': 'twoFactorFailed',
+    'auth.2fa.recovery_codes_generated': 'recoveryCodesGenerated',
+};
+
+function ActionBadge({ action, label }: { action: string; label: string }) {
     const cls = actionBadgeVariant[action] ?? 'bg-muted text-muted-foreground';
 
     return (
         <span
             className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${cls}`}
         >
-            {action}
+            {label}
         </span>
     );
 }
