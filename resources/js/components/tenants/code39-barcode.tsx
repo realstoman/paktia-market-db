@@ -53,7 +53,7 @@ interface Props {
 }
 
 export function Code39Barcode({ value, className }: Props) {
-    const encoded = `*${value.toUpperCase().replace(/[^0-9A-Z. $/+%\-]/g, '')}*`;
+    const encoded = `*${value.toUpperCase().replace(/[^0-9A-Z. $/+%-]/g, '')}*`;
     const widths = [...encoded].flatMap((character, characterIndex) => [
         ...(patterns[character] ?? patterns['*'])
             .split('')
