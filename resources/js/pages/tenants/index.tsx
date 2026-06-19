@@ -45,6 +45,7 @@ interface Props {
     tenants: Tenant[];
     properties: Property[];
     currencies: Currency[];
+    initialPropertyId?: number | null;
 }
 interface FormData {
     tenant_type: string;
@@ -131,6 +132,7 @@ export default function TenantsIndex({
     tenants,
     properties,
     currencies,
+    initialPropertyId,
 }: Props) {
     const { t, isRtl } = useLocalization();
     const { auth } = usePage<SharedData>().props;
@@ -211,6 +213,7 @@ export default function TenantsIndex({
                                     <TenantForm
                                         properties={properties}
                                         currencies={currencies}
+                                        initialPropertyId={initialPropertyId}
                                         onDone={() => setOpen(false)}
                                     />
                                 </DialogContent>
@@ -398,15 +401,19 @@ export default function TenantsIndex({
 function TenantForm({
     properties,
     currencies,
+    initialPropertyId,
     onDone,
 }: {
     properties: Property[];
     currencies: Currency[];
+    initialPropertyId?: number | null;
     onDone: () => void;
 }) {
     const { t } = useLocalization();
+    const initial = emptyForm();
+    initial.property_id = initialPropertyId ? String(initialPropertyId) : '';
     const { data, setData, post, processing, errors, reset } =
-        useForm<FormData>(emptyForm());
+        useForm<FormData>(initial);
     const property = properties.find(
         (item) => String(item.id) === data.property_id,
     );

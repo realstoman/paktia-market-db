@@ -16,10 +16,19 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class TenantController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
+        $propertyId = $request->integer('property_id');
+        $propertyId = $propertyId && Property::query()->whereKey($propertyId)->exists()
+            ? $propertyId
+            : null;
+
         return Inertia::render('tenants/index', [
             'tenants' => Tenant::query()
+                ->when($propertyId, fn ($query) => $query->whereHas(
+                    'leases',
+                    fn ($leases) => $leases->where('property_id', $propertyId),
+                ))
                 ->with([
                     'documents',
                     'leases.property:id,name,name_translations,property_type',
@@ -32,6 +41,7 @@ class TenantController extends Controller
                 ->get(),
             'properties' => $this->propertyOptions(),
             'currencies' => Currency::query()->where('is_active', true)->orderBy('code')->get(['id', 'code', 'symbol']),
+            'initialPropertyId' => $propertyId,
         ]);
     }
 
@@ -67,13 +77,15 @@ class TenantController extends Controller
         $lease = $this->validateOptionalLease($request);
 
         $tenant = DB::transaction(function () use ($request, $validated, $lease, $leases): Tenant {
-            $validated = $this->storePhoto($request, $validated);
+            unset($validated['photo'], $validated['documents']);
             $tenant = Tenant::query()->create($validated);
-            $this->storeDocuments($request, $tenant);
 
             if ($lease !== null) {
                 $leases->create([...$lease, 'tenant_id' => $tenant->id]);
             }
+
+            $tenant->update($this->storePhoto($request, [], $tenant));
+            $this->storeDocuments($request, $tenant);
 
             return $tenant;
         });
