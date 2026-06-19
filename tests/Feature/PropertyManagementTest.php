@@ -27,25 +27,54 @@ function propertyLocation(): array
     return [$country, $province];
 }
 
-test('properties are displayed in ascending name order', function () {
+test('properties keep their saved order and new properties are appended', function () {
     [$country, $province] = propertyLocation();
 
-    foreach (['Zahir Plaza', 'Ahmad Market', 'Central Block'] as $name) {
-        Property::query()->create([
+    Property::query()->create([
+        'name' => 'Zahir Plaza',
+        'property_type' => 'market',
+        'usage_type' => 'commercial',
+        'country_id' => $country->id,
+        'province_id' => $province->id,
+    ]);
+
+    $this->post(route('properties.store'), [
+        'name' => 'Ahmad Market',
+        'property_type' => 'market',
+        'usage_type' => 'commercial',
+        'country_id' => $country->id,
+        'province_id' => $province->id,
+    ])->assertRedirect(route('properties.index'));
+
+    $this->get(route('properties.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('properties.0.name', 'Zahir Plaza')
+            ->where('properties.0.display_order', 1)
+            ->where('properties.1.name', 'Ahmad Market')
+            ->where('properties.1.display_order', 2));
+});
+
+test('property display order can be adjusted', function () {
+    [$country, $province] = propertyLocation();
+    $properties = collect(['First Market', 'Second Market', 'Third Market'])
+        ->map(fn (string $name) => Property::query()->create([
             'name' => $name,
             'property_type' => 'market',
             'usage_type' => 'commercial',
             'country_id' => $country->id,
             'province_id' => $province->id,
-        ]);
-    }
+        ]));
 
-    $this->get(route('properties.index'))
-        ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->where('properties.0.name', 'Ahmad Market')
-            ->where('properties.1.name', 'Central Block')
-            ->where('properties.2.name', 'Zahir Plaza'));
+    $this->patch(route('properties.order.update', $properties[2]), [
+        'direction' => 'up',
+    ])->assertRedirect()
+        ->assertSessionHas('success', __('properties.actions.order_updated'));
+
+    expect(Property::query()
+        ->orderBy('display_order')
+        ->pluck('name')
+        ->all())->toBe(['First Market', 'Third Market', 'Second Market']);
 });
 
 test('success and error flashes are shared as global toast messages', function () {

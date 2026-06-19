@@ -2768,6 +2768,12 @@ const en = {
         registerTitle: 'Register market or property',
         registerHelp:
             'Create the profile first. Floors and rentable spaces can be added afterward.',
+        manageOrder: 'Manage order',
+        orderTitle: 'Property display order',
+        orderHelp:
+            'New properties are added to the end. Move items to control their order here and on the dashboard.',
+        moveUp: 'Move property up',
+        moveDown: 'Move property down',
         edit: 'Edit property',
         editTitle: 'Edit property details',
         editHelp:

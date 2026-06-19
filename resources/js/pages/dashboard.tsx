@@ -170,17 +170,9 @@ function EmptyChart({ label }: { label: string }) {
 }
 
 export default function Dashboard({ data }: { data: DashboardData }) {
-    const { locale, t } = useLocalization();
+    const { t } = useLocalization();
     const [activeTab, setActiveTab] = useState<string>('overall');
-    const projects = useMemo(
-        () =>
-            [...data.portfolio.projects].sort((first, second) =>
-                first.name.localeCompare(second.name, locale, {
-                    sensitivity: 'base',
-                }),
-            ),
-        [data.portfolio.projects, locale],
-    );
+    const projects = data.portfolio.projects;
     const selectedProject = projects.find(
         (project) => String(project.id) === activeTab,
     );

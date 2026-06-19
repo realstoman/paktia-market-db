@@ -30,7 +30,7 @@ test('dashboard exposes overall and project portfolio statistics', function () {
         'province_id' => $province->id,
         'is_active' => true,
     ]);
-    $firstProperty = Property::query()->create([
+    $secondProperty = Property::query()->create([
         'name' => 'Ahmad Market',
         'country_id' => $country->id,
         'province_id' => $province->id,
@@ -44,10 +44,10 @@ test('dashboard exposes overall and project portfolio statistics', function () {
             ->component('dashboard')
             ->where('data.portfolio.totalProjects', 2)
             ->where('data.portfolio.activeProjects', 1)
-            ->where('data.portfolio.projects.0.id', $firstProperty->id)
-            ->where('data.portfolio.projects.0.name', 'Ahmad Market')
-            ->where('data.portfolio.projects.1.id', $property->id)
-            ->where('data.portfolio.projects.1.name', 'Paktia Market')
+            ->where('data.portfolio.projects.0.id', $property->id)
+            ->where('data.portfolio.projects.0.name', 'Paktia Market')
+            ->where('data.portfolio.projects.1.id', $secondProperty->id)
+            ->where('data.portfolio.projects.1.name', 'Ahmad Market')
             ->where('data.portfolio.projects.1.rent.collectedAfn', 0)
             ->where('data.portfolio.projects.1.rent.collectedUsd', 0)
         );
