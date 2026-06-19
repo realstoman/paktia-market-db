@@ -215,7 +215,7 @@ export function AppHeader({
     };
     const isToolsActive = toolsNavigation.some(isActiveItem);
     const navItemBaseClass =
-        'flex h-10 items-center gap-1.5 rounded-xl px-3 py-0 text-base font-medium transition-colors outline-none focus:outline-none focus-visible:border-transparent focus-visible:ring-0 focus-visible:ring-offset-0';
+        'flex h-10 shrink-0 items-center gap-1.5 rounded-xl px-3 py-0 text-base font-medium transition-colors outline-none focus:outline-none focus-visible:border-transparent focus-visible:ring-0 focus-visible:ring-offset-0';
     const navItemStateClass = (active: boolean) =>
         active
             ? 'bg-brand-primary/8 text-brand-primary'
@@ -235,7 +235,9 @@ export function AppHeader({
                 key={`${keyPrefix}:${href}`}
                 href={item.href}
                 className={`${navItemBaseClass} ${navItemStateClass(active)} ${
-                    mobile ? 'w-full justify-start' : 'whitespace-nowrap'
+                    mobile
+                        ? 'w-full justify-start'
+                        : 'justify-center whitespace-nowrap'
                 }`}
             >
                 <Icon className="size-4" />
@@ -275,10 +277,10 @@ export function AppHeader({
 
     return (
         <header className="sticky top-0 z-30 border-b border-[#dfe7e9] bg-[#f8fbfb]/95 backdrop-blur-xl dark:border-neutral-800 dark:bg-neutral-950/95">
-            <div className="mx-auto flex h-20 w-full items-center gap-4 px-4 lg:px-7">
+            <div className="mx-auto flex h-20 w-full flex-nowrap items-center gap-2 px-4 lg:px-7">
                 <Link
                     href={dashboard()}
-                    className="flex w-32 shrink-0 items-center justify-center"
+                    className="flex h-full w-20 shrink-0 items-center justify-center self-center"
                 >
                     <img
                         src="/brand/pg-logo-portrait.png"
@@ -287,7 +289,7 @@ export function AppHeader({
                     />
                 </Link>
 
-                <nav className="hidden min-w-0 flex-1 items-center gap-0.5 overflow-x-auto lg:flex">
+                <nav className="hidden h-full min-w-0 flex-1 flex-nowrap items-center justify-start gap-0.5 overflow-x-auto py-0 lg:flex">
                     {navLinks()}
                     {toolsNavigation.length > 0 ? (
                         <DropdownMenu>
@@ -322,7 +324,7 @@ export function AppHeader({
                     ) : null}
                 </nav>
 
-                <div className="ms-auto flex shrink-0 items-center gap-2">
+                <div className="ms-auto flex h-full shrink-0 flex-nowrap items-center gap-2 self-center">
                     <AppearanceToggleDropdown />
                     <LanguageDropdown className="hidden sm:block" />
                     {isSuperAdmin ? (

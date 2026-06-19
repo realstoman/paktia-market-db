@@ -27,7 +27,17 @@ function welcomeToastMessage(pageProps: Partial<SharedData>): string {
 function welcomeToastTitleClass(pageProps: Partial<SharedData>): string {
     const locale = pageProps.localization?.locale;
 
-    return locale === 'fa' || locale === 'ps' ? 'text-lg leading-7' : 'text-sm';
+    return locale === 'fa' || locale === 'ps'
+        ? 'text-right text-lg leading-7'
+        : 'text-sm';
+}
+
+function welcomeToastPosition(
+    pageProps: Partial<SharedData>,
+): 'bottom-left' | 'top-right' {
+    const locale = pageProps.localization?.locale;
+
+    return locale === 'fa' || locale === 'ps' ? 'bottom-left' : 'top-right';
 }
 
 function showLoginWelcomeToast(pageProps: Partial<SharedData>) {
@@ -41,7 +51,7 @@ function showLoginWelcomeToast(pageProps: Partial<SharedData>) {
 
     toast.success(welcomeToastMessage(pageProps), {
         id: `login-welcome-${toastId}`,
-        position: 'top-right',
+        position: welcomeToastPosition(pageProps),
         duration: 5000,
         classNames: {
             title: welcomeToastTitleClass(pageProps),
