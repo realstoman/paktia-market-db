@@ -117,7 +117,7 @@ const SAVED_PRESETS_KEY = 'paktia-market-reports-saved-presets';
 const CHART_COLORS = [
     '#123f46',
     '#1d6f7a',
-    '#f2a20c',
+    '#d3a450',
     '#d98900',
     '#6b8790',
     '#91b7bf',

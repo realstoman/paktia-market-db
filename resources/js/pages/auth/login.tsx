@@ -51,7 +51,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                             href={LOGIN_BRAND_URL}
                             target="_blank"
                             rel="noreferrer"
-                            className="flex h-26 w-26 items-center justify-center rounded-xl bg-white/95 shadow-sm transition-transform hover:scale-[1.03]"
+                            className="flex h-26 w-26 items-center justify-center rounded-xl bg-white/95 p-2 shadow-sm transition-transform hover:scale-[1.03]"
                         >
                             <img
                                 src={LOGIN_BRAND_LOGO}

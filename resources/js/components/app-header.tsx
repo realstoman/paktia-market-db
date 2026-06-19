@@ -218,8 +218,8 @@ export function AppHeader({
         'flex h-10 items-center gap-1.5 rounded-xl px-3 py-0 text-base font-medium transition-colors outline-none focus:outline-none focus-visible:border-transparent focus-visible:ring-0 focus-visible:ring-offset-0';
     const navItemStateClass = (active: boolean) =>
         active
-            ? 'bg-[#e8f1f2] text-[#0d2f38]'
-            : 'text-slate-500 hover:bg-slate-100 hover:text-[#123f4a]';
+            ? 'bg-brand-primary/8 text-brand-primary'
+            : 'text-slate-500 hover:bg-brand-primary/5 hover:text-brand-primary';
 
     const navLink = (
         item: HeaderNavConfig,
@@ -330,7 +330,7 @@ export function AppHeader({
                             asChild
                             variant="ghost"
                             size="icon"
-                            className="size-10 rounded-full border border-[#dfe7e9] bg-white text-slate-600 transition-colors hover:bg-slate-100 hover:text-[#123f4a] dark:border-neutral-800 dark:bg-neutral-900"
+                            className="size-10 rounded-full border border-[#dfe7e9] bg-white text-slate-600 transition-colors hover:bg-brand-primary/5 hover:text-brand-primary dark:border-neutral-800 dark:bg-neutral-900"
                         >
                             <Link
                                 href="/admin/activity-logs"
@@ -349,7 +349,7 @@ export function AppHeader({
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="relative size-10 rounded-full border border-[#dfe7e9] bg-white text-[#123f4a] shadow-sm shadow-slate-950/3 transition-all duration-300 hover:border-brand-primary/30 hover:bg-brand-primary/5 hover:text-brand-primary dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200"
+                                className="relative size-10 rounded-full border border-[#dfe7e9] bg-white text-brand-primary shadow-sm shadow-slate-950/3 transition-all duration-300 hover:border-brand-primary/30 hover:bg-brand-primary/5 hover:text-brand-primary dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200"
                             >
                                 <UserInfo user={auth.user} showName={false} />
                             </Button>

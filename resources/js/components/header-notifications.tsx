@@ -283,7 +283,7 @@ export function HeaderNotifications() {
                     isRtl ? 'text-right' : 'text-left',
                 )}
             >
-                <div className="border-b border-[#dfe7e9] bg-[radial-gradient(circle_at_top_right,rgba(242,162,12,0.18),transparent_34%),linear-gradient(135deg,rgba(11,90,165,0.12),rgba(248,250,253,0.92))] px-5 py-4 dark:border-neutral-800 dark:bg-[radial-gradient(circle_at_top_right,rgba(242,162,12,0.16),transparent_34%),linear-gradient(135deg,rgba(11,90,165,0.20),rgba(10,15,25,0.92))]">
+                <div className="border-b border-[#dfe7e9] bg-[radial-gradient(circle_at_top_right,rgba(211,164,80,0.18),transparent_34%),linear-gradient(135deg,rgba(0,36,82,0.12),rgba(248,250,253,0.92))] px-5 py-4 dark:border-neutral-800 dark:bg-[radial-gradient(circle_at_top_right,rgba(211,164,80,0.16),transparent_34%),linear-gradient(135deg,rgba(0,36,82,0.20),rgba(10,15,25,0.92))]">
                     <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1 space-y-2">
                             <div className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-3 py-1 text-[11px] font-semibold text-brand-primary shadow-sm shadow-slate-950/3 dark:border-white/10 dark:bg-white/10 dark:text-sky-100">
