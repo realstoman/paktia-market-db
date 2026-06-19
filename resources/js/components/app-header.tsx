@@ -74,14 +74,14 @@ const primaryNavConfig: HeaderNavConfig[] = [
         titleKey: 'navigation.tenants',
         fallbackTitle: 'Tenants & Businesses',
         href: '/tenants',
-        icon: ContactRound,
+        icon: Handshake,
         can: 'tenants.view',
     },
     {
         titleKey: 'navigation.shareholders',
         fallbackTitle: 'Shareholders',
         href: '/shareholders',
-        icon: Handshake,
+        icon: ContactRound,
         can: 'shareholders.view',
     },
     {
