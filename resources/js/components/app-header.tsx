@@ -33,6 +33,7 @@ import {
     ChartLine,
     ChevronDown,
     ClipboardList,
+    ContactRound,
     Globe2,
     Handshake,
     LayoutGrid,
@@ -68,6 +69,13 @@ const primaryNavConfig: HeaderNavConfig[] = [
         href: '/properties',
         icon: Building2,
         can: 'property.view',
+    },
+    {
+        titleKey: 'navigation.tenants',
+        fallbackTitle: 'Tenants & Businesses',
+        href: '/tenants',
+        icon: ContactRound,
+        can: 'tenants.view',
     },
     {
         titleKey: 'navigation.shareholders',

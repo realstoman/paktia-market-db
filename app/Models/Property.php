@@ -135,4 +135,9 @@ class Property extends Model
             ->withPivot(['percentage', 'capital_contribution', 'currency_id', 'effective_from', 'effective_to', 'notes'])
             ->withTimestamps();
     }
+
+    public function leases()
+    {
+        return $this->hasMany(Lease::class);
+    }
 }

@@ -92,6 +92,7 @@ const en = {
         finance: 'Finance',
         marketsProperties: 'Markets & Properties',
         properties: 'Markets & Properties',
+        tenants: 'Tenants & Businesses',
         shareholders: 'Shareholders',
         users: 'Users',
         roles: 'Roles',

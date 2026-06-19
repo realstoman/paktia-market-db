@@ -25,6 +25,7 @@ use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\Settings\LanguageController;
 use App\Http\Controllers\ShareholderController;
+use App\Http\Controllers\TenantController;
 use App\Http\Controllers\ToolReferenceController;
 use Illuminate\Support\Facades\Route;
 
@@ -133,6 +134,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('shareholders/{shareholder}/documents/{document}', [ShareholderController::class, 'destroyDocument'])->name('shareholders.documents.destroy');
         Route::post('shareholders/{shareholder}/shareholdings', [ShareholderController::class, 'assign'])->name('shareholders.shareholdings.store');
         Route::post('shareholders/{shareholder}/shareholdings/{shareholding}/close', [ShareholderController::class, 'closeAssignment'])->name('shareholders.shareholdings.close');
+    });
+
+    Route::middleware('can:'.PermissionEnum::TENANTS_VIEW->value)->group(function () {
+        Route::get('tenants', [TenantController::class, 'index'])->name('tenants.index');
+        Route::get('tenants/{tenant}', [TenantController::class, 'show'])->name('tenants.show');
+        Route::get('tenants/{tenant}/card', [TenantController::class, 'card'])->name('tenants.card');
+        Route::get('tenants/{tenant}/documents/{document}', [TenantController::class, 'downloadDocument'])
+            ->name('tenants.documents.download');
+    });
+    Route::middleware('can:'.PermissionEnum::TENANTS_MANAGE->value)->group(function () {
+        Route::post('tenants', [TenantController::class, 'store'])->name('tenants.store');
+        Route::put('tenants/{tenant}', [TenantController::class, 'update'])->name('tenants.update');
+        Route::post('tenants/{tenant}/toggle', [TenantController::class, 'toggle'])->name('tenants.toggle');
+        Route::post('tenants/{tenant}/leases', [TenantController::class, 'storeLease'])->name('tenants.leases.store');
+        Route::post('tenants/{tenant}/documents', [TenantController::class, 'uploadDocuments'])->name('tenants.documents.store');
+        Route::delete('tenants/{tenant}/documents/{document}', [TenantController::class, 'destroyDocument'])
+            ->name('tenants.documents.destroy');
     });
 
     // Inventory

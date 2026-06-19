@@ -93,6 +93,7 @@ const fa = {
         finance: 'مالی',
         marketsProperties: 'مارکیت ها و جایدادها',
         properties: 'مارکیت ها و جایدادها',
+        tenants: 'مستأجران و کسبه‌کاران',
         shareholders: 'سهمداران',
         users: 'کاربران سیستم',
         roles: 'صلاحیت ها',

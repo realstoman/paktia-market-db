@@ -21,6 +21,7 @@ import {
     Banknote,
     Building2,
     ChartLine,
+    ContactRound,
     Handshake,
     LayoutGrid,
     ShieldCheck,
@@ -58,6 +59,13 @@ const mainNavItems: SidebarNavConfig[] = [
         href: '/properties',
         icon: Building2,
         can: 'property.view',
+    },
+    {
+        titleKey: 'navigation.tenants',
+        fallbackTitle: 'Tenants & Businesses',
+        href: '/tenants',
+        icon: ContactRound,
+        can: 'tenants.view',
     },
     {
         titleKey: 'navigation.shareholders',

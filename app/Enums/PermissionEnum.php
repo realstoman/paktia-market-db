@@ -29,6 +29,10 @@ enum PermissionEnum: string
     case SHAREHOLDERS_VIEW = 'shareholders.view';
     case SHAREHOLDERS_MANAGE = 'shareholders.manage';
 
+    // Tenants & Businesses
+    case TENANTS_VIEW = 'tenants.view';
+    case TENANTS_MANAGE = 'tenants.manage';
+
     // Banners
     case BANNERS_VIEW = 'banners.view';
     case BANNERS_CREATE = 'banners.create';
