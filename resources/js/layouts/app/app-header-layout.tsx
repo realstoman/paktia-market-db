@@ -64,7 +64,7 @@ export default function AppHeaderLayout({
                         dir="ltr"
                         className="flex flex-col gap-3 bg-[#f8fbfb]/95 px-4 py-4 text-xs text-slate-500 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between sm:px-7 dark:bg-neutral-950/95 dark:text-neutral-400"
                     >
-                        <div className="text-center text-base sm:text-left">
+                        <div className="text-center text-sm sm:text-left">
                             <a
                                 href="https://stoman.me"
                                 target="_blank"
@@ -79,7 +79,7 @@ export default function AppHeaderLayout({
                         </div>
                         <div
                             dir={isRtl ? 'rtl' : 'ltr'}
-                            className="text-center text-base sm:text-right"
+                            className="text-center text-sm sm:text-right"
                         >
                             © {year}{' '}
                             <a

@@ -167,7 +167,7 @@ export function AppHeader({
     const page = usePage<SharedData>();
     const { auth } = page.props;
     const { can, canAny, isSuperAdmin } = useAuthorization();
-    const { isRtl, t } = useLocalization();
+    const { isRtl, locale, t } = useLocalization();
 
     const canShowItem = (item: HeaderNavConfig) => {
         if (item.superAdminOnly && !isSuperAdmin) {
@@ -198,8 +198,10 @@ export function AppHeader({
         return page.url === href || page.url.startsWith(`${href}/`);
     };
     const isToolsActive = toolsNavigation.some(isActiveItem);
-    const navItemBaseClass =
-        'flex h-10 shrink-0 items-center gap-1.5 rounded-xl px-3 py-0 text-base font-medium transition-colors outline-none focus:outline-none focus-visible:border-transparent focus-visible:ring-0 focus-visible:ring-offset-0';
+    const navItemBaseClass = [
+        'flex h-10 shrink-0 items-center gap-1.5 rounded-xl px-3 py-0 font-medium transition-colors outline-none focus:outline-none focus-visible:border-transparent focus-visible:ring-0 focus-visible:ring-offset-0',
+        locale === 'en' ? 'text-sm' : 'text-base',
+    ].join(' ');
     const navItemStateClass = (active: boolean) =>
         active
             ? 'bg-brand-primary/8 text-brand-primary'
