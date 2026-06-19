@@ -513,7 +513,7 @@ export default function ActivityLogsIndexPage({
                     <div className="overflow-x-auto rounded-md border border-border">
                         <table
                             dir={isRtl ? 'rtl' : 'ltr'}
-                            className="w-full text-sm"
+                            className="w-full text-start text-sm"
                         >
                             <thead className="bg-muted/50 text-xs text-muted-foreground uppercase">
                                 <tr>
@@ -535,7 +535,7 @@ export default function ActivityLogsIndexPage({
                                     <th className="px-3 py-2 text-start">
                                         {t('activityLogsPage.table.ip')}
                                     </th>
-                                    <th className="px-3 py-2 text-end">
+                                    <th className="px-3 py-2 text-start">
                                         {t('activityLogsPage.table.details')}
                                     </th>
                                 </tr>
@@ -615,7 +615,7 @@ export default function ActivityLogsIndexPage({
                                             <td className="px-3 py-2 font-mono text-xs">
                                                 {log.ip_address ?? '—'}
                                             </td>
-                                            <td className="px-3 py-2 text-end">
+                                            <td className="px-3 py-2 text-start">
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
@@ -699,7 +699,7 @@ export default function ActivityLogsIndexPage({
                         <div className="overflow-x-auto rounded-md border border-border">
                             <table
                                 dir={isRtl ? 'rtl' : 'ltr'}
-                                className="w-full text-sm"
+                                className="w-full text-start text-sm"
                             >
                                 <thead className="bg-muted/50 text-xs text-muted-foreground uppercase">
                                     <tr>
@@ -708,12 +708,12 @@ export default function ActivityLogsIndexPage({
                                                 'activityLogsPage.archives.period',
                                             )}
                                         </th>
-                                        <th className="px-3 py-2 text-end">
+                                        <th className="px-3 py-2 text-start">
                                             {t(
                                                 'activityLogsPage.archives.records',
                                             )}
                                         </th>
-                                        <th className="px-3 py-2 text-end">
+                                        <th className="px-3 py-2 text-start">
                                             {t(
                                                 'activityLogsPage.archives.size',
                                             )}
@@ -723,7 +723,7 @@ export default function ActivityLogsIndexPage({
                                                 'activityLogsPage.archives.created',
                                             )}
                                         </th>
-                                        <th className="px-3 py-2 text-end">
+                                        <th className="px-3 py-2 text-start">
                                             {t(
                                                 'activityLogsPage.archives.download',
                                             )}
@@ -739,10 +739,10 @@ export default function ActivityLogsIndexPage({
                                             <td className="px-3 py-2 font-mono">
                                                 {archive.period}
                                             </td>
-                                            <td className="px-3 py-2 text-end">
+                                            <td className="px-3 py-2 text-start">
                                                 {archive.records_count.toLocaleString()}
                                             </td>
-                                            <td className="px-3 py-2 text-end">
+                                            <td className="px-3 py-2 text-start">
                                                 {formatBytes(
                                                     archive.size_bytes,
                                                 )}
@@ -753,7 +753,7 @@ export default function ActivityLogsIndexPage({
                                                     locale,
                                                 )}
                                             </td>
-                                            <td className="px-3 py-2 text-end">
+                                            <td className="px-3 py-2 text-start">
                                                 <a
                                                     href={`/admin/activity-logs/archives/${archive.id}/download`}
                                                     className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
