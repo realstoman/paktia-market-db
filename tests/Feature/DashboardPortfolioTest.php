@@ -1,7 +1,7 @@
 <?php
 
-use App\Models\Property;
 use App\Models\Country;
+use App\Models\Property;
 use App\Models\Province;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -30,17 +30,25 @@ test('dashboard exposes overall and project portfolio statistics', function () {
         'province_id' => $province->id,
         'is_active' => true,
     ]);
+    $secondProperty = Property::query()->create([
+        'name' => 'Ahmad Market',
+        'country_id' => $country->id,
+        'province_id' => $province->id,
+        'is_active' => false,
+    ]);
 
     $this->actingAs($user)
         ->get(route('dashboard'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('dashboard')
-            ->where('data.portfolio.totalProjects', 1)
+            ->where('data.portfolio.totalProjects', 2)
             ->where('data.portfolio.activeProjects', 1)
             ->where('data.portfolio.projects.0.id', $property->id)
             ->where('data.portfolio.projects.0.name', 'Paktia Market')
-            ->where('data.portfolio.projects.0.rent.collectedAfn', 0)
-            ->where('data.portfolio.projects.0.rent.collectedUsd', 0)
+            ->where('data.portfolio.projects.1.id', $secondProperty->id)
+            ->where('data.portfolio.projects.1.name', 'Ahmad Market')
+            ->where('data.portfolio.projects.1.rent.collectedAfn', 0)
+            ->where('data.portfolio.projects.1.rent.collectedUsd', 0)
         );
 });

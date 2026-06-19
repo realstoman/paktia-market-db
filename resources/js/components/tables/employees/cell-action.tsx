@@ -1,5 +1,6 @@
 import InputError from '@/components/input-error';
 import { NumericInput } from '@/components/shared/numeric-input';
+import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -29,13 +30,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import {
     Table,
     TableBody,
@@ -1192,29 +1186,18 @@ export const CellAction: React.FC<CellActionProps> = ({
                                         'Property',
                                     )}
                                 </Label>
-                                <Select
+                                <SearchableDropdown
                                     value={editPropertyId}
                                     onValueChange={setEditPropertyId}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue
-                                            placeholder={t(
-                                                'employees.form.selectProperty',
-                                                'Select property',
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {properties.map((property) => (
-                                            <SelectItem
-                                                key={property.id}
-                                                value={String(property.id)}
-                                            >
-                                                {property.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                    options={properties.map((property) => ({
+                                        value: String(property.id),
+                                        label: property.name,
+                                    }))}
+                                    placeholder={t(
+                                        'employees.form.selectProperty',
+                                        'Select property',
+                                    )}
+                                />
                                 <InputError message={editErrors.property_id} />
                             </div>
                             <div className="grid gap-2">
@@ -1224,29 +1207,18 @@ export const CellAction: React.FC<CellActionProps> = ({
                                         'Employment type',
                                     )}
                                 </Label>
-                                <Select
+                                <SearchableDropdown
                                     value={editEmploymentTypeId}
                                     onValueChange={setEditEmploymentTypeId}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue
-                                            placeholder={t(
-                                                'employees.form.selectEmploymentType',
-                                                'Select employment type',
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {employmentTypes.map((type) => (
-                                            <SelectItem
-                                                key={type.id}
-                                                value={String(type.id)}
-                                            >
-                                                {type.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                    options={employmentTypes.map((type) => ({
+                                        value: String(type.id),
+                                        label: type.name,
+                                    }))}
+                                    placeholder={t(
+                                        'employees.form.selectEmploymentType',
+                                        'Select employment type',
+                                    )}
+                                />
                                 <InputError
                                     message={editErrors.employment_type_id}
                                 />
@@ -1258,29 +1230,20 @@ export const CellAction: React.FC<CellActionProps> = ({
                                         'Employee position',
                                     )}
                                 </Label>
-                                <Select
+                                <SearchableDropdown
                                     value={editEmployeePositionId}
                                     onValueChange={setEditEmployeePositionId}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue
-                                            placeholder={t(
-                                                'employees.form.selectPosition',
-                                                'Select position',
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {employeePositions.map((position) => (
-                                            <SelectItem
-                                                key={position.id}
-                                                value={String(position.id)}
-                                            >
-                                                {position.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                    options={employeePositions.map(
+                                        (position) => ({
+                                            value: String(position.id),
+                                            label: position.name,
+                                        }),
+                                    )}
+                                    placeholder={t(
+                                        'employees.form.selectPosition',
+                                        'Select position',
+                                    )}
+                                />
                                 <InputError
                                     message={editErrors.employee_position_id}
                                 />
@@ -1289,29 +1252,18 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <Label>
                                     {t('employees.filters.shift', 'Shift')}
                                 </Label>
-                                <Select
+                                <SearchableDropdown
                                     value={editShiftId}
                                     onValueChange={setEditShiftId}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue
-                                            placeholder={t(
-                                                'employees.form.selectShift',
-                                                'Select shift',
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {shifts.map((shift) => (
-                                            <SelectItem
-                                                key={shift.id}
-                                                value={String(shift.id)}
-                                            >
-                                                {`${shift.name} (${formatTimeTo12Hour(shift.start_time)} - ${formatTimeTo12Hour(shift.end_time)})`}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                    options={shifts.map((shift) => ({
+                                        value: String(shift.id),
+                                        label: `${shift.name} (${formatTimeTo12Hour(shift.start_time)} - ${formatTimeTo12Hour(shift.end_time)})`,
+                                    }))}
+                                    placeholder={t(
+                                        'employees.form.selectShift',
+                                        'Select shift',
+                                    )}
+                                />
                                 <InputError message={editErrors.shift_id} />
                             </div>
                             <div className="grid gap-2">
@@ -1407,33 +1359,22 @@ export const CellAction: React.FC<CellActionProps> = ({
                                         'Payment currency',
                                     )}
                                 </Label>
-                                <Select
+                                <SearchableDropdown
                                     value={editSalaryCurrency}
                                     onValueChange={(value) =>
                                         setEditSalaryCurrency(
                                             value as typeof editSalaryCurrency,
                                         )
                                     }
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue
-                                            placeholder={t(
-                                                'employees.form.selectCurrency',
-                                                'Select currency',
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {CURRENCIES.map((currency) => (
-                                            <SelectItem
-                                                key={currency}
-                                                value={currency}
-                                            >
-                                                {currency}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                    options={CURRENCIES.map((currency) => ({
+                                        value: currency,
+                                        label: currency,
+                                    }))}
+                                    placeholder={t(
+                                        'employees.form.selectCurrency',
+                                        'Select currency',
+                                    )}
+                                />
                                 <InputError
                                     message={editErrors.salary_currency}
                                 />
@@ -1442,29 +1383,20 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <Label>
                                     {t('employees.table.status', 'Status')}
                                 </Label>
-                                <Select
+                                <SearchableDropdown
                                     value={editStatus}
                                     onValueChange={setEditStatus}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue
-                                            placeholder={t(
-                                                'employees.form.selectStatus',
-                                                'Select status',
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {EMPLOYEE_STATUSES.map((status) => (
-                                            <SelectItem
-                                                key={status}
-                                                value={status}
-                                            >
-                                                {getStatusLabel(status)}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                    options={EMPLOYEE_STATUSES.map(
+                                        (status) => ({
+                                            value: status,
+                                            label: getStatusLabel(status),
+                                        }),
+                                    )}
+                                    placeholder={t(
+                                        'employees.form.selectStatus',
+                                        'Select status',
+                                    )}
+                                />
                                 <InputError message={editErrors.status} />
                             </div>
                             <div className="grid gap-2 sm:col-span-2">

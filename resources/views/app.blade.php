@@ -14,7 +14,7 @@
                 const appearance = '{{ $appearance ?? "system" }}';
                 window.__APP_BRANDING__ = @json($branding);
 
-                const normalizeHex = (value, fallback = '#0B5AA5') => {
+                const normalizeHex = (value, fallback = '#002452') => {
                     if (typeof value !== 'string') {
                         return fallback;
                     }
@@ -68,13 +68,13 @@
                     return brightness >= 160 ? '222 47% 11%' : '0 0% 100%';
                 };
 
-                const primaryColor = normalizeHex(window.__APP_BRANDING__?.primaryColor, '#0B5AA5');
+                const primaryColor = normalizeHex(window.__APP_BRANDING__?.primaryColor, '#002452');
                 const primaryChannels = hexToHslChannels(primaryColor);
                 const primaryForegroundChannels = getForegroundChannels(primaryColor);
                 document.documentElement.style.setProperty('--brand-primary', primaryColor);
                 document.documentElement.style.setProperty(
                     '--brand-secondary',
-                    normalizeHex(window.__APP_BRANDING__?.secondaryColor, '#F2A20C'),
+                    normalizeHex(window.__APP_BRANDING__?.secondaryColor, '#D3A450'),
                 );
                 document.documentElement.style.setProperty(
                     '--brand-tertiary',

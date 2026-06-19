@@ -15,7 +15,7 @@ export const description = 'Paktia Market Bar Chart';
 const chartConfig = {
     netProfit: {
         label: 'Net Profit',
-        color: '#0B5AA5',
+        color: '#002452',
     },
 } satisfies ChartConfig;
 

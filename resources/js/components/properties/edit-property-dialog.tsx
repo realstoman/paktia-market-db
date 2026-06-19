@@ -1,4 +1,5 @@
 import InputError from '@/components/input-error';
+import { PropertyImageUpload } from '@/components/properties/property-image-upload';
 import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { Button } from '@/components/ui/button';
@@ -229,21 +230,6 @@ export function EditPropertyDialog({
                             emptyText={t('propertyWorkspace.noOptions')}
                         />
                     </Field>
-                    <Field
-                        label={t('propertyWorkspace.fields.photo')}
-                        error={form.errors.image}
-                    >
-                        <Input
-                            type="file"
-                            accept="image/*"
-                            onChange={(event) =>
-                                form.setData(
-                                    'image',
-                                    event.target.files?.[0] ?? null,
-                                )
-                            }
-                        />
-                    </Field>
                     <Field label={t('propertyWorkspace.fields.country')}>
                         <SearchableDropdown
                             value={form.data.country_id}
@@ -375,6 +361,13 @@ export function EditPropertyDialog({
                             />
                         </>
                     )}
+                    <PropertyImageUpload
+                        value={form.data.image}
+                        onChange={(file) => form.setData('image', file)}
+                        error={form.errors.image}
+                        existingImageUrl={property.image_url}
+                        className="sm:col-span-2 lg:col-span-3"
+                    />
                     <div className="flex justify-end gap-2 border-t pt-4 sm:col-span-2 lg:col-span-3">
                         <Button
                             type="button"

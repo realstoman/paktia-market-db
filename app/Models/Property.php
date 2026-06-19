@@ -36,6 +36,7 @@ class Property extends Model
         'amenities',
         'notes',
         'is_active',
+        'display_order',
     ];
 
     protected $appends = ['image_url'];
@@ -48,10 +49,20 @@ class Property extends Model
             'address_translations' => 'array',
             'description_translations' => 'array',
             'is_active' => 'boolean',
+            'display_order' => 'integer',
             'distance_from_city_km' => 'decimal:2',
             'land_area_sqm' => 'decimal:2',
             'building_area_sqm' => 'decimal:2',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (Property $property): void {
+            if (($property->display_order ?? 0) <= 0) {
+                $property->display_order = ((int) static::query()->max('display_order')) + 1;
+            }
+        });
     }
 
     public function getImageUrlAttribute(): ?string
@@ -134,5 +145,10 @@ class Property extends Model
         return $this->belongsToMany(Shareholder::class, 'property_shareholdings')
             ->withPivot(['percentage', 'capital_contribution', 'currency_id', 'effective_from', 'effective_to', 'notes'])
             ->withTimestamps();
+    }
+
+    public function leases()
+    {
+        return $this->hasMany(Lease::class);
     }
 }

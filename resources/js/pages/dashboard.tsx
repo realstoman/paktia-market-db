@@ -81,11 +81,11 @@ interface DashboardData {
 }
 
 const COLORS = {
-    teal: '#123f4a',
-    green: '#2da56d',
+    teal: '#002452',
+    green: '#d3a450',
     coral: '#ef786f',
     blue: '#5d91c9',
-    mist: '#e8eff0',
+    mist: '#eef2f7',
 };
 
 function StatCard({
@@ -100,14 +100,14 @@ function StatCard({
     accent?: 'teal' | 'green' | 'coral' | 'blue';
 }) {
     const tones = {
-        teal: 'bg-[#e8f0f1] text-[#123f4a]',
-        green: 'bg-emerald-50 text-emerald-600',
+        teal: 'bg-[#eef2f7] text-[#002452]',
+        green: 'bg-[#f8f1e5] text-[#a4772d]',
         coral: 'bg-rose-50 text-[#ef786f]',
         blue: 'bg-blue-50 text-[#5d91c9]',
     };
 
     return (
-        <div className="flex items-center gap-4 rounded-2xl border border-[#dfe7e9] bg-white p-4 shadow-[0_8px_24px_rgba(18,63,74,0.04)] dark:border-neutral-800 dark:bg-neutral-900">
+        <div className="flex items-center gap-4 rounded-2xl border border-[#dfe7e9] bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
             <div
                 className={`flex size-11 shrink-0 items-center justify-center rounded-xl ${tones[accent]}`}
             >
@@ -141,11 +141,11 @@ function MoneyCard({
             <div className="flex items-center justify-between">
                 <div>
                     <p className="text-xs text-slate-500">{title}</p>
-                    <p className="mt-1 text-2xl font-bold text-[#123f4a] dark:text-white">
+                    <p className="mt-1 text-2xl font-bold text-[#002452] dark:text-white">
                         {formatPrice(collected)} {currency}
                     </p>
                 </div>
-                <div className="flex size-11 items-center justify-center rounded-xl bg-[#e8f0f1] text-[#123f4a]">
+                <div className="flex size-11 items-center justify-center rounded-xl bg-[#eef2f7] text-[#002452]">
                     <Banknote className="size-5" />
                 </div>
             </div>
@@ -172,18 +172,19 @@ function EmptyChart({ label }: { label: string }) {
 export default function Dashboard({ data }: { data: DashboardData }) {
     const { t } = useLocalization();
     const [activeTab, setActiveTab] = useState<string>('overall');
-    const selectedProject = data.portfolio.projects.find(
+    const projects = data.portfolio.projects;
+    const selectedProject = projects.find(
         (project) => String(project.id) === activeTab,
     );
 
     const overallProjectChart = useMemo(
         () =>
-            data.portfolio.projects.map((project) => ({
+            projects.map((project) => ({
                 name: project.name,
                 expenses: project.expensesAfn,
                 cash: project.cashPositionAfn,
             })),
-        [data.portfolio.projects],
+        [projects],
     );
     const overallPie = [
         {
@@ -192,7 +193,10 @@ export default function Dashboard({ data }: { data: DashboardData }) {
             color: COLORS.green,
         },
         {
-            name: t('propertyDashboard.inactiveProjects', 'Inactive properties'),
+            name: t(
+                'propertyDashboard.inactiveProjects',
+                'Inactive properties',
+            ),
             value: Math.max(
                 0,
                 data.portfolio.totalProjects - data.portfolio.activeProjects,
@@ -241,16 +245,16 @@ export default function Dashboard({ data }: { data: DashboardData }) {
         <AppLayout>
             <Head title={t('propertyDashboard.title', 'Property dashboard')} />
 
-            <div className="mx-auto w-full max-w-[1680px] rounded-[26px] border border-[#dfe7e9] bg-[#f8fbfb] p-4 shadow-[0_18px_50px_rgba(18,63,74,0.06)] sm:p-6 dark:border-neutral-800 dark:bg-neutral-950">
+            <div className="mx-auto w-full max-w-[1680px] rounded-[26px] border border-[#dfe7e9] bg-[#f8fbfb] p-4 sm:p-6 dark:border-neutral-800 dark:bg-neutral-950">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                     <div>
-                        <p className="text-xs font-semibold tracking-[0.2em] text-[#2da56d] uppercase">
+                        <p className="text-xs font-semibold tracking-[0.2em] text-[#d3a450] uppercase">
                             {t(
                                 'propertyDashboard.eyebrow',
                                 'Portfolio reporting',
                             )}
                         </p>
-                        <h1 className="mt-2 text-2xl font-bold text-[#123f4a] dark:text-white">
+                        <h1 className="mt-2 text-2xl font-bold text-[#002452] dark:text-white">
                             {t(
                                 'propertyDashboard.title',
                                 'Markets and properties',
@@ -263,30 +267,30 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                             )}
                         </p>
                     </div>
-                    <button className="h-11 rounded-xl bg-[#123f4a] px-5 text-sm font-semibold text-white shadow-sm hover:bg-[#0d343d]">
+                    <button className="h-11 rounded-xl bg-[#002452] px-5 text-sm font-semibold text-white hover:bg-[#001a3d]">
                         + {t('propertyDashboard.newRecord', 'New record')}
                     </button>
                 </div>
 
-                <div className="mt-6 flex gap-2 overflow-x-auto rounded-2xl bg-[#e8eff0] p-1.5">
+                <div className="mt-6 flex gap-2 overflow-x-auto rounded-2xl bg-[#eef2f7] p-1.5">
                     <button
                         onClick={() => setActiveTab('overall')}
                         className={`shrink-0 rounded-xl px-5 py-2.5 text-sm font-semibold transition ${
                             activeTab === 'overall'
-                                ? 'bg-white text-[#123f4a] shadow-sm dark:bg-neutral-900 dark:text-white'
-                                : 'text-slate-500 hover:text-[#123f4a]'
+                                ? 'bg-white text-[#002452] dark:bg-neutral-900 dark:text-white'
+                                : 'text-slate-500 hover:text-[#002452]'
                         }`}
                     >
                         {t('propertyDashboard.overall', 'Overall statistics')}
                     </button>
-                    {data.portfolio.projects.map((project) => (
+                    {projects.map((project) => (
                         <button
                             key={project.id}
                             onClick={() => setActiveTab(String(project.id))}
                             className={`shrink-0 rounded-xl px-5 py-2.5 text-sm font-semibold transition ${
                                 activeTab === String(project.id)
-                                    ? 'bg-white text-[#123f4a] shadow-sm dark:bg-neutral-900 dark:text-white'
-                                    : 'text-slate-500 hover:text-[#123f4a]'
+                                    ? 'bg-white text-[#002452] dark:bg-neutral-900 dark:text-white'
+                                    : 'text-slate-500 hover:text-[#002452]'
                             }`}
                         >
                             {project.name}
@@ -352,7 +356,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                         <section className="grid gap-5 xl:grid-cols-[1.45fr_0.75fr]">
                             <div className="rounded-2xl border border-[#dfe7e9] bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
                                 <div className="mb-5">
-                                    <h2 className="font-bold text-[#123f4a] dark:text-white">
+                                    <h2 className="font-bold text-[#002452] dark:text-white">
                                         {t(
                                             'propertyDashboard.projectPerformance',
                                             'Property performance',
@@ -377,7 +381,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                             >
                                                 <CartesianGrid
                                                     vertical={false}
-                                                    stroke="#e8eff0"
+                                                    stroke="#eef2f7"
                                                 />
                                                 <XAxis
                                                     dataKey="name"
@@ -439,7 +443,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                             </div>
 
                             <div className="rounded-2xl border border-[#dfe7e9] bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
-                                <h2 className="font-bold text-[#123f4a] dark:text-white">
+                                <h2 className="font-bold text-[#002452] dark:text-white">
                                     {t(
                                         'propertyDashboard.portfolioStatus',
                                         'Portfolio status',
@@ -494,7 +498,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                         </section>
 
                         <section className="rounded-2xl border border-[#dfe7e9] bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
-                            <h2 className="font-bold text-[#123f4a] dark:text-white">
+                            <h2 className="font-bold text-[#002452] dark:text-white">
                                 {t('propertyDashboard.projects', 'Properties')}
                             </h2>
                             <div className="mt-4 overflow-x-auto">
@@ -534,55 +538,52 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {data.portfolio.projects.map(
-                                            (project) => (
-                                                <tr
-                                                    key={project.id}
-                                                    className="border-b border-[#f0f3f4] last:border-0 dark:border-neutral-800"
-                                                >
-                                                    <td className="px-3 py-4">
-                                                        <strong>
-                                                            {project.name}
-                                                        </strong>
-                                                        <p className="mt-1 text-xs text-slate-400">
-                                                            {project.address ||
-                                                                '—'}
-                                                        </p>
-                                                    </td>
-                                                    <td className="px-3 py-4">
-                                                        {formatNumber(
-                                                            project.shops,
-                                                        )}
-                                                    </td>
-                                                    <td className="px-3 py-4">
-                                                        {formatNumber(
-                                                            project.registeredTenants,
-                                                        )}
-                                                    </td>
-                                                    <td className="px-3 py-4">
-                                                        {formatPrice(
-                                                            project.expensesAfn,
-                                                        )}{' '}
-                                                        ؋
-                                                    </td>
-                                                    <td className="px-3 py-4">
-                                                        <span
-                                                            className={`rounded-full px-3 py-1 text-xs font-semibold ${project.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'}`}
-                                                        >
-                                                            {project.isActive
-                                                                ? t(
-                                                                      'propertyDashboard.active',
-                                                                      'Active',
-                                                                  )
-                                                                : t(
-                                                                      'propertyDashboard.inactive',
-                                                                      'Inactive',
-                                                                  )}
-                                                        </span>
-                                                    </td>
-                                                </tr>
-                                            ),
-                                        )}
+                                        {projects.map((project) => (
+                                            <tr
+                                                key={project.id}
+                                                className="border-b border-[#f0f3f4] last:border-0 dark:border-neutral-800"
+                                            >
+                                                <td className="px-3 py-4">
+                                                    <strong>
+                                                        {project.name}
+                                                    </strong>
+                                                    <p className="mt-1 text-xs text-slate-400">
+                                                        {project.address || '—'}
+                                                    </p>
+                                                </td>
+                                                <td className="px-3 py-4">
+                                                    {formatNumber(
+                                                        project.shops,
+                                                    )}
+                                                </td>
+                                                <td className="px-3 py-4">
+                                                    {formatNumber(
+                                                        project.registeredTenants,
+                                                    )}
+                                                </td>
+                                                <td className="px-3 py-4">
+                                                    {formatPrice(
+                                                        project.expensesAfn,
+                                                    )}{' '}
+                                                    ؋
+                                                </td>
+                                                <td className="px-3 py-4">
+                                                    <span
+                                                        className={`rounded-full px-3 py-1 text-xs font-semibold ${project.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'}`}
+                                                    >
+                                                        {project.isActive
+                                                            ? t(
+                                                                  'propertyDashboard.active',
+                                                                  'Active',
+                                                              )
+                                                            : t(
+                                                                  'propertyDashboard.inactive',
+                                                                  'Inactive',
+                                                              )}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))}
                                     </tbody>
                                 </table>
                             </div>
@@ -680,7 +681,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
 
                         <section className="grid gap-5 xl:grid-cols-[1.3fr_0.7fr]">
                             <div className="rounded-2xl border border-[#dfe7e9] bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
-                                <h2 className="font-bold text-[#123f4a] dark:text-white">
+                                <h2 className="font-bold text-[#002452] dark:text-white">
                                     {t(
                                         'propertyDashboard.rentCollection',
                                         'Rent collection',
@@ -701,7 +702,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                             <BarChart data={projectRentChart}>
                                                 <CartesianGrid
                                                     vertical={false}
-                                                    stroke="#e8eff0"
+                                                    stroke="#eef2f7"
                                                 />
                                                 <XAxis
                                                     dataKey="name"
@@ -753,7 +754,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                             </div>
 
                             <div className="rounded-2xl border border-[#dfe7e9] bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
-                                <h2 className="font-bold text-[#123f4a] dark:text-white">
+                                <h2 className="font-bold text-[#002452] dark:text-white">
                                     {t(
                                         'propertyDashboard.shopOccupancy',
                                         'Shop occupancy',
@@ -814,7 +815,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                         <section className="rounded-2xl border border-[#dfe7e9] bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <h2 className="font-bold text-[#123f4a] dark:text-white">
+                                    <h2 className="font-bold text-[#002452] dark:text-white">
                                         {t(
                                             'propertyDashboard.marketExpenses',
                                             'Market expenses',
@@ -827,7 +828,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                         )}
                                     </p>
                                 </div>
-                                <ReceiptText className="size-5 text-[#123f4a]" />
+                                <ReceiptText className="size-5 text-[#002452]" />
                             </div>
                             <div className="mt-4 overflow-x-auto">
                                 <table className="w-full min-w-[680px] text-sm">
@@ -881,7 +882,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                                             ؋
                                                         </td>
                                                         <td className="px-3 py-4">
-                                                            <span className="rounded-full bg-[#e8f0f1] px-3 py-1 text-xs font-semibold text-[#123f4a]">
+                                                            <span className="rounded-full bg-[#eef2f7] px-3 py-1 text-xs font-semibold text-[#002452]">
                                                                 {expense.status}
                                                             </span>
                                                         </td>

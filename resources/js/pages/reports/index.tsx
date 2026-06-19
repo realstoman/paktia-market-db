@@ -37,7 +37,7 @@ import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
 import { cn } from '@/lib/utils';
-import { Property, BreadcrumbItem } from '@/types';
+import { BreadcrumbItem, Property } from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
 import { Head, router } from '@inertiajs/react';
 import {
@@ -117,7 +117,7 @@ const SAVED_PRESETS_KEY = 'paktia-market-reports-saved-presets';
 const CHART_COLORS = [
     '#123f46',
     '#1d6f7a',
-    '#f2a20c',
+    '#d3a450',
     '#d98900',
     '#6b8790',
     '#91b7bf',
@@ -752,7 +752,7 @@ export default function ReportsPage({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={t('reportPage.title', 'Reports')} />
             <div className={cn('space-y-5 py-2', isRtl && 'text-right')}>
-                <section className="overflow-hidden rounded-[2rem] border border-[#d8e5e8] bg-[radial-gradient(circle_at_top_right,rgba(242,162,12,0.20),transparent_32%),linear-gradient(135deg,#e8f0f1_0%,#f8fbfb_52%,#fff7e8_100%)] p-5 shadow-sm shadow-slate-950/[0.03] dark:border-neutral-800 dark:bg-neutral-950 dark:bg-none">
+                <section className="overflow-hidden rounded-[2rem] border border-[#d8e5e8] bg-[radial-gradient(circle_at_top_right,rgba(211,164,80,0.20),transparent_32%),linear-gradient(135deg,#eef2f7_0%,#f8fbfb_52%,#fff7e8_100%)] p-5 shadow-sm shadow-slate-950/[0.03] dark:border-neutral-800 dark:bg-neutral-950 dark:bg-none">
                     <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
                         <div className="space-y-4">
                             <div className="inline-flex items-center gap-2 rounded-full border border-[#cfe2dc] bg-white/80 px-3 py-1 text-sm text-[#20464b]">

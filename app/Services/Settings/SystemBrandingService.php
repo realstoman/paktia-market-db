@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Storage;
 class SystemBrandingService
 {
     public const CACHE_KEY = 'system:branding:v1';
+
     public const CACHE_TTL_SECONDS = 86400; // 24h, also busted on update().
 
     /**
@@ -34,8 +35,8 @@ class SystemBrandingService
             return [
                 'name' => $this->defaults()['market_name'],
                 'shortName' => $this->defaults()['market_short_name'],
-                'logoUrl' => '/brand/logo.png',
-                'logoFullUrl' => '/brand/logo-full.svg',
+                'logoUrl' => '/brand/pg-logo-portrait.png',
+                'logoFullUrl' => '/brand/pg-logo-landscape.png',
                 'logoPath' => '',
                 'logoFullPath' => '',
                 'primaryColor' => $this->defaults()['primary_color'],
@@ -53,8 +54,8 @@ class SystemBrandingService
         return [
             'name' => $branding['market_name'],
             'shortName' => $branding['market_short_name'],
-            'logoUrl' => $this->resolveLogoUrl($branding['logo_path'], '/brand/logo.png'),
-            'logoFullUrl' => $this->resolveLogoUrl($branding['logo_full_path'], '/brand/logo-full.svg'),
+            'logoUrl' => $this->resolveLogoUrl($branding['logo_path'], '/brand/pg-logo-portrait.png'),
+            'logoFullUrl' => $this->resolveLogoUrl($branding['logo_full_path'], '/brand/pg-logo-landscape.png'),
             'logoPath' => $branding['logo_path'],
             'logoFullPath' => $branding['logo_full_path'],
             'primaryColor' => $branding['primary_color'],
@@ -64,7 +65,7 @@ class SystemBrandingService
     }
 
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public function update(array $data): void
     {
@@ -108,8 +109,8 @@ class SystemBrandingService
             'market_short_name' => 'Paktia Market',
             'logo_path' => '',
             'logo_full_path' => '',
-            'primary_color' => '#0B5AA5',
-            'secondary_color' => '#F2A20C',
+            'primary_color' => '#002452',
+            'secondary_color' => '#D3A450',
             'tertiary_color' => '#F8FAFD',
         ];
     }
@@ -131,7 +132,7 @@ class SystemBrandingService
             return $normalized;
         }
 
-        return '#0B5AA5';
+        return '#002452';
     }
 
     private function storeLogo(

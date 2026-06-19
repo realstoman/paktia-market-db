@@ -28,14 +28,14 @@ const runtimeBranding =
 export const brand = {
     name: runtimeBranding?.name ?? 'Paktia Market ERP',
     shortName: runtimeBranding?.shortName ?? 'Paktia Market',
-    logo: runtimeBranding?.logoUrl ?? '/brand/logo.png',
-    logoFull: runtimeBranding?.logoFullUrl ?? '/brand/logo-full.svg',
-    primaryColor: runtimeBranding?.primaryColor ?? '#0B5AA5',
-    secondaryColor: runtimeBranding?.secondaryColor ?? '#F2A20C',
+    logo: runtimeBranding?.logoUrl ?? '/brand/pg-logo-portrait.png',
+    logoFull: runtimeBranding?.logoFullUrl ?? '/brand/pg-logo-landscape.png',
+    primaryColor: runtimeBranding?.primaryColor ?? '#002452',
+    secondaryColor: runtimeBranding?.secondaryColor ?? '#D3A450',
     tertiaryColor: runtimeBranding?.tertiaryColor ?? '#F8FAFD',
 };
 
-function normalizeHexColor(value?: string, fallback = '#0B5AA5'): string {
+function normalizeHexColor(value?: string, fallback = '#002452'): string {
     if (!value) {
         return fallback;
     }

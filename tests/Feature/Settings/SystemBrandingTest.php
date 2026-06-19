@@ -1,7 +1,7 @@
 <?php
 
-use App\Services\Settings\SystemBrandingService;
 use App\Models\User;
+use App\Services\Settings\SystemBrandingService;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Role;
 
@@ -20,6 +20,9 @@ test('super admin can view system branding settings', function () {
         ->assertInertia(fn (Assert $page) => $page
             ->component('settings/system-branding')
             ->where('branding.name', 'Paktia Market ERP')
+            ->where('branding.logoUrl', '/brand/pg-logo-portrait.png')
+            ->where('branding.primaryColor', '#002452')
+            ->where('branding.secondaryColor', '#D3A450')
         );
 });
 

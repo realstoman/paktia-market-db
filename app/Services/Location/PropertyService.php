@@ -4,6 +4,7 @@ namespace App\Services\Location;
 
 use App\Models\Property;
 use App\Services\Caching\CatalogCacheService;
+use Illuminate\Support\Facades\DB;
 
 class PropertyService
 {
@@ -13,7 +14,13 @@ class PropertyService
 
     public function create(array $data): Property
     {
-        $property = Property::create($data);
+        $property = DB::transaction(function () use ($data): Property {
+            $data['display_order'] = ((int) Property::query()
+                ->lockForUpdate()
+                ->max('display_order')) + 1;
+
+            return Property::create($data);
+        });
         $this->catalogCacheService->invalidateProperty($property);
 
         return $property;
@@ -41,11 +48,60 @@ class PropertyService
         $this->catalogCacheService->invalidateReferenceData();
     }
 
+    public function reorder(Property $property, string $direction): bool
+    {
+        $moved = DB::transaction(function () use ($property, $direction): bool {
+            $properties = Property::query()
+                ->orderBy('display_order')
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get(['id', 'display_order'])
+                ->values();
+            $currentIndex = $properties->search(
+                fn (Property $item) => $item->id === $property->id,
+            );
+
+            if ($currentIndex === false) {
+                return false;
+            }
+
+            $targetIndex = $direction === 'up'
+                ? $currentIndex - 1
+                : $currentIndex + 1;
+
+            if (! $properties->has($targetIndex)) {
+                return false;
+            }
+
+            $current = $properties->get($currentIndex);
+            $target = $properties->get($targetIndex);
+            $properties->put($currentIndex, $target);
+            $properties->put($targetIndex, $current);
+
+            $properties->values()->each(function (Property $item, int $index): void {
+                $nextOrder = $index + 1;
+
+                if ($item->display_order !== $nextOrder) {
+                    $item->forceFill(['display_order' => $nextOrder])->saveQuietly();
+                }
+            });
+
+            return true;
+        });
+
+        if ($moved) {
+            $this->catalogCacheService->invalidateReferenceData();
+        }
+
+        return $moved;
+    }
+
     public function getIndexData(): array
     {
         $properties = Property::with(['country', 'province', 'parentProperty:id,name,name_translations'])
             ->withCount(['floors', 'units'])
-            ->latest()
+            ->orderBy('display_order')
+            ->orderBy('id')
             ->get();
 
         $properties->transform(function (Property $property) {
@@ -66,6 +122,7 @@ class PropertyService
                 'floors_count' => $property->floors_count,
                 'units_count' => $property->units_count,
                 'is_active' => $property->is_active,
+                'display_order' => $property->display_order,
                 'created_at' => $property->created_at,
                 'updated_at' => $property->updated_at,
                 'country' => $property->country?->name,

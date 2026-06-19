@@ -33,6 +33,7 @@ import {
     ChartLine,
     ChevronDown,
     ClipboardList,
+    ContactRound,
     Globe2,
     Handshake,
     LayoutGrid,
@@ -70,10 +71,17 @@ const primaryNavConfig: HeaderNavConfig[] = [
         can: 'property.view',
     },
     {
+        titleKey: 'navigation.tenants',
+        fallbackTitle: 'Tenants & Businesses',
+        href: '/tenants',
+        icon: Handshake,
+        can: 'tenants.view',
+    },
+    {
         titleKey: 'navigation.shareholders',
         fallbackTitle: 'Shareholders',
         href: '/shareholders',
-        icon: Handshake,
+        icon: ContactRound,
         can: 'shareholders.view',
     },
     {
@@ -108,13 +116,6 @@ const toolNavConfig: HeaderNavConfig[] = [
         can: 'employees.view',
     },
     {
-        titleKey: 'navigation.toolShareholders',
-        fallbackTitle: 'Shareholders',
-        href: '/shareholders',
-        icon: Handshake,
-        can: 'shareholders.view',
-    },
-    {
         titleKey: 'navigation.users',
         fallbackTitle: 'Users',
         href: '/users',
@@ -129,13 +130,6 @@ const toolNavConfig: HeaderNavConfig[] = [
         can: 'role.view',
     },
     {
-        titleKey: 'navigation.reports',
-        fallbackTitle: 'Reports',
-        href: '/reports',
-        icon: ChartLine,
-        can: 'reports.view',
-    },
-    {
         titleKey: 'navigation.toolCountries',
         fallbackTitle: 'Countries',
         href: '/countries',
@@ -148,13 +142,6 @@ const toolNavConfig: HeaderNavConfig[] = [
         href: '/provinces',
         icon: MapPinned,
         superAdminOnly: true,
-    },
-    {
-        titleKey: 'navigation.toolProperties',
-        fallbackTitle: 'Properties',
-        href: '/properties',
-        icon: Building2,
-        can: 'property.view',
     },
     {
         titleKey: 'navigation.runtimeHealth',
@@ -180,7 +167,7 @@ export function AppHeader({
     const page = usePage<SharedData>();
     const { auth } = page.props;
     const { can, canAny, isSuperAdmin } = useAuthorization();
-    const { isRtl, t } = useLocalization();
+    const { isRtl, locale, t } = useLocalization();
 
     const canShowItem = (item: HeaderNavConfig) => {
         if (item.superAdminOnly && !isSuperAdmin) {
@@ -199,19 +186,26 @@ export function AppHeader({
     };
 
     const primaryNavigation = primaryNavConfig.filter(canShowItem);
-    const toolsNavigation = toolNavConfig.filter(canShowItem);
+    const primaryRoutes = new Set(
+        primaryNavigation.map((item) => resolveUrl(item.href)),
+    );
+    const toolsNavigation = toolNavConfig
+        .filter(canShowItem)
+        .filter((item) => !primaryRoutes.has(resolveUrl(item.href)));
     const isActiveItem = (item: HeaderNavConfig) => {
         const href = resolveUrl(item.href);
 
         return page.url === href || page.url.startsWith(`${href}/`);
     };
     const isToolsActive = toolsNavigation.some(isActiveItem);
-    const navItemBaseClass =
-        'flex h-10 items-center gap-1.5 rounded-xl px-3 py-0 text-base font-medium transition-colors outline-none focus:outline-none focus-visible:border-transparent focus-visible:ring-0 focus-visible:ring-offset-0';
+    const navItemBaseClass = [
+        'flex h-10 shrink-0 items-center gap-1.5 rounded-xl px-3 py-0 font-medium transition-colors outline-none focus:outline-none focus-visible:border-transparent focus-visible:ring-0 focus-visible:ring-offset-0',
+        locale === 'en' ? 'text-sm' : 'text-base',
+    ].join(' ');
     const navItemStateClass = (active: boolean) =>
         active
-            ? 'bg-[#e8f1f2] text-[#0d2f38]'
-            : 'text-slate-500 hover:bg-slate-100 hover:text-[#123f4a]';
+            ? 'bg-brand-primary/8 text-brand-primary'
+            : 'text-slate-500 hover:bg-brand-primary/5 hover:text-brand-primary';
 
     const navLink = (
         item: HeaderNavConfig,
@@ -227,7 +221,9 @@ export function AppHeader({
                 key={`${keyPrefix}:${href}`}
                 href={item.href}
                 className={`${navItemBaseClass} ${navItemStateClass(active)} ${
-                    mobile ? 'w-full justify-start' : 'whitespace-nowrap'
+                    mobile
+                        ? 'w-full justify-start'
+                        : 'justify-center whitespace-nowrap'
                 }`}
             >
                 <Icon className="size-4" />
@@ -267,19 +263,19 @@ export function AppHeader({
 
     return (
         <header className="sticky top-0 z-30 border-b border-[#dfe7e9] bg-[#f8fbfb]/95 backdrop-blur-xl dark:border-neutral-800 dark:bg-neutral-950/95">
-            <div className="mx-auto flex h-20 w-full items-center gap-4 px-4 lg:px-7">
+            <div className="mx-auto flex h-20 w-full flex-nowrap items-center gap-2 px-4 lg:px-7">
                 <Link
                     href={dashboard()}
-                    className="flex w-32 shrink-0 items-center justify-center"
+                    className="flex h-full w-20 shrink-0 items-center justify-center self-center"
                 >
                     <img
-                        src="/brand/logo.png"
+                        src="/brand/pg-logo-portrait.png"
                         alt="Paktiawal Group logo"
                         className="h-16 w-auto object-contain"
                     />
                 </Link>
 
-                <nav className="hidden min-w-0 flex-1 items-center gap-0.5 overflow-x-auto lg:flex">
+                <nav className="hidden h-full min-w-0 flex-1 flex-nowrap items-center justify-start gap-0.5 overflow-x-auto py-0 lg:flex">
                     {navLinks()}
                     {toolsNavigation.length > 0 ? (
                         <DropdownMenu>
@@ -314,7 +310,7 @@ export function AppHeader({
                     ) : null}
                 </nav>
 
-                <div className="ms-auto flex shrink-0 items-center gap-2">
+                <div className="ms-auto flex h-full shrink-0 flex-nowrap items-center gap-2 self-center">
                     <AppearanceToggleDropdown />
                     <LanguageDropdown className="hidden sm:block" />
                     {isSuperAdmin ? (
@@ -322,7 +318,7 @@ export function AppHeader({
                             asChild
                             variant="ghost"
                             size="icon"
-                            className="size-10 rounded-full border border-[#dfe7e9] bg-white text-slate-600 transition-colors hover:bg-slate-100 hover:text-[#123f4a] dark:border-neutral-800 dark:bg-neutral-900"
+                            className="size-10 rounded-full border border-[#dfe7e9] bg-white text-slate-600 transition-colors hover:bg-brand-primary/5 hover:text-brand-primary dark:border-neutral-800 dark:bg-neutral-900"
                         >
                             <Link
                                 href="/admin/activity-logs"
@@ -341,7 +337,7 @@ export function AppHeader({
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                className="relative size-10 rounded-full border border-[#dfe7e9] bg-white text-[#123f4a] shadow-sm shadow-slate-950/3 transition-all duration-300 hover:border-brand-primary/30 hover:bg-brand-primary/5 hover:text-brand-primary dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200"
+                                className="relative size-10 rounded-full border border-[#dfe7e9] bg-white text-brand-primary shadow-sm shadow-slate-950/3 transition-all duration-300 hover:border-brand-primary/30 hover:bg-brand-primary/5 hover:text-brand-primary dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200"
                             >
                                 <UserInfo user={auth.user} showName={false} />
                             </Button>
@@ -374,7 +370,7 @@ export function AppHeader({
                                 </SheetTitle>
                             </SheetHeader>
                             <img
-                                src="/brand/logo.png"
+                                src="/brand/pg-logo-portrait.png"
                                 alt="Paktiawal Group logo"
                                 className="mx-auto h-20 w-auto"
                             />

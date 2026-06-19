@@ -5,7 +5,6 @@ import Heading from '@/components/shared/heading';
 import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { ExpenseVoucherPrintDialog } from '@/components/tables/expenses/expense-voucher-print-dialog';
-import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -32,22 +31,16 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
+import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
 import { useLocalization } from '@/lib/localization';
 import {
-    Property,
     Expense,
     ExpenseCategory,
     FinanceAccount,
+    Property,
     Vendor,
 } from '@/types';
 import { formatNumber } from '@/utils/format';
@@ -148,14 +141,11 @@ export function ExpenseClient({
         [properties],
     );
 
-    useAutoSelectSingleOption(
-        propertyOptions,
-        form.property_id,
-        (value) =>
-            setForm((current) => ({
-                ...current,
-                property_id: value,
-            })),
+    useAutoSelectSingleOption(propertyOptions, form.property_id, (value) =>
+        setForm((current) => ({
+            ...current,
+            property_id: value,
+        })),
     );
     const categoryOptions = React.useMemo(
         () =>
@@ -579,7 +569,9 @@ export function ExpenseClient({
 
                     <div className="grid gap-4 py-2 md:grid-cols-2">
                         <div className="grid gap-2">
-                            <Label>{t('financeExpenses.form.property', 'Property')}</Label>
+                            <Label>
+                                {t('financeExpenses.form.property', 'Property')}
+                            </Label>
                             <SearchableDropdown
                                 value={form.property_id}
                                 options={propertyOptions}
@@ -631,7 +623,9 @@ export function ExpenseClient({
                         </div>
 
                         <div className="grid gap-2">
-                            <Label>{t('financeExpenses.form.title', 'Title')}</Label>
+                            <Label>
+                                {t('financeExpenses.form.title', 'Title')}
+                            </Label>
                             <Input
                                 value={form.title}
                                 onChange={(event) =>
@@ -648,7 +642,9 @@ export function ExpenseClient({
                         </div>
 
                         <div className="grid gap-2">
-                            <Label>{t('financeExpenses.form.amount', 'Amount')}</Label>
+                            <Label>
+                                {t('financeExpenses.form.amount', 'Amount')}
+                            </Label>
                             <NumericInput
                                 min="0"
                                 value={form.amount}
@@ -672,7 +668,7 @@ export function ExpenseClient({
                                     'Payment Method',
                                 )}
                             </Label>
-                            <Select
+                            <SearchableDropdown
                                 value={form.payment_method}
                                 onValueChange={(value) =>
                                     setForm((current) => ({
@@ -680,29 +676,20 @@ export function ExpenseClient({
                                         payment_method: value,
                                     }))
                                 }
-                            >
-                                <SelectTrigger>
-                                    <SelectValue
-                                        placeholder={t(
-                                            'financeExpenses.form.selectPaymentMethod',
-                                            'Select payment method',
-                                        )}
-                                    />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {PAYMENT_METHOD_OPTIONS.map((option) => (
-                                        <SelectItem
-                                            key={option.value}
-                                            value={option.value}
-                                        >
-                                            {t(
-                                                `paymentMethods.${option.value}`,
-                                                option.label,
-                                            )}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                                options={PAYMENT_METHOD_OPTIONS.map(
+                                    (option) => ({
+                                        value: option.value,
+                                        label: t(
+                                            'paymentMethods.' + option.value,
+                                            option.label,
+                                        ),
+                                    }),
+                                )}
+                                placeholder={t(
+                                    'financeExpenses.form.selectPaymentMethod',
+                                    'Select payment method',
+                                )}
+                            />
                         </div>
 
                         <div className="grid gap-2">
@@ -824,7 +811,7 @@ export function ExpenseClient({
                                     'Approval Status',
                                 )}
                             </Label>
-                            <Select
+                            <SearchableDropdown
                                 value={form.approval_status}
                                 onValueChange={(value) =>
                                     setForm((current) => ({
@@ -836,29 +823,19 @@ export function ExpenseClient({
                                     editingExpense?.approval_status ===
                                     'approved'
                                 }
-                            >
-                                <SelectTrigger>
-                                    <SelectValue
-                                        placeholder={t(
-                                            'financeExpenses.form.selectApprovalStatus',
-                                            'Select approval status',
-                                        )}
-                                    />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {APPROVAL_OPTIONS.map((option) => (
-                                        <SelectItem
-                                            key={option.value}
-                                            value={option.value}
-                                        >
-                                            {t(
-                                                `financeExpenses.status.${option.value}`,
-                                                option.label,
-                                            )}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                                options={APPROVAL_OPTIONS.map((option) => ({
+                                    value: option.value,
+                                    label: t(
+                                        'financeExpenses.status.' +
+                                            option.value,
+                                        option.label,
+                                    ),
+                                }))}
+                                placeholder={t(
+                                    'financeExpenses.form.selectApprovalStatus',
+                                    'Select approval status',
+                                )}
+                            />
                         </div>
 
                         <div className="grid gap-2 md:col-span-2">
@@ -1038,7 +1015,8 @@ export function ExpenseClient({
                 property={
                     printExpense
                         ? (properties.find(
-                              (property) => property.id === printExpense.property_id,
+                              (property) =>
+                                  property.id === printExpense.property_id,
                           ) ?? null)
                         : null
                 }

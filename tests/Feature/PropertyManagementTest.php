@@ -7,6 +7,7 @@ use App\Models\Province;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Support\Facades\App;
+use Inertia\Testing\AssertableInertia as Assert;
 
 beforeEach(function () {
     $this->seed(RolePermissionSeeder::class);
@@ -26,6 +27,69 @@ function propertyLocation(): array
     return [$country, $province];
 }
 
+test('properties keep their saved order and new properties are appended', function () {
+    [$country, $province] = propertyLocation();
+
+    Property::query()->create([
+        'name' => 'Zahir Plaza',
+        'property_type' => 'market',
+        'usage_type' => 'commercial',
+        'country_id' => $country->id,
+        'province_id' => $province->id,
+    ]);
+
+    $this->post(route('properties.store'), [
+        'name' => 'Ahmad Market',
+        'property_type' => 'market',
+        'usage_type' => 'commercial',
+        'country_id' => $country->id,
+        'province_id' => $province->id,
+    ])->assertRedirect(route('properties.index'));
+
+    $this->get(route('properties.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('properties.0.name', 'Zahir Plaza')
+            ->where('properties.0.display_order', 1)
+            ->where('properties.1.name', 'Ahmad Market')
+            ->where('properties.1.display_order', 2));
+});
+
+test('property display order can be adjusted', function () {
+    [$country, $province] = propertyLocation();
+    $properties = collect(['First Market', 'Second Market', 'Third Market'])
+        ->map(fn (string $name) => Property::query()->create([
+            'name' => $name,
+            'property_type' => 'market',
+            'usage_type' => 'commercial',
+            'country_id' => $country->id,
+            'province_id' => $province->id,
+        ]));
+
+    $this->patch(route('properties.order.update', $properties[2]), [
+        'direction' => 'up',
+    ])->assertRedirect()
+        ->assertSessionHas('success', __('properties.actions.order_updated'));
+
+    expect(Property::query()
+        ->orderBy('display_order')
+        ->pluck('name')
+        ->all())->toBe(['First Market', 'Third Market', 'Second Market']);
+});
+
+test('success and error flashes are shared as global toast messages', function () {
+    $this->withSession([
+        'success' => 'Record saved successfully.',
+        'error' => 'The record could not be saved.',
+    ])->get(route('properties.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('flash.success.message', 'Record saved successfully.')
+            ->has('flash.success.id')
+            ->where('flash.error.message', 'The record could not be saved.')
+            ->has('flash.error.id'));
+});
+
 test('a market can be registered with its portfolio details', function () {
     [$country, $province] = propertyLocation();
 
@@ -40,7 +104,8 @@ test('a market can be registered with its portfolio details', function () {
         'building_area_sqm' => 1800,
         'declared_floors' => 4,
         'declared_units' => 120,
-    ])->assertRedirect(route('properties.index'));
+    ])->assertRedirect(route('properties.index'))
+        ->assertSessionHas('success', __('properties.actions.created'));
 
     $this->assertDatabaseHas('properties', [
         'name' => 'Central Market',

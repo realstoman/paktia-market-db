@@ -28,6 +28,7 @@ class RolePermissionSeeder extends Seeder
                 PermissionEnum::FINANCE_VIEW,
                 PermissionEnum::FINANCE_MANAGE,
                 PermissionEnum::SHAREHOLDERS_VIEW,
+                PermissionEnum::TENANTS_VIEW,
                 PermissionEnum::EXPENSES_VIEW,
                 PermissionEnum::EXPENSES_CREATE,
                 PermissionEnum::PAYROLL_VIEW,
@@ -56,6 +57,7 @@ class RolePermissionSeeder extends Seeder
                 PermissionEnum::EMPLOYEES_VIEW,
                 PermissionEnum::FINANCE_VIEW,
                 PermissionEnum::SHAREHOLDERS_VIEW,
+                PermissionEnum::TENANTS_VIEW,
                 PermissionEnum::REPORTS_VIEW,
             ],
         ];

@@ -49,8 +49,8 @@ const categoryConfig = {
     employees: {
         label: 'Employees',
         icon: BriefcaseBusiness,
-        accent: 'bg-[#e8f0f1] text-[#123f4a] ring-[#123f4a]/15 dark:bg-[#123f4a]/20 dark:text-sky-100',
-        dot: 'bg-[#123f4a]',
+        accent: 'bg-brand-primary/8 text-brand-primary ring-brand-primary/15 dark:bg-brand-primary/20 dark:text-sky-100',
+        dot: 'bg-brand-primary',
     },
     inventory: {
         label: 'Inventory',
@@ -243,28 +243,17 @@ export function HeaderNotifications() {
                 <Button
                     variant="ghost"
                     size="icon"
-                    className="relative size-10 rounded-full border border-[#dfe7e9] bg-white text-[#123f4a] shadow-sm shadow-slate-950/3 transition-all duration-300 hover:border-brand-primary/30 hover:bg-brand-primary/5 hover:text-brand-primary dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200"
+                    className="relative size-10 rounded-full border border-[#dfe7e9] bg-white text-brand-primary shadow-sm shadow-slate-950/3 transition-all duration-300 hover:border-brand-primary/30 hover:bg-brand-primary/5 hover:text-brand-primary dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200"
                 >
                     <Bell className="h-4.5 w-4.5" />
                     {unreadCount > 0 && (
-                        <>
-                            <span
-                                className={cn(
-                                    'absolute top-2 h-2.5 w-2.5 rounded-full bg-brand-secondary ring-2 ring-white dark:ring-neutral-900',
-                                    isRtl ? 'left-2' : 'right-2',
-                                )}
-                            />
-                            <span
-                                className={cn(
-                                    'absolute -top-1 inline-flex min-w-5 items-center justify-center rounded-full bg-brand-primary px-1.5 py-0.5 text-[10px] leading-none font-semibold text-white shadow-sm ring-2 ring-white dark:ring-neutral-950',
-                                    isRtl ? '-left-1' : '-right-1',
-                                )}
-                            >
-                                {unreadCount > 9
-                                    ? '9+'
-                                    : formatNumber(unreadCount)}
-                            </span>
-                        </>
+                        <span
+                            aria-hidden="true"
+                            className={cn(
+                                'absolute top-2 h-2.5 w-2.5 rounded-full bg-orange-500 ring-2 ring-white dark:ring-neutral-900',
+                                isRtl ? 'left-2' : 'right-2',
+                            )}
+                        />
                     )}
                     <span className="sr-only">
                         {t(
@@ -283,7 +272,7 @@ export function HeaderNotifications() {
                     isRtl ? 'text-right' : 'text-left',
                 )}
             >
-                <div className="border-b border-[#dfe7e9] bg-[radial-gradient(circle_at_top_right,rgba(242,162,12,0.18),transparent_34%),linear-gradient(135deg,rgba(11,90,165,0.12),rgba(248,250,253,0.92))] px-5 py-4 dark:border-neutral-800 dark:bg-[radial-gradient(circle_at_top_right,rgba(242,162,12,0.16),transparent_34%),linear-gradient(135deg,rgba(11,90,165,0.20),rgba(10,15,25,0.92))]">
+                <div className="border-b border-[#dfe7e9] bg-[radial-gradient(circle_at_top_right,rgba(211,164,80,0.18),transparent_34%),linear-gradient(135deg,rgba(0,36,82,0.12),rgba(248,250,253,0.92))] px-5 py-4 dark:border-neutral-800 dark:bg-[radial-gradient(circle_at_top_right,rgba(211,164,80,0.16),transparent_34%),linear-gradient(135deg,rgba(0,36,82,0.20),rgba(10,15,25,0.92))]">
                     <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1 space-y-2">
                             <div className="inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/80 px-3 py-1 text-[11px] font-semibold text-brand-primary shadow-sm shadow-slate-950/3 dark:border-white/10 dark:bg-white/10 dark:text-sky-100">
@@ -299,7 +288,7 @@ export function HeaderNotifications() {
                                     isRtl && 'justify-end',
                                 )}
                             >
-                                <h3 className="text-lg font-bold text-[#123f4a] dark:text-white">
+                                <h3 className="text-lg font-bold text-brand-primary dark:text-white">
                                     {t(
                                         'notifications.recentActivity',
                                         'Recent activity',
@@ -454,7 +443,7 @@ export function HeaderNotifications() {
                                 <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-primary text-white shadow-lg shadow-brand-primary/15">
                                     <Bell className="h-5 w-5" />
                                 </div>
-                                <p className="text-sm font-semibold text-[#123f4a] dark:text-white">
+                                <p className="text-sm font-semibold text-brand-primary dark:text-white">
                                     {t(
                                         'notifications.empty.title',
                                         'No notifications yet',
@@ -472,7 +461,7 @@ export function HeaderNotifications() {
                                 <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-primary text-white shadow-lg shadow-brand-primary/15">
                                     <Bell className="h-5 w-5" />
                                 </div>
-                                <p className="text-sm font-semibold text-[#123f4a] dark:text-white">
+                                <p className="text-sm font-semibold text-brand-primary dark:text-white">
                                     {t(
                                         'notifications.emptyCategory.title',
                                         'No items in this category',
@@ -559,7 +548,7 @@ export function HeaderNotifications() {
                                                                 'justify-end',
                                                         )}
                                                     >
-                                                        <p className="text-sm font-bold text-[#123f4a] dark:text-white">
+                                                        <p className="text-sm font-bold text-brand-primary dark:text-white">
                                                             {notification.title}
                                                         </p>
                                                         <Badge

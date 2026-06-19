@@ -28,4 +28,9 @@ class PropertyUnit extends Model
     {
         return $this->belongsTo(PropertyFloor::class, 'property_floor_id');
     }
+
+    public function leases()
+    {
+        return $this->hasMany(Lease::class);
+    }
 }

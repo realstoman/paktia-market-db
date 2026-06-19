@@ -23,13 +23,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
 import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
@@ -1597,29 +1590,18 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                         'Property',
                                     )}
                                 </Label>
-                                <Select
+                                <SearchableDropdown
                                     value={propertyId}
                                     onValueChange={setPropertyId}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue
-                                            placeholder={t(
-                                                'employees.form.selectProperty',
-                                                'Select property',
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {properties.map((property) => (
-                                            <SelectItem
-                                                key={property.id}
-                                                value={String(property.id)}
-                                            >
-                                                {property.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                    options={properties.map((property) => ({
+                                        value: String(property.id),
+                                        label: property.name,
+                                    }))}
+                                    placeholder={t(
+                                        'employees.form.selectProperty',
+                                        'Select property',
+                                    )}
+                                />
                                 <InputError
                                     message={createErrors.property_id}
                                 />
@@ -1631,29 +1613,18 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                         'Employment type',
                                     )}
                                 </Label>
-                                <Select
+                                <SearchableDropdown
                                     value={employmentTypeId}
                                     onValueChange={setEmploymentTypeId}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue
-                                            placeholder={t(
-                                                'employees.form.selectEmploymentType',
-                                                'Select employment type',
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {employmentTypes.map((type) => (
-                                            <SelectItem
-                                                key={type.id}
-                                                value={String(type.id)}
-                                            >
-                                                {type.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                    options={employmentTypes.map((type) => ({
+                                        value: String(type.id),
+                                        label: type.name,
+                                    }))}
+                                    placeholder={t(
+                                        'employees.form.selectEmploymentType',
+                                        'Select employment type',
+                                    )}
+                                />
                                 <InputError
                                     message={createErrors.employment_type_id}
                                 />
@@ -1695,29 +1666,18 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                 <Label>
                                     {t('employees.filters.shift', 'Shift')}
                                 </Label>
-                                <Select
+                                <SearchableDropdown
                                     value={shiftId}
                                     onValueChange={setShiftId}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue
-                                            placeholder={t(
-                                                'employees.form.selectShift',
-                                                'Select shift',
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {shifts.map((shift) => (
-                                            <SelectItem
-                                                key={shift.id}
-                                                value={String(shift.id)}
-                                            >
-                                                {`${shift.name} (${formatTimeTo12Hour(shift.start_time)} - ${formatTimeTo12Hour(shift.end_time)})`}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                    options={shifts.map((shift) => ({
+                                        value: String(shift.id),
+                                        label: `${shift.name} (${formatTimeTo12Hour(shift.start_time)} - ${formatTimeTo12Hour(shift.end_time)})`,
+                                    }))}
+                                    placeholder={t(
+                                        'employees.form.selectShift',
+                                        'Select shift',
+                                    )}
+                                />
                                 <InputError message={createErrors.shift_id} />
                             </div>
                             <div className="grid gap-2">
@@ -1808,29 +1768,18 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                         'Payment Currency',
                                     )}
                                 </Label>
-                                <Select
+                                <SearchableDropdown
                                     value={salaryCurrency}
                                     onValueChange={setSalaryCurrency}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue
-                                            placeholder={t(
-                                                'employees.form.selectCurrency',
-                                                'Select currency',
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {CURRENCIES.map((currency) => (
-                                            <SelectItem
-                                                key={currency}
-                                                value={currency}
-                                            >
-                                                {currency}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                    options={CURRENCIES.map((currency) => ({
+                                        value: currency,
+                                        label: currency,
+                                    }))}
+                                    placeholder={t(
+                                        'employees.form.selectCurrency',
+                                        'Select currency',
+                                    )}
+                                />
                                 <InputError
                                     message={createErrors.salary_currency}
                                 />
@@ -1839,33 +1788,22 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                 <Label>
                                     {t('employees.table.status', 'Status')}
                                 </Label>
-                                <Select
+                                <SearchableDropdown
                                     value={status}
                                     onValueChange={setStatus}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue
-                                            placeholder={t(
-                                                'employees.form.selectStatus',
-                                                'Select status',
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {EMPLOYEE_STATUSES.map(
-                                            (employeeStatus) => (
-                                                <SelectItem
-                                                    key={employeeStatus}
-                                                    value={employeeStatus}
-                                                >
-                                                    {getStatusLabel(
-                                                        employeeStatus,
-                                                    )}
-                                                </SelectItem>
+                                    options={EMPLOYEE_STATUSES.map(
+                                        (employeeStatus) => ({
+                                            value: employeeStatus,
+                                            label: getStatusLabel(
+                                                employeeStatus,
                                             ),
-                                        )}
-                                    </SelectContent>
-                                </Select>
+                                        }),
+                                    )}
+                                    placeholder={t(
+                                        'employees.form.selectStatus',
+                                        'Select status',
+                                    )}
+                                />
                                 <InputError message={createErrors.status} />
                             </div>
                             <div className="grid gap-2 sm:col-span-2">

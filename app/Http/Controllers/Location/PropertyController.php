@@ -23,7 +23,8 @@ class PropertyController extends Controller
             'countries' => Country::orderBy('name')->get(),
             'provinces' => Province::orderBy('name')->get(),
             'propertyOptions' => Property::query()
-                ->orderBy('name')
+                ->orderBy('display_order')
+                ->orderBy('id')
                 ->get(['id', 'name', 'name_translations', 'property_type', 'country_id', 'province_id']),
         ]);
     }
@@ -40,7 +41,8 @@ class PropertyController extends Controller
             'provinces' => Province::orderBy('name')->get(),
             'propertyOptions' => Property::query()
                 ->whereKeyNot($property->id)
-                ->orderBy('name')
+                ->orderBy('display_order')
+                ->orderBy('id')
                 ->get(['id', 'name', 'name_translations', 'property_type', 'country_id', 'province_id']),
         ]);
     }
@@ -54,7 +56,7 @@ class PropertyController extends Controller
         $service->update($property, $validated);
 
         return redirect()->route('properties.show', $property)
-            ->with('success', 'Property updated successfully.');
+            ->with('success', __('properties.actions.updated'));
     }
 
     public function store(Request $request, PropertyService $service)
@@ -66,7 +68,7 @@ class PropertyController extends Controller
         $service->create($validated);
 
         return redirect()->route('properties.index')
-            ->with('success', 'Property created successfully.');
+            ->with('success', __('properties.actions.created'));
     }
 
     public function disable(PropertyService $service, Property $property)
@@ -74,11 +76,22 @@ class PropertyController extends Controller
         $service->toggleActive($property);
 
         $message = $property->is_active
-            ? 'Property activated successfully.'
-            : 'Property disabled successfully.';
+            ? __('properties.actions.activated')
+            : __('properties.actions.disabled');
 
         return redirect()->route('properties.index')
             ->with('success', $message);
+    }
+
+    public function reorder(Request $request, PropertyService $service, Property $property)
+    {
+        $validated = $request->validate([
+            'direction' => ['required', Rule::in(['up', 'down'])],
+        ]);
+
+        $service->reorder($property, $validated['direction']);
+
+        return back()->with('success', __('properties.actions.order_updated'));
     }
 
     public function destroy(PropertyService $service, Property $property)
@@ -86,7 +99,7 @@ class PropertyController extends Controller
         $service->delete($property);
 
         return redirect()->route('properties.index')
-            ->with('success', 'Property deleted successfully.');
+            ->with('success', __('properties.actions.deleted'));
     }
 
     public function storeFloor(Request $request, Property $property)
@@ -105,7 +118,7 @@ class PropertyController extends Controller
 
         $property->floors()->create($validated);
 
-        return back()->with('success', 'Floor added successfully.');
+        return back()->with('success', __('properties.actions.floor_added'));
     }
 
     public function destroyFloor(Property $property, PropertyFloor $floor)
@@ -113,7 +126,7 @@ class PropertyController extends Controller
         abort_unless($floor->property_id === $property->id, 404);
         $floor->delete();
 
-        return back()->with('success', 'Floor deleted successfully.');
+        return back()->with('success', __('properties.actions.floor_deleted'));
     }
 
     public function storeUnit(Request $request, Property $property, PropertyFloor $floor)
@@ -141,7 +154,10 @@ class PropertyController extends Controller
 
         $floor->units()->create(['unit_type' => $expectedType, ...$validated]);
 
-        return back()->with('success', ucfirst($expectedType).' added successfully.');
+        return back()->with(
+            'success',
+            __("properties.actions.{$expectedType}_added"),
+        );
     }
 
     public function destroyUnit(Property $property, PropertyFloor $floor, PropertyUnit $unit)
@@ -149,7 +165,7 @@ class PropertyController extends Controller
         abort_unless($floor->property_id === $property->id && $unit->property_floor_id === $floor->id, 404);
         $unit->delete();
 
-        return back()->with('success', 'Space deleted successfully.');
+        return back()->with('success', __('properties.actions.space_deleted'));
     }
 
     private function validateProperty(Request $request): array

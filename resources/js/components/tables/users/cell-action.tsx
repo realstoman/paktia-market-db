@@ -1,4 +1,5 @@
 import InputError from '@/components/input-error';
+import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -27,17 +28,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
 import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
-import { Property, Country, Province, Role, User } from '@/types';
+import { Country, Property, Province, Role, User } from '@/types';
 import { router, usePage } from '@inertiajs/react';
 import {
     Ban,
@@ -478,36 +472,25 @@ export const CellAction: React.FC<CellActionProps> = ({
                         </div>
                         <div className="grid gap-2">
                             <Label>{t('users.fields.role', 'Role')}</Label>
-                            <Select
+                            <SearchableDropdown
                                 value={editRoleId}
                                 onValueChange={setEditRoleId}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue
-                                        placeholder={t(
-                                            'users.placeholders.selectRole',
-                                            'Select role',
-                                        )}
-                                    />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {roles.map((role) => (
-                                        <SelectItem
-                                            key={role.id}
-                                            value={String(role.id)}
-                                        >
-                                            {role.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                                options={roles.map((role) => ({
+                                    value: String(role.id),
+                                    label: role.name,
+                                }))}
+                                placeholder={t(
+                                    'users.placeholders.selectRole',
+                                    'Select role',
+                                )}
+                            />
                             <InputError message={editRoleError} />
                         </div>
                         <div className="grid gap-2">
                             <Label>
                                 {t('users.fields.country', 'Country')}
                             </Label>
-                            <Select
+                            <SearchableDropdown
                                 value={editCountryId}
                                 onValueChange={(value) => {
                                     setEditCountryId(value);
@@ -516,33 +499,22 @@ export const CellAction: React.FC<CellActionProps> = ({
                                         setEditPropertyId('');
                                     }
                                 }}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue
-                                        placeholder={t(
-                                            'users.placeholders.selectCountry',
-                                            'Select country',
-                                        )}
-                                    />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {countries.map((country) => (
-                                        <SelectItem
-                                            key={country.id}
-                                            value={String(country.id)}
-                                        >
-                                            {country.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                                options={countries.map((country) => ({
+                                    value: String(country.id),
+                                    label: country.name,
+                                }))}
+                                placeholder={t(
+                                    'users.placeholders.selectCountry',
+                                    'Select country',
+                                )}
+                            />
                             <InputError message={editErrors.country_id} />
                         </div>
                         <div className="grid gap-2">
                             <Label>
                                 {t('users.fields.province', 'Province')}
                             </Label>
-                            <Select
+                            <SearchableDropdown
                                 value={editProvinceId}
                                 onValueChange={(value) => {
                                     setEditProvinceId(value);
@@ -554,54 +526,38 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     !!editCountryId &&
                                     editProvinceOptions.length === 0
                                 }
-                            >
-                                <SelectTrigger>
-                                    <SelectValue
-                                        placeholder={t(
-                                            'users.placeholders.selectProvince',
-                                            'Select province',
-                                        )}
-                                    />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {editProvinceOptions.map((province) => (
-                                        <SelectItem
-                                            key={province.id}
-                                            value={String(province.id)}
-                                        >
-                                            {province.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                                options={editProvinceOptions.map(
+                                    (province) => ({
+                                        value: String(province.id),
+                                        label: province.name,
+                                    }),
+                                )}
+                                placeholder={t(
+                                    'users.placeholders.selectProvince',
+                                    'Select province',
+                                )}
+                            />
                             <InputError message={editErrors.province_id} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>{t('users.fields.property', 'Property')}</Label>
-                            <Select
+                            <Label>
+                                {t('users.fields.property', 'Property')}
+                            </Label>
+                            <SearchableDropdown
                                 value={editPropertyId}
                                 onValueChange={setEditPropertyId}
                                 disabled={editPropertyOptions.length === 0}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue
-                                        placeholder={t(
-                                            'users.placeholders.selectProperty',
-                                            'Select property',
-                                        )}
-                                    />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {editPropertyOptions.map((property) => (
-                                        <SelectItem
-                                            key={property.id}
-                                            value={String(property.id)}
-                                        >
-                                            {property.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                                options={editPropertyOptions.map(
+                                    (property) => ({
+                                        value: String(property.id),
+                                        label: property.name,
+                                    }),
+                                )}
+                                placeholder={t(
+                                    'users.placeholders.selectProperty',
+                                    'Select property',
+                                )}
+                            />
                             <InputError message={editErrors.property_id} />
                         </div>
                     </div>

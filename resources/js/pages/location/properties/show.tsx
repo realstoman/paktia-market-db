@@ -25,7 +25,7 @@ import {
     Province,
 } from '@/types';
 import { formatNumber } from '@/utils/format';
-import { Head, router, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
     Bath,
     BedDouble,
@@ -72,7 +72,7 @@ export default function PropertyShow({
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={property.name} />
-            <div className="space-y-6">
+            <div className="space-y-6 [&_[data-slot=card]]:shadow-none">
                 <section className="relative min-h-64 overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-950 to-teal-700">
                     {property.image_url && (
                         <img
@@ -201,7 +201,7 @@ export default function PropertyShow({
                             description={t(
                                 'propertyWorkspace.rentContractsHelp',
                             )}
-                            planned
+                            href={'/tenants?property_id=' + property.id}
                         />
                     </CardContent>
                 </Card>
@@ -783,15 +783,17 @@ function WorkspaceCapability({
     title,
     description,
     planned = false,
+    href,
 }: {
     icon: typeof Store;
     title: string;
     description: string;
     planned?: boolean;
+    href?: string;
 }) {
     const { t } = useLocalization();
-    return (
-        <div className="flex gap-3 rounded-xl border bg-muted/20 p-4">
+    const content = (
+        <div className="flex h-full gap-3 rounded-xl border bg-muted/20 p-4 transition hover:border-primary/30 hover:bg-primary/5">
             <div className="h-fit rounded-lg bg-primary/10 p-2 text-primary">
                 <Icon className="h-4 w-4" />
             </div>
@@ -810,6 +812,8 @@ function WorkspaceCapability({
             </div>
         </div>
     );
+
+    return href ? <Link href={href}>{content}</Link> : content;
 }
 function Detail({ label, value }: { label: string; value: React.ReactNode }) {
     return (

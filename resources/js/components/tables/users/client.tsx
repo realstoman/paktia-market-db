@@ -12,19 +12,12 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
 import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
-import { Property, Country, Province, Role, User } from '@/types';
+import { Country, Property, Province, Role, User } from '@/types';
 import { formatNumber } from '@/utils/format';
 import { Link, router } from '@inertiajs/react';
 import {
@@ -247,7 +240,11 @@ export const UsersClient: React.FC<UsersClientProps> = ({
         [createPropertyOptions],
     );
 
-    useAutoSelectSingleOption(createPropertySelectOptions, propertyId, setPropertyId);
+    useAutoSelectSingleOption(
+        createPropertySelectOptions,
+        propertyId,
+        setPropertyId,
+    );
     const filteredUsers = useMemo(
         () =>
             data.filter((user) => {
@@ -584,7 +581,7 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                             <Label>
                                 {t('users.fields.country', 'Country')}
                             </Label>
-                            <Select
+                            <SearchableDropdown
                                 value={countryId}
                                 onValueChange={(value) => {
                                     setCountryId(value);
@@ -593,33 +590,22 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                                         setPropertyId('');
                                     }
                                 }}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue
-                                        placeholder={t(
-                                            'users.placeholders.selectCountry',
-                                            'Select country',
-                                        )}
-                                    />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {countries.map((country) => (
-                                        <SelectItem
-                                            key={country.id}
-                                            value={String(country.id)}
-                                        >
-                                            {country.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                                options={countries.map((country) => ({
+                                    value: String(country.id),
+                                    label: country.name,
+                                }))}
+                                placeholder={t(
+                                    'users.placeholders.selectCountry',
+                                    'Select country',
+                                )}
+                            />
                             <InputError message={createErrors.country_id} />
                         </div>
                         <div className="grid gap-2">
                             <Label>
                                 {t('users.fields.province', 'Province')}
                             </Label>
-                            <Select
+                            <SearchableDropdown
                                 value={provinceId}
                                 onValueChange={(value) => {
                                     setProvinceId(value);
@@ -627,53 +613,37 @@ export const UsersClient: React.FC<UsersClientProps> = ({
                                         setPropertyId('');
                                     }
                                 }}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue
-                                        placeholder={t(
-                                            'users.placeholders.selectProvince',
-                                            'Select province',
-                                        )}
-                                    />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {createProvinceOptions.map((province) => (
-                                        <SelectItem
-                                            key={province.id}
-                                            value={String(province.id)}
-                                        >
-                                            {province.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                                options={createProvinceOptions.map(
+                                    (province) => ({
+                                        value: String(province.id),
+                                        label: province.name,
+                                    }),
+                                )}
+                                placeholder={t(
+                                    'users.placeholders.selectProvince',
+                                    'Select province',
+                                )}
+                            />
                             <InputError message={createErrors.province_id} />
                         </div>
                         <div className="grid gap-2">
-                            <Label>{t('users.fields.property', 'Property')}</Label>
-                            <Select
+                            <Label>
+                                {t('users.fields.property', 'Property')}
+                            </Label>
+                            <SearchableDropdown
                                 value={propertyId}
                                 onValueChange={setPropertyId}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue
-                                        placeholder={t(
-                                            'users.placeholders.selectProperty',
-                                            'Select property',
-                                        )}
-                                    />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {createPropertyOptions.map((property) => (
-                                        <SelectItem
-                                            key={property.id}
-                                            value={String(property.id)}
-                                        >
-                                            {property.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                                options={createPropertyOptions.map(
+                                    (property) => ({
+                                        value: String(property.id),
+                                        label: property.name,
+                                    }),
+                                )}
+                                placeholder={t(
+                                    'users.placeholders.selectProperty',
+                                    'Select property',
+                                )}
+                            />
                             <InputError message={createErrors.property_id} />
                         </div>
                     </div>

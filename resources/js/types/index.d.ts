@@ -60,6 +60,14 @@ export interface SharedData {
         loginWelcome?: {
             id: string;
         } | null;
+        success?: {
+            id: string;
+            message: string;
+        } | null;
+        error?: {
+            id: string;
+            message: string;
+        } | null;
     };
     unauthorizedAccess?: {
         show: boolean;
@@ -446,6 +454,7 @@ export interface Property {
     province_id?: number | null;
     province_object?: Province | null;
     is_active?: boolean;
+    display_order?: number;
     address: string;
     address_translations?: Partial<Record<'fa' | 'ps' | 'en', string>> | null;
     description: string;
@@ -471,6 +480,7 @@ export interface Property {
     floors_count?: number;
     units_count?: number;
     floors?: PropertyFloor[];
+    leases?: Lease[];
     shareholdings?: PropertyShareholding[];
     created_at: string;
     updated_at: string;
@@ -543,6 +553,7 @@ export interface PropertyFloor {
     description?: string | null;
     is_active: boolean;
     units?: PropertyUnit[];
+    leases?: Lease[];
 }
 
 export interface PropertyUnit {
@@ -562,6 +573,66 @@ export interface PropertyUnit {
     water_meter?: string | null;
     description?: string | null;
     is_active: boolean;
+    leases?: Lease[];
+}
+
+export interface Tenant {
+    id: number;
+    card_code: string;
+    tenant_type: 'individual' | 'company';
+    full_name: string;
+    father_name?: string | null;
+    business_name?: string | null;
+    phone: string;
+    whatsapp?: string | null;
+    email?: string | null;
+    nid_number?: string | null;
+    license_number?: string | null;
+    address?: string | null;
+    photo_url?: string | null;
+    notes?: string | null;
+    is_active: boolean;
+    documents?: TenantDocument[];
+    leases?: Lease[];
+    leases_count?: number;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface TenantDocument {
+    id: number;
+    tenant_id: number;
+    document_type: string;
+    title: string;
+    original_name: string;
+    mime_type?: string | null;
+    size_bytes?: number | null;
+}
+
+export interface Lease {
+    id: number;
+    contract_number: string;
+    tenant_id: number;
+    property_id: number;
+    property_floor_id?: number | null;
+    property_unit_id?: number | null;
+    leased_space_type: 'shop' | 'apartment' | 'house' | 'block' | 'property';
+    start_date: string;
+    end_date?: string | null;
+    rent_amount?: string | number | null;
+    security_deposit?: string | number | null;
+    currency_id?: number | null;
+    payment_frequency: 'monthly' | 'quarterly' | 'yearly';
+    status: 'draft' | 'active' | 'ended' | 'terminated';
+    terms?: string | null;
+    notes?: string | null;
+    property?: Property;
+    floor?: PropertyFloor | null;
+    unit?: PropertyUnit | null;
+    currency?: Currency | null;
+    tenant?: Tenant;
+    created_at: string;
+    updated_at: string;
 }
 
 export interface Country {

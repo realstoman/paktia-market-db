@@ -14,6 +14,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
+import { useLocalization } from '@/lib/localization';
 import { cn } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import { BreadcrumbItem } from '@/types';
@@ -84,11 +85,6 @@ interface ActivityLogsPageProps {
     referenceData: ReferenceData;
 }
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: dashboard().url },
-    { title: 'Activity Logs', href: '/admin/activity-logs' },
-];
-
 function formatBytes(bytes: number): string {
     if (bytes === 0) return '0 B';
     const kilo = 1024;
@@ -100,10 +96,16 @@ function formatBytes(bytes: number): string {
     return `${(bytes / Math.pow(kilo, i)).toFixed(1)} ${sizes[i]}`;
 }
 
-function formatDateTime(value?: string | null): string {
+function formatDateTime(
+    value: string | null | undefined,
+    locale: string,
+): string {
     if (!value) return '—';
     try {
-        return new Date(value).toLocaleString();
+        const dateLocale =
+            locale === 'fa' ? 'fa-AF' : locale === 'ps' ? 'ps-AF' : 'en-US';
+
+        return new Date(value).toLocaleString(dateLocale);
     } catch {
         return value;
     }
@@ -118,14 +120,33 @@ const actionBadgeVariant: Record<string, string> = {
     restored: 'bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300',
 };
 
-function ActionBadge({ action }: { action: string }) {
+const actionTranslationKeys: Record<string, string> = {
+    created: 'created',
+    updated: 'updated',
+    deleted: 'deleted',
+    restored: 'restored',
+    'auth.login': 'login',
+    'auth.logout': 'logout',
+    'auth.login_failed': 'loginFailed',
+    'auth.lockout': 'lockout',
+    'auth.password_reset': 'passwordReset',
+    'auth.registered': 'registered',
+    'auth.email_verified': 'emailVerified',
+    'auth.2fa.enabled': 'twoFactorEnabled',
+    'auth.2fa.confirmed': 'twoFactorConfirmed',
+    'auth.2fa.disabled': 'twoFactorDisabled',
+    'auth.2fa.failed': 'twoFactorFailed',
+    'auth.2fa.recovery_codes_generated': 'recoveryCodesGenerated',
+};
+
+function ActionBadge({ action, label }: { action: string; label: string }) {
     const cls = actionBadgeVariant[action] ?? 'bg-muted text-muted-foreground';
 
     return (
         <span
             className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${cls}`}
         >
-            {action}
+            {label}
         </span>
     );
 }
@@ -136,6 +157,28 @@ export default function ActivityLogsIndexPage({
     filters,
     referenceData,
 }: ActivityLogsPageProps) {
+    const { isRtl, locale, t } = useLocalization();
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: t('navigation.dashboard', 'Dashboard'),
+            href: dashboard().url,
+        },
+        {
+            title: t('activityLogsPage.title', 'Activity Logs'),
+            href: '/admin/activity-logs',
+        },
+    ];
+    const actionLabel = (action: string) => {
+        const key = actionTranslationKeys[action];
+
+        return key
+            ? t('activityLogsPage.actions.' + key, action)
+            : action.replaceAll('_', ' ');
+    };
+    const entityLabel = (entity?: string | null) =>
+        entity
+            ? t('activityLogsPage.entities.' + entity, entity)
+            : t('activityLogsPage.table.system', 'System');
     const initial = filters.filter ?? {};
     const [state, setState] = useState({
         q: initial.q ?? '',
@@ -161,11 +204,19 @@ export default function ActivityLogsIndexPage({
 
     const paginationLabel = useMemo(() => {
         if (logs.meta.total === 0) {
-            return 'No records';
+            return t('activityLogsPage.noRecords', 'No records');
         }
 
-        return `Showing ${startIndex.toLocaleString()}\u2013${endIndex.toLocaleString()} of ${logs.meta.total.toLocaleString()} records · page ${logs.meta.current_page} of ${logs.meta.last_page}`;
-    }, [logs.meta, startIndex, endIndex]);
+        return t(
+            'activityLogsPage.pagination',
+            'Showing :start–:end of :total records · page :page of :pages',
+        )
+            .replace(':start', startIndex.toLocaleString())
+            .replace(':end', endIndex.toLocaleString())
+            .replace(':total', logs.meta.total.toLocaleString())
+            .replace(':page', logs.meta.current_page.toLocaleString())
+            .replace(':pages', logs.meta.last_page.toLocaleString());
+    }, [logs.meta, startIndex, endIndex, t]);
 
     function buildPayload(
         overrides: Record<string, string | number> = {},
@@ -253,18 +304,17 @@ export default function ActivityLogsIndexPage({
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Activity Logs" />
+            <Head title={t('activityLogsPage.title')} />
 
-            <div className="space-y-4">
+            <div dir={isRtl ? 'rtl' : 'ltr'} className="space-y-4 text-start">
                 <div className="dark:bg-brand-bg-dark rounded-lg bg-white p-6">
                     <div className="mb-4 flex items-center justify-between gap-2">
                         <div>
                             <h2 className="text-lg font-semibold">
-                                Activity Logs
+                                {t('activityLogsPage.title')}
                             </h2>
                             <p className="text-sm text-muted-foreground">
-                                Retained for 30 days. Older data is available in
-                                the monthly archives below.
+                                {t('activityLogsPage.subtitle')}
                             </p>
                         </div>
                         <Button
@@ -278,13 +328,15 @@ export default function ActivityLogsIndexPage({
                                     isRefreshing && 'animate-spin',
                                 )}
                             />
-                            Refresh
+                            {t('activityLogsPage.refresh')}
                         </Button>
                     </div>
 
                     <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6">
                         <div className="space-y-1">
-                            <Label htmlFor="al-q">Search</Label>
+                            <Label htmlFor="al-q">
+                                {t('activityLogsPage.search')}
+                            </Label>
                             <Input
                                 id="al-q"
                                 value={state.q}
@@ -294,38 +346,50 @@ export default function ActivityLogsIndexPage({
                                         q: e.target.value,
                                     }))
                                 }
-                                placeholder="Search action, URL, values…"
+                                placeholder={t(
+                                    'activityLogsPage.searchPlaceholder',
+                                )}
                                 className="bg-white dark:bg-neutral-900"
                             />
                         </div>
                         <div className="space-y-1">
-                            <Label>Action</Label>
+                            <Label>{t('activityLogsPage.action')}</Label>
                             <SearchableDropdown
                                 value={state.action}
                                 options={[
-                                    { value: '', label: 'All actions' },
+                                    {
+                                        value: '',
+                                        label: t('activityLogsPage.allActions'),
+                                    },
                                     ...referenceData.actions.map((action) => ({
                                         value: action,
-                                        label: action,
+                                        label: actionLabel(action),
                                     })),
                                 ]}
                                 onValueChange={(value) =>
                                     setState((s) => ({ ...s, action: value }))
                                 }
-                                placeholder="All actions"
-                                searchPlaceholder="Search actions…"
+                                placeholder={t('activityLogsPage.allActions')}
+                                searchPlaceholder={t(
+                                    'activityLogsPage.searchActions',
+                                )}
                             />
                         </div>
                         <div className="space-y-1">
-                            <Label>Entity</Label>
+                            <Label>{t('activityLogsPage.entity')}</Label>
                             <SearchableDropdown
                                 value={state.auditable_type}
                                 options={[
-                                    { value: '', label: 'All entities' },
+                                    {
+                                        value: '',
+                                        label: t(
+                                            'activityLogsPage.allEntities',
+                                        ),
+                                    },
                                     ...referenceData.auditableTypes.map(
                                         (type) => ({
                                             value: type.value,
-                                            label: type.label,
+                                            label: entityLabel(type.label),
                                         }),
                                     ),
                                 ]}
@@ -335,16 +399,21 @@ export default function ActivityLogsIndexPage({
                                         auditable_type: value,
                                     }))
                                 }
-                                placeholder="All entities"
-                                searchPlaceholder="Search entities…"
+                                placeholder={t('activityLogsPage.allEntities')}
+                                searchPlaceholder={t(
+                                    'activityLogsPage.searchEntities',
+                                )}
                             />
                         </div>
                         <div className="space-y-1">
-                            <Label>User</Label>
+                            <Label>{t('activityLogsPage.user')}</Label>
                             <SearchableDropdown
                                 value={state.user_id}
                                 options={[
-                                    { value: '', label: 'All users' },
+                                    {
+                                        value: '',
+                                        label: t('activityLogsPage.allUsers'),
+                                    },
                                     ...referenceData.users.map((user) => ({
                                         value: user.id.toString(),
                                         label: `${user.name} (${user.email})`,
@@ -353,16 +422,23 @@ export default function ActivityLogsIndexPage({
                                 onValueChange={(value) =>
                                     setState((s) => ({ ...s, user_id: value }))
                                 }
-                                placeholder="All users"
-                                searchPlaceholder="Search by name or email…"
+                                placeholder={t('activityLogsPage.allUsers')}
+                                searchPlaceholder={t(
+                                    'activityLogsPage.searchUsers',
+                                )}
                             />
                         </div>
                         <div className="space-y-1">
-                            <Label>Property</Label>
+                            <Label>{t('activityLogsPage.property')}</Label>
                             <SearchableDropdown
                                 value={state.property_id}
                                 options={[
-                                    { value: '', label: 'All properties' },
+                                    {
+                                        value: '',
+                                        label: t(
+                                            'activityLogsPage.allProperties',
+                                        ),
+                                    },
                                     ...referenceData.properties.map(
                                         (property) => ({
                                             value: property.id.toString(),
@@ -376,12 +452,18 @@ export default function ActivityLogsIndexPage({
                                         property_id: value,
                                     }))
                                 }
-                                placeholder="All properties"
-                                searchPlaceholder="Search properties…"
+                                placeholder={t(
+                                    'activityLogsPage.allProperties',
+                                )}
+                                searchPlaceholder={t(
+                                    'activityLogsPage.searchProperties',
+                                )}
                             />
                         </div>
                         <div className="space-y-1">
-                            <Label htmlFor="al-from">From</Label>
+                            <Label htmlFor="al-from">
+                                {t('activityLogsPage.from')}
+                            </Label>
                             <Input
                                 id="al-from"
                                 type="date"
@@ -395,7 +477,9 @@ export default function ActivityLogsIndexPage({
                             />
                         </div>
                         <div className="space-y-1">
-                            <Label htmlFor="al-to">To</Label>
+                            <Label htmlFor="al-to">
+                                {t('activityLogsPage.to')}
+                            </Label>
                             <Input
                                 id="al-to"
                                 type="date"
@@ -410,12 +494,12 @@ export default function ActivityLogsIndexPage({
                         </div>
                     </div>
 
-                    <div className="mt-4 flex items-center justify-end gap-2">
+                    <div className="mt-4 flex items-center justify-start gap-2">
                         <Button variant="outline" onClick={resetFilters}>
-                            Reset
+                            {t('activityLogsPage.reset')}
                         </Button>
                         <Button variant={'outline'} onClick={applyFilters}>
-                            Apply filters
+                            {t('activityLogsPage.applyFilters')}
                         </Button>
                     </div>
                 </div>
@@ -427,27 +511,32 @@ export default function ActivityLogsIndexPage({
                         </span>
                     </div>
                     <div className="overflow-x-auto rounded-md border border-border">
-                        <table className="w-full text-sm">
+                        <table
+                            dir={isRtl ? 'rtl' : 'ltr'}
+                            className="w-full text-start text-sm"
+                        >
                             <thead className="bg-muted/50 text-xs text-muted-foreground uppercase">
                                 <tr>
-                                    <th className="px-3 py-2 text-left">
-                                        When
+                                    <th className="px-3 py-2 text-start">
+                                        {t('activityLogsPage.table.when')}
                                     </th>
-                                    <th className="px-3 py-2 text-left">
-                                        User
+                                    <th className="px-3 py-2 text-start">
+                                        {t('activityLogsPage.table.user')}
                                     </th>
-                                    <th className="px-3 py-2 text-left">
-                                        Action
+                                    <th className="px-3 py-2 text-start">
+                                        {t('activityLogsPage.table.action')}
                                     </th>
-                                    <th className="px-3 py-2 text-left">
-                                        Entity
+                                    <th className="px-3 py-2 text-start">
+                                        {t('activityLogsPage.table.entity')}
                                     </th>
-                                    <th className="px-3 py-2 text-left">
-                                        Property
+                                    <th className="px-3 py-2 text-start">
+                                        {t('activityLogsPage.table.property')}
                                     </th>
-                                    <th className="px-3 py-2 text-left">IP</th>
-                                    <th className="px-3 py-2 text-right">
-                                        Details
+                                    <th className="px-3 py-2 text-start">
+                                        {t('activityLogsPage.table.ip')}
+                                    </th>
+                                    <th className="px-3 py-2 text-start">
+                                        {t('activityLogsPage.table.details')}
                                     </th>
                                 </tr>
                             </thead>
@@ -458,8 +547,7 @@ export default function ActivityLogsIndexPage({
                                             colSpan={7}
                                             className="px-3 py-8 text-center text-muted-foreground"
                                         >
-                                            No activity found with these
-                                            filters.
+                                            {t('activityLogsPage.table.empty')}
                                         </td>
                                     </tr>
                                 ) : (
@@ -469,7 +557,10 @@ export default function ActivityLogsIndexPage({
                                             className="border-t border-border hover:bg-muted/30"
                                         >
                                             <td className="px-3 py-2 font-mono text-xs whitespace-nowrap">
-                                                {formatDateTime(log.created_at)}
+                                                {formatDateTime(
+                                                    log.created_at,
+                                                    locale,
+                                                )}
                                             </td>
                                             <td className="px-3 py-2">
                                                 {log.user ? (
@@ -483,22 +574,27 @@ export default function ActivityLogsIndexPage({
                                                     </div>
                                                 ) : (
                                                     <span className="text-muted-foreground">
-                                                        system
+                                                        {t(
+                                                            'activityLogsPage.table.system',
+                                                        )}
                                                     </span>
                                                 )}
                                             </td>
                                             <td className="px-3 py-2">
                                                 <ActionBadge
                                                     action={log.action}
+                                                    label={actionLabel(
+                                                        log.action,
+                                                    )}
                                                 />
                                             </td>
                                             <td className="px-3 py-2">
                                                 {log.auditable_type_short ? (
                                                     <div>
                                                         <span className="font-medium">
-                                                            {
-                                                                log.auditable_type_short
-                                                            }
+                                                            {entityLabel(
+                                                                log.auditable_type_short,
+                                                            )}
                                                         </span>
                                                         {log.auditable_id ? (
                                                             <span className="ms-1 text-xs text-muted-foreground">
@@ -519,7 +615,7 @@ export default function ActivityLogsIndexPage({
                                             <td className="px-3 py-2 font-mono text-xs">
                                                 {log.ip_address ?? '—'}
                                             </td>
-                                            <td className="px-3 py-2 text-right">
+                                            <td className="px-3 py-2 text-start">
                                                 <Button
                                                     variant="outline"
                                                     size="sm"
@@ -527,7 +623,9 @@ export default function ActivityLogsIndexPage({
                                                         setSelected(log)
                                                     }
                                                 >
-                                                    View
+                                                    {t(
+                                                        'activityLogsPage.table.view',
+                                                    )}
                                                 </Button>
                                             </td>
                                         </tr>
@@ -551,8 +649,13 @@ export default function ActivityLogsIndexPage({
                                         goToPage(logs.meta.current_page - 1)
                                     }
                                 >
-                                    <ChevronLeft className="me-1 size-4" />
-                                    Previous
+                                    <ChevronLeft
+                                        className={cn(
+                                            'me-1 size-4',
+                                            isRtl && 'rotate-180',
+                                        )}
+                                    />
+                                    {t('common.previousPage', 'Previous')}
                                 </Button>
                                 <Button
                                     variant="outline"
@@ -565,8 +668,13 @@ export default function ActivityLogsIndexPage({
                                         goToPage(logs.meta.current_page + 1)
                                     }
                                 >
-                                    Next
-                                    <ChevronRight className="ms-1 size-4" />
+                                    {t('common.nextPage', 'Next')}
+                                    <ChevronRight
+                                        className={cn(
+                                            'ms-1 size-4',
+                                            isRtl && 'rotate-180',
+                                        )}
+                                    />
                                 </Button>
                             </div>
                         </div>
@@ -576,38 +684,49 @@ export default function ActivityLogsIndexPage({
                 <div className="dark:bg-brand-bg-dark rounded-lg bg-white p-6">
                     <div className="mb-3">
                         <h3 className="text-base font-semibold">
-                            Archived periods
+                            {t('activityLogsPage.archives.title')}
                         </h3>
                         <p className="text-sm text-muted-foreground">
-                            Download archived logs for record-keeping. Each
-                            archive is a gzipped JSON-lines file keyed by month.
+                            {t('activityLogsPage.archives.subtitle')}
                         </p>
                     </div>
 
                     {archives.length === 0 ? (
                         <p className="text-sm text-muted-foreground">
-                            No archives yet. Archives are generated daily at
-                            03:00 AM.
+                            {t('activityLogsPage.archives.empty')}
                         </p>
                     ) : (
                         <div className="overflow-x-auto rounded-md border border-border">
-                            <table className="w-full text-sm">
+                            <table
+                                dir={isRtl ? 'rtl' : 'ltr'}
+                                className="w-full text-start text-sm"
+                            >
                                 <thead className="bg-muted/50 text-xs text-muted-foreground uppercase">
                                     <tr>
-                                        <th className="px-3 py-2 text-left">
-                                            Period
+                                        <th className="px-3 py-2 text-start">
+                                            {t(
+                                                'activityLogsPage.archives.period',
+                                            )}
                                         </th>
-                                        <th className="px-3 py-2 text-right">
-                                            Records
+                                        <th className="px-3 py-2 text-start">
+                                            {t(
+                                                'activityLogsPage.archives.records',
+                                            )}
                                         </th>
-                                        <th className="px-3 py-2 text-right">
-                                            Size
+                                        <th className="px-3 py-2 text-start">
+                                            {t(
+                                                'activityLogsPage.archives.size',
+                                            )}
                                         </th>
-                                        <th className="px-3 py-2 text-left">
-                                            Created
+                                        <th className="px-3 py-2 text-start">
+                                            {t(
+                                                'activityLogsPage.archives.created',
+                                            )}
                                         </th>
-                                        <th className="px-3 py-2 text-right">
-                                            Download
+                                        <th className="px-3 py-2 text-start">
+                                            {t(
+                                                'activityLogsPage.archives.download',
+                                            )}
                                         </th>
                                     </tr>
                                 </thead>
@@ -620,10 +739,10 @@ export default function ActivityLogsIndexPage({
                                             <td className="px-3 py-2 font-mono">
                                                 {archive.period}
                                             </td>
-                                            <td className="px-3 py-2 text-right">
+                                            <td className="px-3 py-2 text-start">
                                                 {archive.records_count.toLocaleString()}
                                             </td>
-                                            <td className="px-3 py-2 text-right">
+                                            <td className="px-3 py-2 text-start">
                                                 {formatBytes(
                                                     archive.size_bytes,
                                                 )}
@@ -631,15 +750,18 @@ export default function ActivityLogsIndexPage({
                                             <td className="px-3 py-2">
                                                 {formatDateTime(
                                                     archive.created_at,
+                                                    locale,
                                                 )}
                                             </td>
-                                            <td className="px-3 py-2 text-right">
+                                            <td className="px-3 py-2 text-start">
                                                 <a
                                                     href={`/admin/activity-logs/archives/${archive.id}/download`}
                                                     className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
                                                 >
                                                     <Download className="size-4" />
-                                                    Download
+                                                    {t(
+                                                        'activityLogsPage.archives.download',
+                                                    )}
                                                 </a>
                                             </td>
                                         </tr>
@@ -655,23 +777,35 @@ export default function ActivityLogsIndexPage({
                 open={selected !== null}
                 onOpenChange={() => setSelected(null)}
             >
-                <DrawerContent className="max-h-[85vh] overflow-auto">
+                <DrawerContent
+                    dir={isRtl ? 'rtl' : 'ltr'}
+                    className="max-h-[85vh] overflow-auto text-start"
+                >
                     {selected && (
                         <>
-                            <DrawerHeader>
+                            <DrawerHeader className="text-start">
                                 <DrawerTitle className="flex items-center gap-2">
-                                    <ActionBadge action={selected.action} />
+                                    <ActionBadge
+                                        action={selected.action}
+                                        label={actionLabel(selected.action)}
+                                    />
                                     <span>
-                                        {selected.auditable_type_short ??
-                                            'System'}
+                                        {entityLabel(
+                                            selected.auditable_type_short,
+                                        )}
                                         {selected.auditable_id
                                             ? ` #${selected.auditable_id}`
                                             : ''}
                                     </span>
                                 </DrawerTitle>
                                 <DrawerDescription>
-                                    {formatDateTime(selected.created_at)} ·{' '}
-                                    {selected.user?.name ?? 'system'}
+                                    {formatDateTime(
+                                        selected.created_at,
+                                        locale,
+                                    )}{' '}
+                                    ·{' '}
+                                    {selected.user?.name ??
+                                        t('activityLogsPage.table.system')}
                                     {selected.url
                                         ? ` · ${selected.method} ${selected.url}`
                                         : ''}
@@ -684,12 +818,12 @@ export default function ActivityLogsIndexPage({
                                         IP: {selected.ip_address ?? '—'}
                                     </Badge>
                                     <Badge variant="secondary">
-                                        Batch:{' '}
+                                        {t('activityLogsPage.drawer.batch')}:{' '}
                                         {selected.batch_uuid?.slice(0, 8) ??
                                             '—'}
                                     </Badge>
                                     <Badge variant="secondary">
-                                        Property:{' '}
+                                        {t('activityLogsPage.drawer.property')}:{' '}
                                         {selected.property?.name ?? '—'}
                                     </Badge>
                                 </div>
@@ -703,7 +837,9 @@ export default function ActivityLogsIndexPage({
                                     Object.keys(selected.meta).length > 0 && (
                                         <div>
                                             <h4 className="mb-1 text-sm font-semibold">
-                                                Additional context
+                                                {t(
+                                                    'activityLogsPage.drawer.additionalContext',
+                                                )}
                                             </h4>
                                             <pre className="overflow-auto rounded-md border border-border bg-muted/30 p-3 text-xs">
                                                 {JSON.stringify(

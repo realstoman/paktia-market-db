@@ -13,13 +13,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
 import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
@@ -2236,33 +2229,20 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                                     'Reassign items to another category',
                                                 )}
                                     </Label>
-                                    <Select
+                                    <SearchableDropdown
                                         value={replacementResourceId}
                                         onValueChange={setReplacementResourceId}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue
-                                                placeholder={t(
-                                                    'inventory.common.selectReplacement',
-                                                    'Select a replacement',
-                                                )}
-                                            />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {deleteTargetReplacementOptions.map(
-                                                (option) => (
-                                                    <SelectItem
-                                                        key={option.id}
-                                                        value={String(
-                                                            option.id,
-                                                        )}
-                                                    >
-                                                        {option.label}
-                                                    </SelectItem>
-                                                ),
-                                            )}
-                                        </SelectContent>
-                                    </Select>
+                                        options={deleteTargetReplacementOptions.map(
+                                            (option) => ({
+                                                value: String(option.id),
+                                                label: option.label,
+                                            }),
+                                        )}
+                                        placeholder={t(
+                                            'inventory.common.selectReplacement',
+                                            'Select a replacement',
+                                        )}
+                                    />
                                     <InputError
                                         message={
                                             deleteResourceErrors[
@@ -2373,29 +2353,18 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                 <Label>
                                     {t('inventory.common.property', 'Property')}
                                 </Label>
-                                <Select
+                                <SearchableDropdown
                                     value={propertyId}
                                     onValueChange={setPropertyId}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue
-                                            placeholder={t(
-                                                'inventory.common.selectProperty',
-                                                'Select property',
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {properties.map((property) => (
-                                            <SelectItem
-                                                key={property.id}
-                                                value={String(property.id)}
-                                            >
-                                                {property.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                    options={properties.map((property) => ({
+                                        value: String(property.id),
+                                        label: property.name,
+                                    }))}
+                                    placeholder={t(
+                                        'inventory.common.selectProperty',
+                                        'Select property',
+                                    )}
+                                />
                                 <InputError message={errors.property_id} />
                             </div>
                             <div className="grid gap-2">
@@ -2440,30 +2409,22 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                 <Label>
                                     {t('inventory.common.currency', 'Currency')}
                                 </Label>
-                                <Select
+                                <SearchableDropdown
                                     value={currencyCode}
                                     onValueChange={setCurrencyCode}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue
-                                            placeholder={t(
-                                                'inventory.common.selectCurrency',
-                                                'Select currency',
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {currencies.map((currency) => (
-                                            <SelectItem
-                                                key={currency.id}
-                                                value={currency.code}
-                                            >
-                                                {currency.code} (
-                                                {currency.symbol})
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                    options={currencies.map((currency) => ({
+                                        value: currency.code,
+                                        label:
+                                            currency.code +
+                                            ' (' +
+                                            currency.symbol +
+                                            ')',
+                                    }))}
+                                    placeholder={t(
+                                        'inventory.common.selectCurrency',
+                                        'Select currency',
+                                    )}
+                                />
                                 <InputError message={errors.currency_code} />
                             </div>
                             <div className="grid gap-2">

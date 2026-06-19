@@ -66,7 +66,7 @@ export default function HttpStatusPage({ status }: ErrorPageProps) {
         <>
             <Head title={content.title} />
             <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-neutral-100 px-4 py-10 dark:bg-neutral-950">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#0B5AA514,transparent_45%),radial-gradient(circle_at_bottom_right,#F2A20C18,transparent_35%)] dark:bg-[radial-gradient(circle_at_top,#ffffff10,transparent_30%),radial-gradient(circle_at_bottom_right,#ffffff08,transparent_25%)]" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#00245214,transparent_45%),radial-gradient(circle_at_bottom_right,#D3A45018,transparent_35%)] dark:bg-[radial-gradient(circle_at_top,#ffffff10,transparent_30%),radial-gradient(circle_at_bottom_right,#ffffff08,transparent_25%)]" />
 
                 <div className="relative w-full max-w-2xl rounded-[28px] border border-neutral-200/70 bg-white/90 p-6 shadow-[0_30px_80px_rgba(16,47,51,0.12)] backdrop-blur sm:p-8 dark:border-neutral-800 dark:bg-neutral-900/95 dark:shadow-[0_30px_80px_rgba(0,0,0,0.45)]">
                     <div className="rounded-[24px] border border-neutral-200/80 bg-[linear-gradient(135deg,#ffffff_0%,#f6faf9_55%,#eef4f3_100%)] p-6 dark:border-neutral-800 dark:bg-neutral-950">
