@@ -112,6 +112,17 @@ const ps = {
         runtimeHealth: 'د سیستم وضعیت',
         activityLogs: 'سیستم کې فعالیت',
     },
+    tenants: {
+        title: 'کرایه‌داران او سوداګر', subtitle: 'کرایه‌داران ثبت کړئ، دوکانونه او ملکیتونه وسپارئ، او قراردادونه او اسناد یوځای وساتئ.',
+        register: 'کرایه‌دار ثبتول', scan: 'د کرایه‌دار کارت سکین', scanPlaceholder: 'کارت سکین یا کوډ ولیکئ…', scanHelp: 'د چاپ شوي بارکوډ په سکین سره د کرایه‌دار پروفایل سمدستي خلاصیږي.',
+        searchPlaceholder: 'د نوم، سوداګرۍ، تلیفون یا کارت کوډ له مخې لټون…', empty: 'ستاسو له لټون سره کرایه‌دار ونه موندل شو.',
+        active: 'فعال', inactive: 'غیرفعال', individual: 'شخص', company: 'شرکت', identity: 'هویت او سوداګري', contact: 'د اړیکې معلومات',
+        total: 'ثبت شوي کرایه‌داران', assigned: 'سپارل شوي ځایونه', businesses: 'سوداګرۍ', properties: 'اړوند ملکیتونه', viewProfile: 'پروفایل کتل', editProfile: 'پروفایل سمول', statusAction: 'حالت بدلول',
+        fields: { tenantType: 'د کرایه‌دار ډول', fullName: 'بشپړ نوم / مسؤل شخص', fatherName: 'د پلار نوم', businessName: 'د سوداګرۍ / شرکت نوم', phone: 'تلیفون', whatsapp: 'واټس‌اپ', email: 'برېښنالیک', nid: 'د تذکرې شمېره', license: 'د سوداګرۍ جواز شمېره', address: 'پته', photo: 'انځور', documents: 'تذکره، جواز او نور اسناد', notes: 'یادښتونه', select: 'انتخاب کړئ' },
+        lease: { title: 'د ملکیت سپارنه', optional: 'د ثبت پر مهال اختیاري', add: 'سپارنه زیاتول', property: 'مارکېټ یا ملکیت', space: 'دوکان، اپارتمان یا ملکیت', wholeProperty: 'بشپړ ملکیت', startDate: 'د پیل نېټه', endDate: 'د پای نېټه', rent: 'د کرایې اندازه', deposit: 'تضمین', currency: 'پولي واحد', frequency: 'د تادیې موده', status: 'د قرارداد حالت', terms: 'د قرارداد شرطونه', notes: 'د سپارنې یادښت', monthly: 'میاشتنی', quarterly: 'درې میاشتنی', yearly: 'کلنی', draft: 'مسوده', active: 'فعال', ended: 'پای ته رسېدلی', terminated: 'فسخ شوی', shop: 'دوکان', apartment: 'اپارتمان', house: 'کور', block: 'بشپړ بلاک', noAssignment: 'تر اوسه کوم ملکیت نه دی سپارل شوی.', history: 'د قرارداد او سپارنې تاریخچه', contractNumber: 'د قرارداد شمېره', current: 'اوسنۍ سپارنه', availableOnly: 'یوازې فعال ځایونه ښودل کېږي.' },
+        profile: { overview: 'د پروفایل لنډیز', documents: 'شخصي اسناد', upload: 'اسناد پورته کول', privateHelp: 'د هویت او جواز فایلونه په شخصي ډول ساتل کېږي.', finance: 'کرایه او مالي چارې', financeHelp: 'د کرایې حساب، تادیات او پاتې پیسې به په راتلونکي مالي پړاو کې ونښلول شي.', printCard: 'د پېژند کارت چاپ', created: 'د ثبت نېټه', deactivate: 'غیرفعالول', activate: 'فعالول' },
+        card: { title: 'د مارکېټ کرایه‌دار کارت', responsible: 'مسؤل شخص', location: 'سپارل شوی ځای', code: 'د کرایه‌دار کوډ', print: 'کارت چاپول', back: 'پروفایل ته ستنېدل', scanHelp: 'د پروفایل خلاصولو لپاره سکین کړئ' },
+    },
     dashboardPage: {
         title: 'ډشبورډ',
         welcome: 'پکتیاوال ګروپ ته ښه راغلاست',
