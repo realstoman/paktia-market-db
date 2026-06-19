@@ -454,6 +454,7 @@ export interface Property {
     province_id?: number | null;
     province_object?: Province | null;
     is_active?: boolean;
+    display_order?: number;
     address: string;
     address_translations?: Partial<Record<'fa' | 'ps' | 'en', string>> | null;
     description: string;

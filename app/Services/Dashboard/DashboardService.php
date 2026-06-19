@@ -19,7 +19,8 @@ class DashboardService
         $finance = null;
         $properties = Property::query()
             ->withCount(['inventoryItems', 'employees', 'floors', 'units'])
-            ->orderBy('name', 'asc')
+            ->orderBy('display_order')
+            ->orderBy('id')
             ->get();
 
         if ($user->can(PermissionEnum::INVENTORY_VIEW->value)) {

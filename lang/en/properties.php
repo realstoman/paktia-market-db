@@ -12,5 +12,6 @@ return [
         'shop_added' => 'Shop added successfully.',
         'apartment_added' => 'Apartment added successfully.',
         'space_deleted' => 'Space deleted successfully.',
+        'order_updated' => 'Property order updated successfully.',
     ],
 ];

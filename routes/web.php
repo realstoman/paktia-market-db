@@ -96,6 +96,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('provinces', ProvinceController::class);
         Route::resource('properties', PropertyController::class);
         Route::post('properties/{property}/disable', [PropertyController::class, 'disable'])->name('properties.disable');
+        Route::patch('properties/{property}/order', [PropertyController::class, 'reorder'])->name('properties.order.update');
         Route::post('properties/{property}/floors', [PropertyController::class, 'storeFloor'])->name('properties.floors.store');
         Route::delete('properties/{property}/floors/{floor}', [PropertyController::class, 'destroyFloor'])->name('properties.floors.destroy');
         Route::post('properties/{property}/floors/{floor}/units', [PropertyController::class, 'storeUnit'])->name('properties.floors.units.store');

@@ -23,7 +23,8 @@ class PropertyController extends Controller
             'countries' => Country::orderBy('name')->get(),
             'provinces' => Province::orderBy('name')->get(),
             'propertyOptions' => Property::query()
-                ->orderBy('name')
+                ->orderBy('display_order')
+                ->orderBy('id')
                 ->get(['id', 'name', 'name_translations', 'property_type', 'country_id', 'province_id']),
         ]);
     }
@@ -40,7 +41,8 @@ class PropertyController extends Controller
             'provinces' => Province::orderBy('name')->get(),
             'propertyOptions' => Property::query()
                 ->whereKeyNot($property->id)
-                ->orderBy('name')
+                ->orderBy('display_order')
+                ->orderBy('id')
                 ->get(['id', 'name', 'name_translations', 'property_type', 'country_id', 'province_id']),
         ]);
     }
@@ -79,6 +81,17 @@ class PropertyController extends Controller
 
         return redirect()->route('properties.index')
             ->with('success', $message);
+    }
+
+    public function reorder(Request $request, PropertyService $service, Property $property)
+    {
+        $validated = $request->validate([
+            'direction' => ['required', Rule::in(['up', 'down'])],
+        ]);
+
+        $service->reorder($property, $validated['direction']);
+
+        return back()->with('success', __('properties.actions.order_updated'));
     }
 
     public function destroy(PropertyService $service, Property $property)
