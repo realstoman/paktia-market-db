@@ -107,7 +107,7 @@ function StatCard({
     };
 
     return (
-        <div className="flex items-center gap-4 rounded-2xl border border-[#dfe7e9] bg-white p-4 shadow-[0_8px_24px_rgba(18,63,74,0.04)] dark:border-neutral-800 dark:bg-neutral-900">
+        <div className="flex items-center gap-4 rounded-2xl border border-[#dfe7e9] bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
             <div
                 className={`flex size-11 shrink-0 items-center justify-center rounded-xl ${tones[accent]}`}
             >
@@ -170,20 +170,29 @@ function EmptyChart({ label }: { label: string }) {
 }
 
 export default function Dashboard({ data }: { data: DashboardData }) {
-    const { t } = useLocalization();
+    const { locale, t } = useLocalization();
     const [activeTab, setActiveTab] = useState<string>('overall');
-    const selectedProject = data.portfolio.projects.find(
+    const projects = useMemo(
+        () =>
+            [...data.portfolio.projects].sort((first, second) =>
+                first.name.localeCompare(second.name, locale, {
+                    sensitivity: 'base',
+                }),
+            ),
+        [data.portfolio.projects, locale],
+    );
+    const selectedProject = projects.find(
         (project) => String(project.id) === activeTab,
     );
 
     const overallProjectChart = useMemo(
         () =>
-            data.portfolio.projects.map((project) => ({
+            projects.map((project) => ({
                 name: project.name,
                 expenses: project.expensesAfn,
                 cash: project.cashPositionAfn,
             })),
-        [data.portfolio.projects],
+        [projects],
     );
     const overallPie = [
         {
@@ -244,7 +253,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
         <AppLayout>
             <Head title={t('propertyDashboard.title', 'Property dashboard')} />
 
-            <div className="mx-auto w-full max-w-[1680px] rounded-[26px] border border-[#dfe7e9] bg-[#f8fbfb] p-4 shadow-[0_18px_50px_rgba(18,63,74,0.06)] sm:p-6 dark:border-neutral-800 dark:bg-neutral-950">
+            <div className="mx-auto w-full max-w-[1680px] rounded-[26px] border border-[#dfe7e9] bg-[#f8fbfb] p-4 sm:p-6 dark:border-neutral-800 dark:bg-neutral-950">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                     <div>
                         <p className="text-xs font-semibold tracking-[0.2em] text-[#d3a450] uppercase">
@@ -266,7 +275,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                             )}
                         </p>
                     </div>
-                    <button className="h-11 rounded-xl bg-[#002452] px-5 text-sm font-semibold text-white shadow-sm hover:bg-[#001a3d]">
+                    <button className="h-11 rounded-xl bg-[#002452] px-5 text-sm font-semibold text-white hover:bg-[#001a3d]">
                         + {t('propertyDashboard.newRecord', 'New record')}
                     </button>
                 </div>
@@ -276,19 +285,19 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                         onClick={() => setActiveTab('overall')}
                         className={`shrink-0 rounded-xl px-5 py-2.5 text-sm font-semibold transition ${
                             activeTab === 'overall'
-                                ? 'bg-white text-[#002452] shadow-sm dark:bg-neutral-900 dark:text-white'
+                                ? 'bg-white text-[#002452] dark:bg-neutral-900 dark:text-white'
                                 : 'text-slate-500 hover:text-[#002452]'
                         }`}
                     >
                         {t('propertyDashboard.overall', 'Overall statistics')}
                     </button>
-                    {data.portfolio.projects.map((project) => (
+                    {projects.map((project) => (
                         <button
                             key={project.id}
                             onClick={() => setActiveTab(String(project.id))}
                             className={`shrink-0 rounded-xl px-5 py-2.5 text-sm font-semibold transition ${
                                 activeTab === String(project.id)
-                                    ? 'bg-white text-[#002452] shadow-sm dark:bg-neutral-900 dark:text-white'
+                                    ? 'bg-white text-[#002452] dark:bg-neutral-900 dark:text-white'
                                     : 'text-slate-500 hover:text-[#002452]'
                             }`}
                         >
@@ -537,8 +546,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {data.portfolio.projects.map(
-                                            (project) => (
+                                        {projects.map((project) => (
                                                 <tr
                                                     key={project.id}
                                                     className="border-b border-[#f0f3f4] last:border-0 dark:border-neutral-800"
@@ -584,8 +592,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                                         </span>
                                                     </td>
                                                 </tr>
-                                            ),
-                                        )}
+                                            ))}
                                     </tbody>
                                 </table>
                             </div>

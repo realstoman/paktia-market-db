@@ -72,7 +72,7 @@ export default function PropertyShow({
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={property.name} />
-            <div className="space-y-6">
+            <div className="space-y-6 [&_[data-slot=card]]:shadow-none">
                 <section className="relative min-h-64 overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-950 to-teal-700">
                     {property.image_url && (
                         <img

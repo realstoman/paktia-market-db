@@ -2822,6 +2822,11 @@ const en = {
         deleteSpace: 'Delete this space?',
         houseHelp:
             'House details are managed at property level. The complete house can later be assigned to one rental contract.',
+        uploadPhoto: 'Upload a property photo',
+        uploadPhotoHelp: 'PNG, JPG or WebP, up to 5 MB.',
+        choosePhoto: 'Choose photo',
+        selectedPhoto: 'Selected photo',
+        currentPhoto: 'Current property photo',
         fields: {
             name: 'Name',
             type: 'Property type',

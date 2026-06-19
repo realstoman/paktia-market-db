@@ -45,7 +45,7 @@ class PropertyService
     {
         $properties = Property::with(['country', 'province', 'parentProperty:id,name,name_translations'])
             ->withCount(['floors', 'units'])
-            ->latest()
+            ->orderBy('name', 'asc')
             ->get();
 
         $properties->transform(function (Property $property) {

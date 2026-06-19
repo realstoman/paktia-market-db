@@ -2792,6 +2792,11 @@ const ps = {
         deleteSpace: 'دا ځای حذف شي؟',
         houseHelp:
             'د کور معلومات د جایداد په کچه اداره کېږي او وروسته ټول کور یوه کرایي قرارداد ته سپارل کېږي.',
+        uploadPhoto: 'د جایداد انځور پورته کړئ',
+        uploadPhotoHelp: 'PNG، JPG یا WebP تر ۵ مېګابایټه پورې.',
+        choosePhoto: 'انځور وټاکئ',
+        selectedPhoto: 'ټاکل شوی انځور',
+        currentPhoto: 'د جایداد اوسنی انځور',
         fields: {
             name: 'نوم',
             type: 'د جایداد ډول',

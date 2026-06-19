@@ -2808,6 +2808,11 @@ const fa = {
         deleteSpace: 'این ساحه حذف شود؟',
         houseHelp:
             'جزئیات خانه در سطح جایداد مدیریت می‌شود و بعداً تمام خانه به یک قرارداد کرایی سپرده می‌شود.',
+        uploadPhoto: 'تصویر جایداد را آپلود کنید',
+        uploadPhotoHelp: 'PNG، JPG یا WebP تا حجم ۵ مگابایت.',
+        choosePhoto: 'انتخاب تصویر',
+        selectedPhoto: 'تصویر انتخاب‌شده',
+        currentPhoto: 'تصویر فعلی جایداد',
         fields: {
             name: 'نام',
             type: 'نوع جایداد',

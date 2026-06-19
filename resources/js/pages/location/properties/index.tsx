@@ -1,4 +1,5 @@
 import InputError from '@/components/input-error';
+import { PropertyImageUpload } from '@/components/properties/property-image-upload';
 import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { Badge } from '@/components/ui/badge';
@@ -125,7 +126,7 @@ export default function PropertiesPage({
     countries,
     provinces,
 }: Props) {
-    const { t } = useLocalization();
+    const { locale, t } = useLocalization();
     const [open, setOpen] = useState(false);
     const [search, setSearch] = useState('');
     const [type, setType] = useState('all');
@@ -137,15 +138,21 @@ export default function PropertiesPage({
     );
     const visible = useMemo(
         () =>
-            properties.filter((property) => {
-                const haystack =
-                    `${property.name} ${property.address ?? ''} ${resolveLocationName(property.province) ?? ''}`.toLowerCase();
-                return (
-                    (type === 'all' || property.property_type === type) &&
-                    haystack.includes(search.toLowerCase())
-                );
-            }),
-        [properties, search, type],
+            properties
+                .filter((property) => {
+                    const haystack =
+                        `${property.name} ${property.address ?? ''} ${resolveLocationName(property.province) ?? ''}`.toLowerCase();
+                    return (
+                        (type === 'all' || property.property_type === type) &&
+                        haystack.includes(search.toLowerCase())
+                    );
+                })
+                .sort((first, second) =>
+                    first.name.localeCompare(second.name, locale, {
+                        sensitivity: 'base',
+                    }),
+                ),
+        [locale, properties, search, type],
     );
 
     const submit = (event: FormEvent) => {
@@ -169,7 +176,7 @@ export default function PropertiesPage({
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={t('propertyWorkspace.title')} />
-            <div className="space-y-5">
+            <div className="space-y-5 [&_[data-slot=card]]:shadow-none">
                 <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
                     <div>
                         <h1 className="text-2xl font-semibold tracking-tight">
@@ -254,21 +261,6 @@ export default function PropertiesPage({
                                         emptyText={t(
                                             'propertyWorkspace.noOptions',
                                         )}
-                                    />
-                                </Field>
-                                <Field
-                                    label={t('propertyWorkspace.fields.photo')}
-                                    error={form.errors.image}
-                                >
-                                    <Input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={(event) =>
-                                            form.setData(
-                                                'image',
-                                                event.target.files?.[0] ?? null,
-                                            )
-                                        }
                                     />
                                 </Field>
                                 <Field
@@ -449,6 +441,14 @@ export default function PropertiesPage({
                                         />
                                     </>
                                 )}
+                                <PropertyImageUpload
+                                    value={form.data.image}
+                                    onChange={(file) =>
+                                        form.setData('image', file)
+                                    }
+                                    error={form.errors.image}
+                                    className="sm:col-span-2 lg:col-span-3"
+                                />
                                 <div className="flex justify-end gap-2 border-t pt-4 sm:col-span-2 lg:col-span-3">
                                     <Button
                                         type="button"
@@ -661,7 +661,7 @@ function PropertyCard({ property }: { property: Property }) {
 
     return (
         <Link href={`/properties/${property.id}`} className="group">
-            <Card className="h-full overflow-hidden p-0 transition hover:border-primary/30 hover:shadow-md">
+            <Card className="h-full overflow-hidden p-0 shadow-none transition hover:border-primary/30 hover:shadow-[0_4px_14px_rgba(15,23,42,0.05)]">
                 <div className="relative h-40 overflow-hidden bg-muted">
                     {property.image_url ? (
                         <img

@@ -7,6 +7,7 @@ use App\Models\Province;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Support\Facades\App;
+use Inertia\Testing\AssertableInertia as Assert;
 
 beforeEach(function () {
     $this->seed(RolePermissionSeeder::class);
@@ -25,6 +26,27 @@ function propertyLocation(): array
 
     return [$country, $province];
 }
+
+test('properties are displayed in ascending name order', function () {
+    [$country, $province] = propertyLocation();
+
+    foreach (['Zahir Plaza', 'Ahmad Market', 'Central Block'] as $name) {
+        Property::query()->create([
+            'name' => $name,
+            'property_type' => 'market',
+            'usage_type' => 'commercial',
+            'country_id' => $country->id,
+            'province_id' => $province->id,
+        ]);
+    }
+
+    $this->get(route('properties.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('properties.0.name', 'Ahmad Market')
+            ->where('properties.1.name', 'Central Block')
+            ->where('properties.2.name', 'Zahir Plaza'));
+});
 
 test('a market can be registered with its portfolio details', function () {
     [$country, $province] = propertyLocation();
