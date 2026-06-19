@@ -49,8 +49,8 @@ const categoryConfig = {
     employees: {
         label: 'Employees',
         icon: BriefcaseBusiness,
-        accent: 'bg-[#e8f0f1] text-[#123f4a] ring-[#123f4a]/15 dark:bg-[#123f4a]/20 dark:text-sky-100',
-        dot: 'bg-[#123f4a]',
+        accent: 'bg-brand-primary/8 text-brand-primary ring-brand-primary/15 dark:bg-brand-primary/20 dark:text-sky-100',
+        dot: 'bg-brand-primary',
     },
     inventory: {
         label: 'Inventory',
@@ -243,7 +243,7 @@ export function HeaderNotifications() {
                 <Button
                     variant="ghost"
                     size="icon"
-                    className="relative size-10 rounded-full border border-[#dfe7e9] bg-white text-[#123f4a] shadow-sm shadow-slate-950/3 transition-all duration-300 hover:border-brand-primary/30 hover:bg-brand-primary/5 hover:text-brand-primary dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200"
+                    className="relative size-10 rounded-full border border-[#dfe7e9] bg-white text-brand-primary shadow-sm shadow-slate-950/3 transition-all duration-300 hover:border-brand-primary/30 hover:bg-brand-primary/5 hover:text-brand-primary dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200"
                 >
                     <Bell className="h-4.5 w-4.5" />
                     {unreadCount > 0 && (
@@ -299,7 +299,7 @@ export function HeaderNotifications() {
                                     isRtl && 'justify-end',
                                 )}
                             >
-                                <h3 className="text-lg font-bold text-[#123f4a] dark:text-white">
+                                <h3 className="text-lg font-bold text-brand-primary dark:text-white">
                                     {t(
                                         'notifications.recentActivity',
                                         'Recent activity',
@@ -454,7 +454,7 @@ export function HeaderNotifications() {
                                 <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-primary text-white shadow-lg shadow-brand-primary/15">
                                     <Bell className="h-5 w-5" />
                                 </div>
-                                <p className="text-sm font-semibold text-[#123f4a] dark:text-white">
+                                <p className="text-sm font-semibold text-brand-primary dark:text-white">
                                     {t(
                                         'notifications.empty.title',
                                         'No notifications yet',
@@ -472,7 +472,7 @@ export function HeaderNotifications() {
                                 <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-primary text-white shadow-lg shadow-brand-primary/15">
                                     <Bell className="h-5 w-5" />
                                 </div>
-                                <p className="text-sm font-semibold text-[#123f4a] dark:text-white">
+                                <p className="text-sm font-semibold text-brand-primary dark:text-white">
                                     {t(
                                         'notifications.emptyCategory.title',
                                         'No items in this category',
@@ -559,7 +559,7 @@ export function HeaderNotifications() {
                                                                 'justify-end',
                                                         )}
                                                     >
-                                                        <p className="text-sm font-bold text-[#123f4a] dark:text-white">
+                                                        <p className="text-sm font-bold text-brand-primary dark:text-white">
                                                             {notification.title}
                                                         </p>
                                                         <Badge

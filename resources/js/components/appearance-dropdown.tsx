@@ -35,7 +35,7 @@ export default function AppearanceToggleDropdown({
                     <Button
                         variant="ghost"
                         size="icon"
-                        className="relative size-10 rounded-full border border-[#dfe7e9] bg-white text-[#123f4a] shadow-sm shadow-slate-950/3 transition-all duration-300 hover:border-brand-primary/30 hover:bg-brand-primary/5 hover:text-brand-primary dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200"
+                        className="relative size-10 rounded-full border border-[#dfe7e9] bg-white text-brand-primary shadow-sm shadow-slate-950/3 transition-all duration-300 hover:border-brand-primary/30 hover:bg-brand-primary/5 hover:text-brand-primary dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200"
                     >
                         {getCurrentIcon()}
                         <span className="sr-only">

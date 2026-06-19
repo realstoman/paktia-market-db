@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Storage;
 class SystemBrandingService
 {
     public const CACHE_KEY = 'system:branding:v1';
+
     public const CACHE_TTL_SECONDS = 86400; // 24h, also busted on update().
 
     /**
@@ -64,7 +65,7 @@ class SystemBrandingService
     }
 
     /**
-     * @param array<string, mixed> $data
+     * @param  array<string, mixed>  $data
      */
     public function update(array $data): void
     {

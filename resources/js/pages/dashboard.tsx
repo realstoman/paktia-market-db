@@ -192,7 +192,10 @@ export default function Dashboard({ data }: { data: DashboardData }) {
             color: COLORS.green,
         },
         {
-            name: t('propertyDashboard.inactiveProjects', 'Inactive properties'),
+            name: t(
+                'propertyDashboard.inactiveProjects',
+                'Inactive properties',
+            ),
             value: Math.max(
                 0,
                 data.portfolio.totalProjects - data.portfolio.activeProjects,

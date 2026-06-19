@@ -227,7 +227,7 @@ export default function InventoryPage({
             <Head title={t('inventory.page.title', 'Inventory')} />
             <div className="mx-auto w-full max-w-[1680px] space-y-6 pb-8">
                 <section className="relative overflow-hidden rounded-[2rem] bg-[#102f33] p-6 text-white shadow-xl shadow-[#102f33]/10 sm:p-8">
-                    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(58,181,157,0.28),transparent_38%),radial-gradient(circle_at_bottom_left,rgba(242,162,12,0.16),transparent_34%)]" />
+                    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(0,36,82,0.28),transparent_38%),radial-gradient(circle_at_bottom_left,rgba(211,164,80,0.16),transparent_34%)]" />
                     <div className="pointer-events-none absolute inset-0 [background-image:linear-gradient(rgba(255,255,255,.5)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.5)_1px,transparent_1px)] [background-size:32px_32px] opacity-[0.08]" />
                     <div className="relative flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
                         <div className="max-w-3xl">
