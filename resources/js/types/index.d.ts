@@ -60,6 +60,14 @@ export interface SharedData {
         loginWelcome?: {
             id: string;
         } | null;
+        success?: {
+            id: string;
+            message: string;
+        } | null;
+        error?: {
+            id: string;
+            message: string;
+        } | null;
     };
     unauthorizedAccess?: {
         show: boolean;

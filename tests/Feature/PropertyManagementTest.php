@@ -48,6 +48,19 @@ test('properties are displayed in ascending name order', function () {
             ->where('properties.2.name', 'Zahir Plaza'));
 });
 
+test('success and error flashes are shared as global toast messages', function () {
+    $this->withSession([
+        'success' => 'Record saved successfully.',
+        'error' => 'The record could not be saved.',
+    ])->get(route('properties.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('flash.success.message', 'Record saved successfully.')
+            ->has('flash.success.id')
+            ->where('flash.error.message', 'The record could not be saved.')
+            ->has('flash.error.id'));
+});
+
 test('a market can be registered with its portfolio details', function () {
     [$country, $province] = propertyLocation();
 
@@ -62,7 +75,8 @@ test('a market can be registered with its portfolio details', function () {
         'building_area_sqm' => 1800,
         'declared_floors' => 4,
         'declared_units' => 120,
-    ])->assertRedirect(route('properties.index'));
+    ])->assertRedirect(route('properties.index'))
+        ->assertSessionHas('success', __('properties.actions.created'));
 
     $this->assertDatabaseHas('properties', [
         'name' => 'Central Market',

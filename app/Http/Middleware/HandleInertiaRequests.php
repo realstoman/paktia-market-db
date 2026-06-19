@@ -8,6 +8,7 @@ use App\Services\Settings\SystemBrandingService;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -52,6 +53,8 @@ class HandleInertiaRequests extends Middleware
             'notifications' => fn () => $this->buildNotifications($request),
             'flash' => fn () => [
                 'loginWelcome' => $this->resolveLoginWelcomeToast($request),
+                'success' => $this->resolveFlashToast($request, 'success'),
+                'error' => $this->resolveFlashToast($request, 'error'),
             ],
             'unauthorizedAccess' => fn () => $this->resolveUnauthorizedAccess($request),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
@@ -90,6 +93,23 @@ class HandleInertiaRequests extends Middleware
 
         return [
             'id' => (string) $flash['id'],
+        ];
+    }
+
+    /**
+     * @return array<string, string>|null
+     */
+    private function resolveFlashToast(Request $request, string $type): ?array
+    {
+        $message = $request->session()->get($type);
+
+        if (! is_string($message) || blank($message)) {
+            return null;
+        }
+
+        return [
+            'id' => $type.'-'.Str::uuid(),
+            'message' => $message,
         ];
     }
 

@@ -14,6 +14,7 @@ import { initializeTheme } from './hooks/use-appearance';
 
 const appName = 'Paktiawal Group';
 const displayedLoginWelcomeToasts = new Set<string>();
+const displayedFlashToasts = new Set<string>();
 
 function welcomeToastMessage(pageProps: Partial<SharedData>): string {
     const locale = (pageProps.localization?.locale ?? 'fa') as LocaleCode;
@@ -59,19 +60,70 @@ function showLoginWelcomeToast(pageProps: Partial<SharedData>) {
     });
 }
 
-function LoginWelcomeToast({
+function flashToastPosition(
+    pageProps: Partial<SharedData>,
+): 'top-left' | 'top-right' {
+    return pageProps.localization?.isRtl ? 'top-left' : 'top-right';
+}
+
+function showFlashToasts(
+    pageProps: Partial<SharedData>,
+    toastHistoryAtVisitStart: number,
+) {
+    (['success', 'error'] as const).forEach((type) => {
+        const flash = pageProps.flash?.[type];
+
+        if (!flash?.id || displayedFlashToasts.has(flash.id)) {
+            return;
+        }
+
+        displayedFlashToasts.add(flash.id);
+
+        window.setTimeout(() => {
+            // Some feature screens already provide a more specific local toast.
+            // Prefer that message when one was emitted during this visit.
+            if (toast.getHistory().length > toastHistoryAtVisitStart) {
+                return;
+            }
+
+            toast[type](flash.message, {
+                id: `flash-${flash.id}`,
+                position: flashToastPosition(pageProps),
+                duration: type === 'success' ? 4500 : 6000,
+                classNames: {
+                    title: pageProps.localization?.isRtl
+                        ? 'text-right leading-6'
+                        : undefined,
+                },
+            });
+        }, 0);
+    });
+}
+
+function GlobalToastListener({
     initialPageProps,
 }: {
     initialPageProps: Partial<SharedData>;
 }) {
     useEffect(() => {
+        let toastHistoryAtVisitStart = toast.getHistory().length;
+
         showLoginWelcomeToast(initialPageProps);
+        showFlashToasts(initialPageProps, toastHistoryAtVisitStart);
+
+        const removeBeforeListener = router.on('before', () => {
+            toastHistoryAtVisitStart = toast.getHistory().length;
+        });
 
         const removeNavigateListener = router.on('navigate', (event) => {
-            showLoginWelcomeToast(event.detail.page.props as SharedData);
+            const pageProps = event.detail.page.props as SharedData;
+
+            showLoginWelcomeToast(pageProps);
+            showFlashToasts(pageProps, toastHistoryAtVisitStart);
         });
 
         return () => {
+            removeBeforeListener();
             removeNavigateListener();
         };
     }, [initialPageProps]);
@@ -86,13 +138,7 @@ function AppWithGlobalOverlays({
     App: React.ComponentType<unknown>;
     props: Record<string, unknown>;
 }) {
-    const sharedProps = (props?.initialPage?.props ?? {}) as {
-        unauthorizedAccess?: {
-            show: boolean;
-            path?: string | null;
-        } | null;
-        localization?: SharedData['localization'];
-    };
+    const sharedProps = (props?.initialPage?.props ?? {}) as Partial<SharedData>;
 
     return (
         <>
@@ -108,7 +154,7 @@ function AppWithGlobalOverlays({
                     }
                 }
             />
-            <LoginWelcomeToast initialPageProps={sharedProps} />
+            <GlobalToastListener initialPageProps={sharedProps} />
         </>
     );
 }
