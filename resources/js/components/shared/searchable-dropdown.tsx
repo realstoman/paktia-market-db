@@ -126,8 +126,7 @@ export function SearchableDropdown({
                     <CommandInput
                         className={cn(isRtl && 'text-right')}
                         placeholder={
-                            searchPlaceholder ||
-                            t('common.search', 'Search…')
+                            searchPlaceholder || t('common.search', 'Search…')
                         }
                         value={resolvedSearchValue}
                         onValueChange={handleSearchChange}
@@ -168,8 +167,7 @@ export function SearchableDropdown({
                                     >
                                         {option.label}
                                     </span>
-                                    {isRtl &&
-                                        checkIcon(value === option.value)}
+                                    {isRtl && checkIcon(value === option.value)}
                                 </CommandItem>
                             ))}
                         </CommandGroup>

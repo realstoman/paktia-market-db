@@ -1,5 +1,6 @@
 import InputError from '@/components/input-error';
 import { NumericInput } from '@/components/shared/numeric-input';
+import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -29,23 +30,16 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
 import {
-    Property,
     Currency,
     InventoryCategory,
     InventoryItem,
     InventoryItemImage,
     InventoryType,
+    Property,
     SharedData,
     Unit,
     Vendor,
@@ -141,7 +135,9 @@ export const CellAction: React.FC<CellActionProps> = ({
     );
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [editPropertyId, setEditPropertyId] = useState(String(data.property_id));
+    const [editPropertyId, setEditPropertyId] = useState(
+        String(data.property_id),
+    );
     const [editName, setEditName] = useState(data.name);
     const [editTypeId, setEditTypeId] = useState(
         data.inventory_type_id ? String(data.inventory_type_id) : '',
@@ -443,12 +439,17 @@ export const CellAction: React.FC<CellActionProps> = ({
 
     return (
         <>
-            {canViewInventory || canAdjustInventory || canDeleteInventoryItem ? (
+            {canViewInventory ||
+            canAdjustInventory ||
+            canDeleteInventoryItem ? (
                 <DropdownMenu modal={false}>
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="h-8 w-8 p-0">
                             <span className="sr-only">
-                                {t('inventory.rowActions.openMenu', 'Open menu')}
+                                {t(
+                                    'inventory.rowActions.openMenu',
+                                    'Open menu',
+                                )}
                             </span>
                             <MoreHorizontal className="h-4 w-4" />
                         </Button>
@@ -458,7 +459,9 @@ export const CellAction: React.FC<CellActionProps> = ({
                             {t('inventory.rowActions.actions', 'Actions')}
                         </DropdownMenuLabel>
                         {canViewInventory ? (
-                            <DropdownMenuItem onClick={() => setIsDetailsOpen(true)}>
+                            <DropdownMenuItem
+                                onClick={() => setIsDetailsOpen(true)}
+                            >
                                 <Eye className="mr-2 h-4 w-4" />
                                 {t('inventory.rowActions.details', 'Details')}
                             </DropdownMenuItem>
@@ -486,7 +489,9 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </DropdownMenuItem>
                         ) : null}
                         {canAdjustInventory ? (
-                            <DropdownMenuItem onClick={() => setIsRestockOpen(true)}>
+                            <DropdownMenuItem
+                                onClick={() => setIsRestockOpen(true)}
+                            >
                                 <PackagePlus className="mr-2 h-4 w-4" />
                                 {t('inventory.rowActions.restock', 'Restock')}
                             </DropdownMenuItem>
@@ -581,7 +586,9 @@ export const CellAction: React.FC<CellActionProps> = ({
                     <div className="max-h-[68vh] overflow-y-auto pr-1">
                         <div className="grid gap-4 sm:grid-cols-2">
                             <div className="grid gap-2">
-                                <Label>{t('inventory.common.name', 'Name')}</Label>
+                                <Label>
+                                    {t('inventory.common.name', 'Name')}
+                                </Label>
                                 <Input
                                     value={editName}
                                     onChange={(event) =>
@@ -591,173 +598,132 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <InputError message={editErrors.name} />
                             </div>
                             <div className="grid gap-2">
-                                <Label>{t('inventory.common.property', 'Property')}</Label>
-                                <Select
+                                <Label>
+                                    {t('inventory.common.property', 'Property')}
+                                </Label>
+                                <SearchableDropdown
                                     value={editPropertyId}
                                     onValueChange={setEditPropertyId}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue
-                                            placeholder={t(
-                                                'inventory.common.selectProperty',
-                                                'Select property',
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {properties.map((property) => (
-                                            <SelectItem
-                                                key={property.id}
-                                                value={String(property.id)}
-                                            >
-                                                {property.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                    options={properties.map((property) => ({
+                                        value: String(property.id),
+                                        label: property.name,
+                                    }))}
+                                    placeholder={t(
+                                        'inventory.common.selectProperty',
+                                        'Select property',
+                                    )}
+                                />
                                 <InputError message={editErrors.property_id} />
                             </div>
                             <div className="grid gap-2">
-                                <Label>{t('inventory.common.type', 'Type')}</Label>
-                                <Select
+                                <Label>
+                                    {t('inventory.common.type', 'Type')}
+                                </Label>
+                                <SearchableDropdown
                                     value={editTypeId}
                                     onValueChange={setEditTypeId}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue
-                                            placeholder={t(
-                                                'inventory.common.selectType',
-                                                'Select type',
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {inventoryTypes.map((entry) => (
-                                            <SelectItem
-                                                key={entry.id}
-                                                value={String(entry.id)}
-                                            >
-                                                {entry.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                    options={inventoryTypes.map((entry) => ({
+                                        value: String(entry.id),
+                                        label: entry.name,
+                                    }))}
+                                    placeholder={t(
+                                        'inventory.common.selectType',
+                                        'Select type',
+                                    )}
+                                />
                                 <InputError
                                     message={editErrors.inventory_type_id}
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label>{t('inventory.common.vendor', 'Vendor')}</Label>
-                                <Select
+                                <Label>
+                                    {t('inventory.common.vendor', 'Vendor')}
+                                </Label>
+                                <SearchableDropdown
                                     value={editVendorId}
                                     onValueChange={setEditVendorId}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue
-                                            placeholder={t(
-                                                'inventory.common.selectVendor',
-                                                'Select vendor',
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value={VENDOR_NONE}>
-                                            {t('inventory.common.noVendor', 'No Vendor')}
-                                        </SelectItem>
-                                        {vendors.map((vendor) => (
-                                            <SelectItem
-                                                key={vendor.id}
-                                                value={String(vendor.id)}
-                                            >
-                                                {vendor.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                    options={[
+                                        {
+                                            value: VENDOR_NONE,
+                                            label: t(
+                                                'inventory.common.noVendor',
+                                                'No Vendor',
+                                            ),
+                                        },
+                                        ...vendors.map((vendor) => ({
+                                            value: String(vendor.id),
+                                            label: vendor.name,
+                                        })),
+                                    ]}
+                                    placeholder={t(
+                                        'inventory.common.selectVendor',
+                                        'Select vendor',
+                                    )}
+                                />
                                 <InputError message={editErrors.vendor_id} />
                             </div>
                             <div className="grid gap-2">
-                                <Label>{t('inventory.common.currency', 'Currency')}</Label>
-                                <Select
+                                <Label>
+                                    {t('inventory.common.currency', 'Currency')}
+                                </Label>
+                                <SearchableDropdown
                                     value={editCurrencyCode}
                                     onValueChange={setEditCurrencyCode}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue
-                                            placeholder={t(
-                                                'inventory.common.selectCurrency',
-                                                'Select currency',
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {currencies.map((currency) => (
-                                            <SelectItem
-                                                key={currency.id}
-                                                value={currency.code}
-                                            >
-                                                {currency.code} (
-                                                {currency.symbol})
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                    options={currencies.map((currency) => ({
+                                        value: currency.code,
+                                        label:
+                                            currency.code +
+                                            ' (' +
+                                            currency.symbol +
+                                            ')',
+                                    }))}
+                                    placeholder={t(
+                                        'inventory.common.selectCurrency',
+                                        'Select currency',
+                                    )}
+                                />
                                 <InputError
                                     message={editErrors.currency_code}
                                 />
                             </div>
                             <div className="grid gap-2">
-                                <Label>{t('inventory.common.unitLabel', 'Unit')}</Label>
-                                <Select
+                                <Label>
+                                    {t('inventory.common.unitLabel', 'Unit')}
+                                </Label>
+                                <SearchableDropdown
                                     value={editUnitId}
                                     onValueChange={setEditUnitId}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue
-                                            placeholder={t(
-                                                'inventory.common.selectUnit',
-                                                'Select unit',
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {units.map((entry) => (
-                                            <SelectItem
-                                                key={entry.id}
-                                                value={String(entry.id)}
-                                            >
-                                                {entry.name} ({entry.symbol})
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                    options={units.map((entry) => ({
+                                        value: String(entry.id),
+                                        label:
+                                            entry.name +
+                                            ' (' +
+                                            entry.symbol +
+                                            ')',
+                                    }))}
+                                    placeholder={t(
+                                        'inventory.common.selectUnit',
+                                        'Select unit',
+                                    )}
+                                />
                                 <InputError message={editErrors.unit_id} />
                             </div>
                             <div className="grid gap-2">
-                                <Label>{t('inventory.common.category', 'Category')}</Label>
-                                <Select
+                                <Label>
+                                    {t('inventory.common.category', 'Category')}
+                                </Label>
+                                <SearchableDropdown
                                     value={editCategoryId}
                                     onValueChange={setEditCategoryId}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue
-                                            placeholder={t(
-                                                'inventory.common.selectCategory',
-                                                'Select category',
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {categories.map((entry) => (
-                                            <SelectItem
-                                                key={entry.id}
-                                                value={String(entry.id)}
-                                            >
-                                                {entry.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                    options={categories.map((entry) => ({
+                                        value: String(entry.id),
+                                        label: entry.name,
+                                    }))}
+                                    placeholder={t(
+                                        'inventory.common.selectCategory',
+                                        'Select category',
+                                    )}
+                                />
                                 <InputError message={editErrors.category_id} />
                             </div>
                             <div className="grid gap-2">
@@ -773,7 +739,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </div>
                             <div className="grid gap-2">
                                 <Label>
-                                    {t('inventory.common.singlePrice', 'Single Price')}{' '}
+                                    {t(
+                                        'inventory.common.singlePrice',
+                                        'Single Price',
+                                    )}{' '}
                                     {editCurrencySymbol}
                                 </Label>
                                 <NumericInput
@@ -785,7 +754,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </div>
                             <div className="grid gap-2">
                                 <Label>
-                                    {t('inventory.common.totalPriceAuto', 'Total Price (Auto)')}{' '}
+                                    {t(
+                                        'inventory.common.totalPriceAuto',
+                                        'Total Price (Auto)',
+                                    )}{' '}
                                     {editCurrencySymbol}
                                 </Label>
                                 <Input
@@ -796,7 +768,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </div>
                             <div className="grid gap-2">
                                 <Label>
-                                    {t('inventory.common.paidAmount', 'Paid Amount')}{' '}
+                                    {t(
+                                        'inventory.common.paidAmount',
+                                        'Paid Amount',
+                                    )}{' '}
                                     {editCurrencySymbol}
                                 </Label>
                                 <NumericInput
@@ -835,13 +810,19 @@ export const CellAction: React.FC<CellActionProps> = ({
                                         }
                                     />
                                     <span className="text-sm text-muted-foreground">
-                                        {t('inventory.common.usableItem', 'Usable item')}
+                                        {t(
+                                            'inventory.common.usableItem',
+                                            'Usable item',
+                                        )}
                                     </span>
                                 </div>
                             </div>
                             <div className="grid gap-2 sm:col-span-2">
                                 <Label>
-                                    {t('inventory.common.description', 'Description')}
+                                    {t(
+                                        'inventory.common.description',
+                                        'Description',
+                                    )}
                                 </Label>
                                 <Textarea
                                     value={editDescription}
@@ -886,8 +867,11 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 ) : null}
                                 {editReceipt ? (
                                     <p className="text-xs text-muted-foreground">
-                                        {t('inventory.common.newFile', 'New file')}:
-                                        {' '}{editReceipt.name}
+                                        {t(
+                                            'inventory.common.newFile',
+                                            'New file',
+                                        )}
+                                        : {editReceipt.name}
                                     </p>
                                 ) : null}
                                 <InputError message={editErrors.receipt} />
@@ -979,7 +963,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                                             className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-neutral-300 px-3 py-2 text-sm hover:bg-neutral-50 dark:border-neutral-700 dark:hover:bg-neutral-900"
                                         >
                                             <ImagePlus className="h-4 w-4" />
-                                            {t('inventory.common.selectImages', 'Select Images')}
+                                            {t(
+                                                'inventory.common.selectImages',
+                                                'Select Images',
+                                            )}
                                         </Label>
                                     </div>
                                     <Input
@@ -1099,7 +1086,8 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </p>
                             <p className="font-medium">
                                 {Number(data.quantity)}{' '}
-                                {data.unit ?? t('inventory.common.unit', 'unit')}
+                                {data.unit ??
+                                    t('inventory.common.unit', 'unit')}
                             </p>
                         </div>
                         <div>
@@ -1114,7 +1102,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                         </div>
                         <div>
                             <p className="text-xs text-muted-foreground">
-                                {t('inventory.common.singlePrice', 'Single Price')}
+                                {t(
+                                    'inventory.common.singlePrice',
+                                    'Single Price',
+                                )}
                             </p>
                             <p className="font-medium">
                                 {`${data.currency_symbol ?? ''}${formatPrice(data.unit_price ?? 0)}`}
@@ -1122,7 +1113,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                         </div>
                         <div>
                             <p className="text-xs text-muted-foreground">
-                                {t('inventory.common.totalPrice', 'Total Price')}
+                                {t(
+                                    'inventory.common.totalPrice',
+                                    'Total Price',
+                                )}
                             </p>
                             <p className="font-medium">
                                 {`${data.currency_symbol ?? ''}${formatPrice(
@@ -1133,7 +1127,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                         </div>
                         <div>
                             <p className="text-xs text-muted-foreground">
-                                {t('inventory.common.paidAmount', 'Paid Amount')}
+                                {t(
+                                    'inventory.common.paidAmount',
+                                    'Paid Amount',
+                                )}
                             </p>
                             <p className="font-medium">
                                 {`${data.currency_symbol ?? ''}${formatPrice(data.paid_amount ?? 0)}`}
@@ -1174,7 +1171,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                         </div>
                         <div className="sm:col-span-2">
                             <p className="text-xs text-muted-foreground">
-                                {t('inventory.common.description', 'Description')}
+                                {t(
+                                    'inventory.common.description',
+                                    'Description',
+                                )}
                             </p>
                             <p className="font-medium">
                                 {data.description || '-'}
@@ -1228,10 +1228,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                 <DialogContent className="max-h-[90vh] overflow-hidden sm:max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>
-                            {t(
-                                'inventory.usageHistory.title',
-                                'Usage History',
-                            )}{' '}
+                            {t('inventory.usageHistory.title', 'Usage History')}{' '}
                             - {data.name}
                         </DialogTitle>
                         <DialogDescription>
@@ -1279,11 +1276,14 @@ export const CellAction: React.FC<CellActionProps> = ({
                                             Number(transaction.quantity || 0),
                                         );
                                         const dateLabel = transaction.created_at
-                                            ? new Intl.DateTimeFormat(dateLocale, {
-                                                  year: 'numeric',
-                                                  month: 'short',
-                                                  day: 'numeric',
-                                              }).format(
+                                            ? new Intl.DateTimeFormat(
+                                                  dateLocale,
+                                                  {
+                                                      year: 'numeric',
+                                                      month: 'short',
+                                                      day: 'numeric',
+                                                  },
+                                              ).format(
                                                   new Date(
                                                       transaction.created_at,
                                                   ),
@@ -1349,7 +1349,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     'inventory.rowActions.quantityToAdd',
                                     'Quantity to add',
                                 )}{' '}
-                                ({data.unit ?? t('inventory.common.unit', 'unit')})
+                                (
+                                {data.unit ??
+                                    t('inventory.common.unit', 'unit')}
+                                )
                             </Label>
                             <NumericInput
                                 id={`restock-qty-${data.id}`}
@@ -1381,34 +1384,27 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     <Label
                                         htmlFor={`restock-currency-${data.id}`}
                                     >
-                                        {t('inventory.common.currency', 'Currency')}
+                                        {t(
+                                            'inventory.common.currency',
+                                            'Currency',
+                                        )}
                                     </Label>
-                                    <Select
+                                    <SearchableDropdown
                                         value={restockCurrencyCode}
                                         onValueChange={setRestockCurrencyCode}
-                                    >
-                                        <SelectTrigger
-                                            id={`restock-currency-${data.id}`}
-                                        >
-                                            <SelectValue
-                                                placeholder={t(
-                                                    'inventory.common.selectCurrency',
-                                                    'Select currency',
-                                                )}
-                                            />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {currencies.map((currency) => (
-                                                <SelectItem
-                                                    key={currency.id}
-                                                    value={currency.code}
-                                                >
-                                                    {currency.code} (
-                                                    {currency.symbol})
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
+                                        options={currencies.map((currency) => ({
+                                            value: currency.code,
+                                            label:
+                                                currency.code +
+                                                ' (' +
+                                                currency.symbol +
+                                                ')',
+                                        }))}
+                                        placeholder={t(
+                                            'inventory.common.selectCurrency',
+                                            'Select currency',
+                                        )}
+                                    />
                                     <InputError
                                         message={errors.currency_code}
                                     />
@@ -1433,7 +1429,10 @@ export const CellAction: React.FC<CellActionProps> = ({
                         ) : null}
                         <div className="grid gap-2">
                             <Label htmlFor={`restock-note-${data.id}`}>
-                                {t('inventory.common.noteOptional', 'Note (optional)')}
+                                {t(
+                                    'inventory.common.noteOptional',
+                                    'Note (optional)',
+                                )}
                             </Label>
                             <Textarea
                                 id={`restock-note-${data.id}`}
@@ -1478,8 +1477,8 @@ export const CellAction: React.FC<CellActionProps> = ({
                             ) : null}
                             {restockReceipt ? (
                                 <p className="text-xs text-muted-foreground">
-                                    {t('inventory.common.newFile', 'New file')}:
-                                    {' '}{restockReceipt.name}
+                                    {t('inventory.common.newFile', 'New file')}:{' '}
+                                    {restockReceipt.name}
                                 </p>
                             ) : null}
                             <InputError message={errors.receipt} />

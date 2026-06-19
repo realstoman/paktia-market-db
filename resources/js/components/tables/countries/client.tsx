@@ -1,5 +1,6 @@
 import InputError from '@/components/input-error';
 import Heading from '@/components/shared/heading';
+import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -11,13 +12,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
 import { Country } from '@/types';
@@ -292,24 +286,15 @@ export const CountriesClient: React.FC<CountriesClientProps> = ({
                     <div className="grid gap-4">
                         <div className="grid gap-2">
                             <Label>Country</Label>
-                            <Select
+                            <SearchableDropdown
                                 value={provinceCountryId}
                                 onValueChange={setProvinceCountryId}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select country" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {data.map((country) => (
-                                        <SelectItem
-                                            key={country.id}
-                                            value={String(country.id)}
-                                        >
-                                            {country.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                                options={data.map((country) => ({
+                                    value: String(country.id),
+                                    label: country.name,
+                                }))}
+                                placeholder="Select country"
+                            />
                             <InputError message={provinceErrors.country_id} />
                         </div>
                         <div className="grid gap-2">

@@ -1,7 +1,6 @@
 'use client';
 
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
-import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
 import { Button } from '@/components/ui/button';
 import {
     Card,
@@ -10,16 +9,10 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
+import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option';
 import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
-import { Property, BreadcrumbItem, SharedData } from '@/types';
+import { BreadcrumbItem, Property, SharedData } from '@/types';
 import { formatAfn, formatNumber } from '@/utils/format';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
@@ -218,18 +211,21 @@ function localizeProjectionMessage(
             'financeDashboard.projection.message.current',
             'Projection data is current for the selected finance view.',
         ),
-        'Some property projections are lagging behind the selected finance window.': t(
-            'financeDashboard.projection.message.lagging',
-            'Some property projections are lagging behind the selected finance window.',
-        ),
-        'Projection data is stale. Finance metrics may be outdated until projections refresh.': t(
-            'financeDashboard.projection.message.stale',
-            'Projection data is stale. Finance metrics may be outdated until projections refresh.',
-        ),
-        'Projection status is unavailable right now. Finance metrics are falling back to transactional reads.': t(
-            'financeDashboard.projection.message.unavailable',
-            'Projection status is unavailable right now. Finance metrics are falling back to transactional reads.',
-        ),
+        'Some property projections are lagging behind the selected finance window.':
+            t(
+                'financeDashboard.projection.message.lagging',
+                'Some property projections are lagging behind the selected finance window.',
+            ),
+        'Projection data is stale. Finance metrics may be outdated until projections refresh.':
+            t(
+                'financeDashboard.projection.message.stale',
+                'Projection data is stale. Finance metrics may be outdated until projections refresh.',
+            ),
+        'Projection status is unavailable right now. Finance metrics are falling back to transactional reads.':
+            t(
+                'financeDashboard.projection.message.unavailable',
+                'Projection status is unavailable right now. Finance metrics are falling back to transactional reads.',
+            ),
     };
 
     return messageMap[message] ?? message;
@@ -248,14 +244,16 @@ function localizeFinanceNote(
             'financeDashboard.notes.grossProfitPosted',
             'Gross profit is using posted inventory cost movements.',
         ),
-        'Inventory costing data is still unavailable, so gross profit is pending until stock valuation coverage is complete.': t(
-            'financeDashboard.notes.grossProfitPending',
-            'Inventory costing data is still unavailable, so gross profit is pending until stock valuation coverage is complete.',
-        ),
-        'Cash position is a running balance from all-time cash sales (including legacy completed orders without payment rows), cash expenses, and approved cash movements. Date filters do not reduce this balance.': t(
-            'financeDashboard.notes.cashPosition',
-            'Cash position is a running balance from all-time cash sales (including legacy completed orders without payment rows), cash expenses, and approved cash movements. Date filters do not reduce this balance.',
-        ),
+        'Inventory costing data is still unavailable, so gross profit is pending until stock valuation coverage is complete.':
+            t(
+                'financeDashboard.notes.grossProfitPending',
+                'Inventory costing data is still unavailable, so gross profit is pending until stock valuation coverage is complete.',
+            ),
+        'Cash position is a running balance from all-time cash sales (including legacy completed orders without payment rows), cash expenses, and approved cash movements. Date filters do not reduce this balance.':
+            t(
+                'financeDashboard.notes.cashPosition',
+                'Cash position is a running balance from all-time cash sales (including legacy completed orders without payment rows), cash expenses, and approved cash movements. Date filters do not reduce this balance.',
+            ),
     };
 
     return notesMap[note] ?? note;
@@ -298,62 +296,71 @@ function localizeModuleDescription(
     t: (key: string, fallback?: string) => string,
 ) {
     const descriptionMap: Record<string, string> = {
-        'Foundation for assets, liabilities, equity, revenue, COGS, and expenses.': t(
-            'financeDashboard.modules.descriptions.chartOfAccounts',
-            'Foundation for assets, liabilities, equity, revenue, COGS, and expenses.',
-        ),
-        'Manage account structure for assets, liabilities, equity, revenue, COGS, and expenses.': t(
-            'financeDashboard.modules.descriptions.chartOfAccounts',
-            'Manage account structure for assets, liabilities, equity, revenue, COGS, and expenses.',
-        ),
+        'Foundation for assets, liabilities, equity, revenue, COGS, and expenses.':
+            t(
+                'financeDashboard.modules.descriptions.chartOfAccounts',
+                'Foundation for assets, liabilities, equity, revenue, COGS, and expenses.',
+            ),
+        'Manage account structure for assets, liabilities, equity, revenue, COGS, and expenses.':
+            t(
+                'financeDashboard.modules.descriptions.chartOfAccounts',
+                'Manage account structure for assets, liabilities, equity, revenue, COGS, and expenses.',
+            ),
         'Journal headers and lines for every approved financial event.': t(
             'financeDashboard.modules.descriptions.generalLedger',
             'Journal headers and lines for every approved financial event.',
         ),
-        'Review entries generated from completed orders, approved expenses, and manual journals.': t(
-            'financeDashboard.modules.descriptions.generalLedger',
-            'Review entries generated from completed orders, approved expenses, and manual journals.',
-        ),
+        'Review entries generated from completed orders, approved expenses, and manual journals.':
+            t(
+                'financeDashboard.modules.descriptions.generalLedger',
+                'Review entries generated from completed orders, approved expenses, and manual journals.',
+            ),
         'Operational expenses with approval and account mapping support.': t(
             'financeDashboard.modules.descriptions.expenses',
             'Operational expenses with approval and account mapping support.',
         ),
-        'Track business expenses with approval status and accounting impact.': t(
-            'financeDashboard.modules.descriptions.expenses',
-            'Track business expenses with approval status and accounting impact.',
-        ),
+        'Track business expenses with approval status and accounting impact.':
+            t(
+                'financeDashboard.modules.descriptions.expenses',
+                'Track business expenses with approval status and accounting impact.',
+            ),
         'Payroll runs, payroll items, and unpaid salary visibility.': t(
             'financeDashboard.modules.descriptions.payroll',
             'Payroll runs, payroll items, and unpaid salary visibility.',
         ),
-        'Process monthly payroll, contract payouts, and salary-linked deductions.': t(
-            'financeDashboard.modules.descriptions.payroll',
-            'Process monthly payroll, contract payouts, and salary-linked deductions.',
-        ),
+        'Process monthly payroll, contract payouts, and salary-linked deductions.':
+            t(
+                'financeDashboard.modules.descriptions.payroll',
+                'Process monthly payroll, contract payouts, and salary-linked deductions.',
+            ),
         'Employee takeouts and automatic payroll deductions.': t(
             'financeDashboard.modules.descriptions.employeeAdvances',
             'Employee takeouts and automatic payroll deductions.',
         ),
-        'Record employee advances and keep payroll deductions aligned with settlement.': t(
-            'financeDashboard.modules.descriptions.employeeAdvances',
-            'Record employee advances and keep payroll deductions aligned with settlement.',
-        ),
-        'Manual cash movements, deposits, withdrawals, and property petty cash.': t(
-            'financeDashboard.modules.descriptions.cashBank',
-            'Manual cash movements, deposits, withdrawals, and property petty cash.',
-        ),
-        'Monitor drawers, deposits, owner funding, and manual inflow or outflow entries.': t(
-            'financeDashboard.modules.descriptions.cashBank',
-            'Monitor drawers, deposits, owner funding, and manual inflow or outflow entries.',
-        ),
+        'Record employee advances and keep payroll deductions aligned with settlement.':
+            t(
+                'financeDashboard.modules.descriptions.employeeAdvances',
+                'Record employee advances and keep payroll deductions aligned with settlement.',
+            ),
+        'Manual cash movements, deposits, withdrawals, and property petty cash.':
+            t(
+                'financeDashboard.modules.descriptions.cashBank',
+                'Manual cash movements, deposits, withdrawals, and property petty cash.',
+            ),
+        'Monitor drawers, deposits, owner funding, and manual inflow or outflow entries.':
+            t(
+                'financeDashboard.modules.descriptions.cashBank',
+                'Monitor drawers, deposits, owner funding, and manual inflow or outflow entries.',
+            ),
         'Weighted average costing and inventory-to-COGS movement tracking.': t(
             'financeDashboard.modules.descriptions.inventoryValuation',
             'Weighted average costing and inventory-to-COGS movement tracking.',
         ),
-        'Follow weighted average costing, stock value, and cost of goods sold readiness.': t(
-            'financeDashboard.modules.descriptions.inventoryValuation',
-            'Follow weighted average costing, stock value, and cost of goods sold readiness.',
-        ),
+        'Follow weighted average costing, stock value, and cost of goods sold readiness.':
+            t(
+                'financeDashboard.modules.descriptions.inventoryValuation',
+                'Follow weighted average costing, stock value, and cost of goods sold readiness.',
+            ),
     };
 
     return descriptionMap[description] ?? description;
@@ -389,10 +396,7 @@ function localizeModuleStatLabel(
         Employees: t('financeDashboard.modules.stats.employees', 'Employees'),
         Advances: t('financeDashboard.modules.stats.advances', 'Advances'),
         Draft: t('financeDashboard.modules.stats.draft', 'Draft'),
-        Submitted: t(
-            'financeDashboard.modules.stats.submitted',
-            'Submitted',
-        ),
+        Submitted: t('financeDashboard.modules.stats.submitted', 'Submitted'),
         Active: t('financeDashboard.modules.stats.active', 'Active'),
         Balance: t('financeDashboard.modules.stats.balance', 'Balance'),
         SKUs: t('financeDashboard.modules.stats.skus', 'SKUs'),
@@ -630,7 +634,9 @@ export default function FinancePage({
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={t('financeDashboard.pageTitle', 'Finance Dashboard')} />
+            <Head
+                title={t('financeDashboard.pageTitle', 'Finance Dashboard')}
+            />
 
             <div className="space-y-6 py-2">
                 <section className="overflow-hidden rounded-3xl border border-neutral-200/80 bg-[linear-gradient(135deg,#f7f7f2_0%,#ffffff_45%,#eef6ec_100%)] p-6 shadow-none dark:border-neutral-800 dark:bg-[linear-gradient(135deg,#111827_0%,#0f172a_45%,#0b2a1f_100%)]">
@@ -732,18 +738,20 @@ export default function FinancePage({
                             </div>
                             {projectionHealth.properties.length > 0 ? (
                                 <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                                    {projectionHealth.properties.map((property) => (
-                                        <div
-                                            key={property.propertyId}
-                                            className="rounded-full border border-current/20 px-3 py-1"
-                                        >
-                                            {property.propertyName}:{' '}
-                                            {localizeProjectionMessage(
-                                                property.message,
-                                                t,
-                                            )}
-                                        </div>
-                                    ))}
+                                    {projectionHealth.properties.map(
+                                        (property) => (
+                                            <div
+                                                key={property.propertyId}
+                                                className="rounded-full border border-current/20 px-3 py-1"
+                                            >
+                                                {property.propertyName}:{' '}
+                                                {localizeProjectionMessage(
+                                                    property.message,
+                                                    t,
+                                                )}
+                                            </div>
+                                        ),
+                                    )}
                                 </div>
                             ) : null}
                         </div>
@@ -800,39 +808,27 @@ export default function FinancePage({
                                         'Property',
                                     )}
                                 </p>
-                                <Select
-                                    value={propertyId || '__all__'}
-                                    onValueChange={(value) =>
-                                        setPropertyId(
-                                            value === '__all__' ? '' : value,
-                                        )
-                                    }
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue
-                                            placeholder={t(
+                                <SearchableDropdown
+                                    value={propertyId}
+                                    onValueChange={setPropertyId}
+                                    options={[
+                                        {
+                                            value: '',
+                                            label: t(
                                                 'financeDashboard.filters.allProperties',
                                                 'All properties',
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="__all__">
-                                            {t(
-                                                'financeDashboard.filters.allProperties',
-                                                'All properties',
-                                            )}
-                                        </SelectItem>
-                                        {properties.map((property) => (
-                                            <SelectItem
-                                                key={property.id}
-                                                value={String(property.id)}
-                                            >
-                                                {property.name}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                            ),
+                                        },
+                                        ...properties.map((property) => ({
+                                            value: String(property.id),
+                                            label: property.name,
+                                        })),
+                                    ]}
+                                    placeholder={t(
+                                        'financeDashboard.filters.allProperties',
+                                        'All properties',
+                                    )}
+                                />
                             </div>
 
                             <div className="space-y-2">
@@ -842,39 +838,24 @@ export default function FinancePage({
                                         'Payment Method',
                                     )}
                                 </p>
-                                <Select
-                                    value={paymentMethod || '__all__'}
-                                    onValueChange={(value) =>
-                                        setPaymentMethod(
-                                            value === '__all__' ? '' : value,
-                                        )
-                                    }
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue
-                                            placeholder={t(
+                                <SearchableDropdown
+                                    value={paymentMethod}
+                                    onValueChange={setPaymentMethod}
+                                    options={[
+                                        {
+                                            value: '',
+                                            label: t(
                                                 'financeDashboard.filters.allMethods',
                                                 'All methods',
-                                            )}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="__all__">
-                                            {t(
-                                                'financeDashboard.filters.allMethods',
-                                                'All methods',
-                                            )}
-                                        </SelectItem>
-                                        {paymentMethods.map((method) => (
-                                            <SelectItem
-                                                key={method.value}
-                                                value={method.value}
-                                            >
-                                                {method.label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                            ),
+                                        },
+                                        ...paymentMethods,
+                                    ]}
+                                    placeholder={t(
+                                        'financeDashboard.filters.allMethods',
+                                        'All methods',
+                                    )}
+                                />
                             </div>
 
                             <div className="space-y-2">
@@ -1187,7 +1168,6 @@ export default function FinancePage({
                             </div>
                         </CardContent>
                     </Card>
-
                 </div>
 
                 <div className="grid gap-4 xl:grid-cols-[1.2fr_1fr]">
