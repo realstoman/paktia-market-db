@@ -547,52 +547,51 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                     </thead>
                                     <tbody>
                                         {projects.map((project) => (
-                                                <tr
-                                                    key={project.id}
-                                                    className="border-b border-[#f0f3f4] last:border-0 dark:border-neutral-800"
-                                                >
-                                                    <td className="px-3 py-4">
-                                                        <strong>
-                                                            {project.name}
-                                                        </strong>
-                                                        <p className="mt-1 text-xs text-slate-400">
-                                                            {project.address ||
-                                                                '—'}
-                                                        </p>
-                                                    </td>
-                                                    <td className="px-3 py-4">
-                                                        {formatNumber(
-                                                            project.shops,
-                                                        )}
-                                                    </td>
-                                                    <td className="px-3 py-4">
-                                                        {formatNumber(
-                                                            project.registeredTenants,
-                                                        )}
-                                                    </td>
-                                                    <td className="px-3 py-4">
-                                                        {formatPrice(
-                                                            project.expensesAfn,
-                                                        )}{' '}
-                                                        ؋
-                                                    </td>
-                                                    <td className="px-3 py-4">
-                                                        <span
-                                                            className={`rounded-full px-3 py-1 text-xs font-semibold ${project.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'}`}
-                                                        >
-                                                            {project.isActive
-                                                                ? t(
-                                                                      'propertyDashboard.active',
-                                                                      'Active',
-                                                                  )
-                                                                : t(
-                                                                      'propertyDashboard.inactive',
-                                                                      'Inactive',
-                                                                  )}
-                                                        </span>
-                                                    </td>
-                                                </tr>
-                                            ))}
+                                            <tr
+                                                key={project.id}
+                                                className="border-b border-[#f0f3f4] last:border-0 dark:border-neutral-800"
+                                            >
+                                                <td className="px-3 py-4">
+                                                    <strong>
+                                                        {project.name}
+                                                    </strong>
+                                                    <p className="mt-1 text-xs text-slate-400">
+                                                        {project.address || '—'}
+                                                    </p>
+                                                </td>
+                                                <td className="px-3 py-4">
+                                                    {formatNumber(
+                                                        project.shops,
+                                                    )}
+                                                </td>
+                                                <td className="px-3 py-4">
+                                                    {formatNumber(
+                                                        project.registeredTenants,
+                                                    )}
+                                                </td>
+                                                <td className="px-3 py-4">
+                                                    {formatPrice(
+                                                        project.expensesAfn,
+                                                    )}{' '}
+                                                    ؋
+                                                </td>
+                                                <td className="px-3 py-4">
+                                                    <span
+                                                        className={`rounded-full px-3 py-1 text-xs font-semibold ${project.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'}`}
+                                                    >
+                                                        {project.isActive
+                                                            ? t(
+                                                                  'propertyDashboard.active',
+                                                                  'Active',
+                                                              )
+                                                            : t(
+                                                                  'propertyDashboard.inactive',
+                                                                  'Inactive',
+                                                              )}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))}
                                     </tbody>
                                 </table>
                             </div>

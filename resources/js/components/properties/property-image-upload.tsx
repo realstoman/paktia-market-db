@@ -75,8 +75,7 @@ export function PropertyImageUpload({
                               : t('propertyWorkspace.uploadPhoto')}
                     </p>
                     <p className="mt-1 truncate text-xs text-muted-foreground">
-                        {value?.name ??
-                            t('propertyWorkspace.uploadPhotoHelp')}
+                        {value?.name ?? t('propertyWorkspace.uploadPhotoHelp')}
                     </p>
                 </div>
 

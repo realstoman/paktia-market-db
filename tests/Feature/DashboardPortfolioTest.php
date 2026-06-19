@@ -1,7 +1,7 @@
 <?php
 
-use App\Models\Property;
 use App\Models\Country;
+use App\Models\Property;
 use App\Models\Province;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
