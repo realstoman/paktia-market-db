@@ -638,6 +638,8 @@ export interface Lease {
 export interface Country {
     id: number;
     name: string;
+    name_en?: string;
+    name_translations?: Partial<Record<'fa' | 'ps' | 'en', string>> | null;
     code: string;
     currency_code: string;
     currency_symbol: string;
@@ -652,6 +654,8 @@ export interface Country {
 export interface Province {
     id: number;
     name: string;
+    name_en?: string;
+    name_translations?: Partial<Record<'fa' | 'ps' | 'en', string>> | null;
     created_at: string;
     updated_at: string;
     country_id?: number;

@@ -7,6 +7,7 @@ use App\Models\Country;
 use App\Models\Province;
 use App\Services\Caching\CatalogCacheService;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class ProvinceController extends Controller
 {
@@ -35,7 +36,9 @@ class ProvinceController extends Controller
 
     public function byCountry(Country $country)
     {
-        return $country->provinces()->select('id', 'name')->get();
+        return $country->provinces()
+            ->select('id', 'country_id', 'name', 'name_translations')
+            ->get();
     }
 
     public function store(Request $request, CatalogCacheService $catalogCacheService)
@@ -43,25 +46,34 @@ class ProvinceController extends Controller
         $validated = $request->validate([
             'country_id' => 'required|exists:countries,id',
             'name' => 'required|string|max:255',
+            'name_fa' => 'required|string|max:255',
+            'name_ps' => 'required|string|max:255',
         ]);
 
-        Province::create($validated);
+        Province::create($this->prepareLocalizedName($validated));
         $catalogCacheService->invalidateReferenceData();
 
-        return $this->toolbarResponse($request, 'Province created successfully.');
+        return $this->toolbarResponse($request, __('locations.provinces.created'));
     }
 
     public function update(Request $request, Province $province, CatalogCacheService $catalogCacheService)
     {
         $validated = $request->validate([
             'country_id' => 'required|exists:countries,id',
-            'name' => 'required|string|max:255',
+            'name' => [
+                'required', 'string', 'max:255',
+                Rule::unique('provinces', 'name')
+                    ->where('country_id', $request->integer('country_id'))
+                    ->ignore($province),
+            ],
+            'name_fa' => 'required|string|max:255',
+            'name_ps' => 'required|string|max:255',
         ]);
 
-        $province->update($validated);
+        $province->update($this->prepareLocalizedName($validated));
         $catalogCacheService->invalidateReferenceData();
 
-        return $this->toolbarResponse($request, 'Province updated successfully.');
+        return $this->toolbarResponse($request, __('locations.provinces.updated'));
     }
 
     public function destroy(Request $request, Province $province, CatalogCacheService $catalogCacheService)
@@ -69,6 +81,19 @@ class ProvinceController extends Controller
         $province->delete();
         $catalogCacheService->invalidateReferenceData();
 
-        return $this->toolbarResponse($request, 'Province deleted successfully.');
+        return $this->toolbarResponse($request, __('locations.provinces.deleted'));
+    }
+
+    private function prepareLocalizedName(array $validated): array
+    {
+        $validated['name_translations'] = [
+            'en' => $validated['name'],
+            'fa' => $validated['name_fa'],
+            'ps' => $validated['name_ps'],
+        ];
+
+        unset($validated['name_fa'], $validated['name_ps']);
+
+        return $validated;
     }
 }

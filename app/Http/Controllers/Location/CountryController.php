@@ -52,30 +52,34 @@ class CountryController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'name_fa' => 'required|string|max:255',
+            'name_ps' => 'required|string|max:255',
             'code' => 'required|string|size:2|unique:countries,code',
             'currency_code' => 'required|string|size:3',
             'currency_symbol' => 'nullable|string|max:10',
         ]);
 
-        $service->create($validated);
+        $service->create($this->prepareLocalizedName($validated));
         $catalogCacheService->invalidateReferenceData();
 
-        return $this->toolbarResponse($request, 'Country created successfully.');
+        return $this->toolbarResponse($request, __('locations.countries.created'));
     }
 
     public function update(Request $request, CountryService $service, Country $country, CatalogCacheService $catalogCacheService)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'name_fa' => 'required|string|max:255',
+            'name_ps' => 'required|string|max:255',
             'code' => 'required|string|size:2|unique:countries,code,' . $country->id,
             'currency_code' => 'required|string|size:3',
             'currency_symbol' => 'nullable|string|max:10',
         ]);
 
-        $service->update($country, $validated);
+        $service->update($country, $this->prepareLocalizedName($validated));
         $catalogCacheService->invalidateReferenceData();
 
-        return $this->toolbarResponse($request, 'Country updated successfully.');
+        return $this->toolbarResponse($request, __('locations.countries.updated'));
     }
 
     public function disable(CountryService $service, Country $country)
@@ -83,8 +87,8 @@ class CountryController extends Controller
         $service->toggleActive($country);
 
         $message = $country->is_active
-            ? 'Country activated successfully.'
-            : 'Country deactivated successfully.';
+            ? __('locations.countries.activated')
+            : __('locations.countries.deactivated');
 
         return redirect()->back()
             ->with('success', $message);
@@ -95,6 +99,19 @@ class CountryController extends Controller
         $service->delete($country);
         $catalogCacheService->invalidateReferenceData();
 
-        return $this->toolbarResponse($request, 'Country deleted successfully.');
+        return $this->toolbarResponse($request, __('locations.countries.deleted'));
+    }
+
+    private function prepareLocalizedName(array $validated): array
+    {
+        $validated['name_translations'] = [
+            'en' => $validated['name'],
+            'fa' => $validated['name_fa'],
+            'ps' => $validated['name_ps'],
+        ];
+
+        unset($validated['name_fa'], $validated['name_ps']);
+
+        return $validated;
     }
 }

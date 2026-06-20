@@ -37,7 +37,6 @@ import {
     Globe2,
     Handshake,
     LayoutGrid,
-    MapPinned,
     Menu,
     Settings2,
     ShieldCheck,
@@ -134,13 +133,6 @@ const toolNavConfig: HeaderNavConfig[] = [
         fallbackTitle: 'Countries',
         href: '/countries',
         icon: Globe2,
-        superAdminOnly: true,
-    },
-    {
-        titleKey: 'navigation.toolProvinces',
-        fallbackTitle: 'Provinces',
-        href: '/provinces',
-        icon: MapPinned,
         superAdminOnly: true,
     },
     {

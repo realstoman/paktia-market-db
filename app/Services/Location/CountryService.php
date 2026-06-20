@@ -8,12 +8,16 @@ class CountryService
 {
     public function getIndexData(): array
     {
-        $countries = Country::with(['provinces', 'properties'])->get();
+        $countries = Country::with(['provinces', 'properties'])
+            ->orderBy('name')
+            ->get();
 
         $countries->transform(function (Country $country) {
             return [
                 'id' => $country->id,
                 'name' => $country->name,
+                'name_en' => $country->name_en,
+                'name_translations' => $country->name_translations,
                 'code' => $country->code,
                 'currency_code' => $country->currency_code,
                 'currency_symbol' => $country->currency_symbol,
