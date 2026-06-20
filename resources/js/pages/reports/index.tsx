@@ -360,6 +360,26 @@ function buildChartPanel(
         };
     }
 
+    if (activeReport.key === 'rentals') {
+        return {
+            title: t('reportPage.chart.rentalBalances', 'Rent balances'),
+            description: t(
+                'reportPage.chart.rentalBalancesDescription',
+                'Outstanding rent by tenant contract in the selected period.',
+            ),
+            type: 'bar',
+            data: rows
+                .map((row) => ({
+                    label: String(row.business || row.tenant || unknown),
+                    value: parseNumericValue(row.outstanding),
+                }))
+                .sort((a, b) => b.value - a.value)
+                .slice(0, 8),
+            dataKey: 'value',
+            labelKey: 'label',
+        };
+    }
+
     if (activeReport.key === 'properties') {
         return {
             title: t('reportPage.chart.propertyRevenue', 'Market coverage'),

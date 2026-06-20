@@ -173,6 +173,9 @@ const fa = {
             noCredentials: 'هیچ اعتبارنامه همگام‌سازی جایداد موجود نیست.',
         },
         notes: {
+            rentGrossProfit: 'کرایه دریافت‌شده قبل از مصارف عملیاتی.',
+            rentCashPosition:
+                'کرایه دریافت‌شده به‌اضافه ورودی‌های منظورشده منهای خروجی‌های منظورشده.',
             title: 'یادداشت‌های اجرا (Runtime Notes)',
             projection:
                 'سلامت پردازش خلاصه، تأخیر در محاسبات مالی جایداد را مشخص می‌کند.',
@@ -1208,7 +1211,7 @@ const fa = {
         heroDescription:
             'گزارش‌های مارکیت، جایداد، گدام، مالی، کارمندان و دسترسی‌ها را از یک فضای منظم بررسی کنید.',
         badges: {
-            liveFamilies: '۵ خانواده گزارش فعال',
+            liveFamilies: '۶ خانواده گزارش فعال',
             pdf: 'خروجی PDF واقعی',
             excel: 'خروجی Excel .xlsx',
             presets: 'نمایه‌های ذخیره‌شده',
@@ -1294,6 +1297,9 @@ const fa = {
             roleMixDescription: 'تقسیم کاربران بر اساس صلاحیت‌های تعیین‌شده.',
             unknown: 'نامعلوم',
             unassigned: 'تعیین نشده',
+            rentalBalances: 'باقیات کرایه',
+            rentalBalancesDescription:
+                'باقیات کرایه هر قرارداد مستأجر در دوره انتخاب‌شده.',
         },
         insights: {
             empty: 'برای این دوره گزارش، مورد تحلیلی وجود ندارد.',
@@ -1554,6 +1560,59 @@ const fa = {
             shiftDeleted: 'شیفت حذف شد.',
         },
     },
+    rentals: {
+        pageTitle: 'امور مالی کرایه و قراردادها',
+        subtitle:
+            'پرداخت‌های کرایه مستأجران را ثبت نموده، عواید قراردادی و باقیات هر جایداد را از یک دفتر مدیریت کنید.',
+        back: 'بازگشت به مالی',
+        recordPayment: 'ثبت پرداخت کرایه',
+        recordHelp:
+            'قرارداد مستأجر را انتخاب نموده، دوره کرایه و مشخصات پرداخت را ثبت کنید.',
+        allProperties: 'تمام جایدادها',
+        apply: 'تطبیق فیلترها',
+        paymentHistory: 'تاریخچه پرداخت کرایه',
+        empty: 'برای این دوره هیچ پرداخت کرایه یافت نشد.',
+        selectLease: 'انتخاب قرارداد مستأجر',
+        save: 'ذخیره پرداخت',
+        void: 'باطل‌کردن',
+        voidTitle: 'باطل‌کردن پرداخت کرایه',
+        voidHelp:
+            'ریکارد برای تفتیش باقی می‌ماند، اما از محاسبات مالی حذف می‌شود.',
+        voidReason: 'دلیل باطل‌کردن',
+        confirmVoid: 'باطل‌کردن پرداخت',
+        summary: {
+            expected: 'کرایه قراردادی',
+            received: 'کرایه دریافت‌شده',
+            outstanding: 'باقیات کرایه',
+            activeLeases: 'قراردادهای فعال',
+            contractCoverage: ':signed امضاءشده · :unsigned بدون اسکن',
+        },
+        fields: {
+            property: 'جایداد',
+            startDate: 'تاریخ آغاز',
+            endDate: 'تاریخ ختم',
+            lease: 'قرارداد مستأجر',
+            periodStart: 'آغاز دوره کرایه',
+            periodEnd: 'ختم دوره کرایه',
+            paymentDate: 'تاریخ پرداخت',
+            amount: 'مبلغ دریافت‌شده',
+            method: 'روش پرداخت',
+            reference: 'مرجع',
+            notes: 'یادداشت',
+        },
+        table: {
+            receipt: 'رسید',
+            date: 'تاریخ پرداخت',
+            tenant: 'مستأجر / قرارداد',
+            property: 'جایداد',
+            period: 'دوره کرایه',
+            method: 'روش',
+            amount: 'مبلغ',
+            status: 'وضعیت',
+            actions: 'عملیات',
+        },
+        status: { received: 'دریافت‌شده', void: 'باطل‌شده' },
+    },
     financeDashboard: {
         pageTitle: 'داشبورد مالی',
         eyebrow: 'داشبورد مالی',
@@ -1604,8 +1663,15 @@ const fa = {
             },
         },
         summary: {
-            sales: 'فروش',
-            salesSubtitle: 'درآمد سفارش‌های تکمیل‌شده در بازه انتخابی',
+            sales: 'کرایه دریافت‌شده',
+            salesSubtitle: 'کرایه مستأجران در دوره انتخاب‌شده',
+            rentExpected: 'کرایه قراردادی',
+            rentExpectedSubtitle:
+                'کرایه قابل پرداخت قراردادهای فعال در این دوره',
+            rentOutstanding: 'باقیات کرایه',
+            rentOutstandingSubtitle: 'کرایه قراردادی که هنوز دریافت نشده است',
+            activeLeases: 'قراردادهای فعال',
+            activeLeasesSubtitle: 'قراردادهای فعلی مستأجران و جایدادها',
             expenses: 'مصارف',
             expensesSubtitle: 'مصارف عملیاتی ثبت‌شده',
             grossProfit: 'سود ناخالص',
@@ -1675,6 +1741,7 @@ const fa = {
                 employeeAdvances: 'پیش‌پرداخت کارمندان',
                 cashBank: 'نقد و بانک',
                 inventoryValuation: 'ارزش‌گذاری موجودی',
+                rentLeases: 'کرایه و قراردادها',
             },
             descriptions: {
                 chartOfAccounts:
@@ -1691,6 +1758,8 @@ const fa = {
                     'کش‌دراور، سپرده‌ها، تمویل مالک و ورودی یا خروجی‌های دستی را نظارت کنید.',
                 inventoryValuation:
                     'میانگین موزون قیمت، ارزش موجودی و آمادگی بهای تمام‌شده فروش را دنبال کنید.',
+                rentLeases:
+                    'پرداخت کرایه مستأجران، تعهدات قرارداد و باقیات را مدیریت کنید.',
             },
             status: {
                 ready: 'آماده',
@@ -1709,6 +1778,8 @@ const fa = {
                 balance: 'مانده',
                 skus: 'کالاها',
                 value: 'ارزش',
+                received: 'دریافت‌شده',
+                outstanding: 'باقیات',
             },
         },
         generalLedger: {

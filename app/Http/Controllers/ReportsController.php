@@ -327,7 +327,7 @@ class ReportsController extends Controller
                 'property' => $lease->property?->name ?? __('reports.status.unassigned'),
                 'space' => $space,
                 'contract' => $lease->contract_number,
-                'period' => $lease->start_date.' — '.($lease->end_date ?: '∞'),
+                'period' => $lease->start_date->format('Y-m-d').' — '.($lease->end_date?->format('Y-m-d') ?: '∞'),
                 'expected' => $row['expected'],
                 'received' => $row['received'],
                 'outstanding' => $row['outstanding'],
@@ -336,7 +336,7 @@ class ReportsController extends Controller
                     : __('reports.status.missing'),
             ];
         })->all(), ['expected', 'received', 'outstanding'], [
-            ['label' => __('reports.summary.active_leases'), 'value' => $rows->where(fn (array $row) => $row['lease']->status === 'active')->count(), 'format' => 'number'],
+            ['label' => __('reports.summary.active_leases'), 'value' => $rows->filter(fn (array $row) => $row['lease']->status === 'active')->count(), 'format' => 'number'],
             ['label' => __('reports.summary.expected_rent'), 'value' => (float) $rows->sum('expected'), 'format' => 'currency'],
             ['label' => __('reports.summary.rent_received'), 'value' => (float) $rows->sum('received'), 'format' => 'currency'],
             ['label' => __('reports.summary.rent_outstanding'), 'value' => (float) $rows->sum('outstanding'), 'format' => 'currency'],

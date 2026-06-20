@@ -172,6 +172,9 @@ const ps = {
             noCredentials: 'د جایداد د همغږۍ کومه اعتبارپاڼه نشته.',
         },
         notes: {
+            rentGrossProfit: 'تر عملیاتي لګښتونو مخکې ترلاسه شوې کرایه.',
+            rentCashPosition:
+                'ترلاسه شوې کرایه جمع منظور شوي نغدي داخلې منفي منظور شوي نغدي وتلې.',
             title: 'د اجرا یادښتونه (Runtime Notes)',
             projection:
                 'د لنډیز محاسبې روغتیا د جایداد په مالي محاسبو کې ځنډ څرګندوي.',
@@ -1204,7 +1207,7 @@ const ps = {
         heroDescription:
             'د مارکېټ، جایداد، ګدام، مالي، کارکوونکو او لاسرسي راپورونه په یوه منظم ځای کې وګورئ.',
         badges: {
-            liveFamilies: '۵ فعال راپور کورنۍ',
+            liveFamilies: '۶ فعال راپور کورنۍ',
             pdf: 'اصلي PDF خروجی',
             excel: 'Excel .xlsx خروجی',
             presets: 'خوندي شوې بڼې',
@@ -1290,6 +1293,9 @@ const ps = {
             roleMixDescription: 'د ټاکل شویو صلاحیتونو له مخې د کارنانو وېش.',
             unknown: 'نامعلوم',
             unassigned: 'نه دی ټاکل شوی',
+            rentalBalances: 'پاتې کرایه',
+            rentalBalancesDescription:
+                'په ټاکلې موده کې د هر کرایه‌دار قرارداد پاتې کرایه.',
         },
         insights: {
             empty: 'د دې راپور مودې لپاره تحلیلي مورد نشته.',
@@ -1544,6 +1550,59 @@ const ps = {
             shiftDeleted: 'شیفټ ړنګ شو.',
         },
     },
+    rentals: {
+        pageTitle: 'د کرایې او قراردادونو مالي برخه',
+        subtitle:
+            'د کرایه‌دارانو تادیات ثبت کړئ او د هرې جایداد قراردادي عاید او پاتې کرایه له یوه دفتره مدیریت کړئ.',
+        back: 'مالي برخې ته ستنېدل',
+        recordPayment: 'د کرایې تادیه ثبت کړئ',
+        recordHelp:
+            'د کرایه‌دار قرارداد وټاکئ او د کرایې موده او د تادیې معلومات ثبت کړئ.',
+        allProperties: 'ټولې جایدادونه',
+        apply: 'فلټرونه عملي کړئ',
+        paymentHistory: 'د کرایې تادیاتو تاریخچه',
+        empty: 'په دې موده کې د کرایې تادیه ونه موندل شوه.',
+        selectLease: 'د کرایه‌دار قرارداد وټاکئ',
+        save: 'تادیه خوندي کړئ',
+        void: 'باطلول',
+        voidTitle: 'د کرایې تادیه باطله کړئ',
+        voidHelp:
+            'ریکارډ د پلټنې لپاره پاتې کېږي، خو له مالي حسابونو څخه ایستل کېږي.',
+        voidReason: 'د باطلولو دلیل',
+        confirmVoid: 'تادیه باطله کړئ',
+        summary: {
+            expected: 'قراردادي کرایه',
+            received: 'ترلاسه شوې کرایه',
+            outstanding: 'پاتې کرایه',
+            activeLeases: 'فعال قراردادونه',
+            contractCoverage: ':signed لاسلیک شوي · :unsigned بې اسکنه',
+        },
+        fields: {
+            property: 'جایداد',
+            startDate: 'د پیل نېټه',
+            endDate: 'د پای نېټه',
+            lease: 'د کرایه‌دار قرارداد',
+            periodStart: 'د کرایې مودې پیل',
+            periodEnd: 'د کرایې مودې پای',
+            paymentDate: 'د تادیې نېټه',
+            amount: 'ترلاسه شوی مبلغ',
+            method: 'د تادیې طریقه',
+            reference: 'مرجع',
+            notes: 'یادښتونه',
+        },
+        table: {
+            receipt: 'رسید',
+            date: 'د تادیې نېټه',
+            tenant: 'کرایه‌دار / قرارداد',
+            property: 'جایداد',
+            period: 'د کرایې موده',
+            method: 'طریقه',
+            amount: 'مبلغ',
+            status: 'حالت',
+            actions: 'عملیات',
+        },
+        status: { received: 'ترلاسه شوې', void: 'باطله شوې' },
+    },
     financeDashboard: {
         pageTitle: 'مالي ډشبورډ',
         eyebrow: 'مالي ډشبورډ',
@@ -1593,8 +1652,17 @@ const ps = {
             },
         },
         summary: {
-            sales: 'پلور',
-            salesSubtitle: 'په ټاکلې موده کې د بشپړو شویو امرونو عاید',
+            sales: 'ترلاسه شوې کرایه',
+            salesSubtitle: 'په ټاکلې موده کې ترلاسه شوې د کرایه‌دارانو کرایه',
+            rentExpected: 'قراردادي کرایه',
+            rentExpectedSubtitle:
+                'په دې موده کې د فعالو قراردادونو د ورکړې کرایه',
+            rentOutstanding: 'پاتې کرایه',
+            rentOutstandingSubtitle:
+                'هغه قراردادي کرایه چې لا نه ده ترلاسه شوې',
+            activeLeases: 'فعال قراردادونه',
+            activeLeasesSubtitle:
+                'د کرایه‌دارانو او جایدادونو اوسني قراردادونه',
             expenses: 'لګښتونه',
             expensesSubtitle: 'ثبت شوي عملیاتي لګښتونه',
             grossProfit: 'ناخالصه ګټه',
@@ -1665,6 +1733,7 @@ const ps = {
                 employeeAdvances: 'د کارکوونکو مخکېني ورکړې',
                 cashBank: 'نغدې او بانک',
                 inventoryValuation: 'د موجودۍ ارزښت ټاکنه',
+                rentLeases: 'کرایه او قراردادونه',
             },
             descriptions: {
                 chartOfAccounts:
@@ -1681,6 +1750,8 @@ const ps = {
                     'کیش درازونه، سپارښتې، د مالک تمویل او لاسي داخلې یا وتلې وڅارئ.',
                 inventoryValuation:
                     'د وزن‌دار اوسط لګښت، د موجودۍ ارزښت او د پلور لګښت چمتووالی تعقیب کړئ.',
+                rentLeases:
+                    'د کرایه‌دارانو تادیات، قراردادي مکلفیتونه او پاتې کرایه مدیریت کړئ.',
             },
             status: {
                 ready: 'چمتو',
@@ -1699,6 +1770,8 @@ const ps = {
                 balance: 'مانده',
                 skus: 'توکي',
                 value: 'ارزښت',
+                received: 'ترلاسه شوې',
+                outstanding: 'پاتې',
             },
         },
         generalLedger: {

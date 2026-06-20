@@ -8,7 +8,6 @@ use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\FinanceAccount;
 use App\Models\InventoryItem;
-use App\Models\Lease;
 use App\Models\Property;
 use App\Models\RentPayment;
 use App\Services\Finance\PayrollExpenseSyncService;

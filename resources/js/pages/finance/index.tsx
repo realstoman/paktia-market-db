@@ -21,15 +21,18 @@ import {
     Banknote,
     BookOpenText,
     Building2,
+    CalendarRange,
     ChartNoAxesCombined,
     Check,
     Coins,
     CreditCard,
     ExternalLink,
+    FileSignature,
     Package,
     ReceiptText,
     Users,
     Wallet,
+    WalletCards,
 } from 'lucide-react';
 import React from 'react';
 import {
@@ -83,6 +86,10 @@ interface FinanceFilters {
 interface FinanceDashboardData {
     summary: {
         sales: number;
+        rentExpected: number;
+        rentReceived: number;
+        rentOutstanding: number;
+        activeLeases: number;
         expenses: number;
         grossProfit: number | null;
         netProfit: number;
@@ -254,6 +261,15 @@ function localizeFinanceNote(
                 'financeDashboard.notes.cashPosition',
                 'Cash position is a running balance from all-time cash sales (including legacy completed orders without payment rows), cash expenses, and approved cash movements. Date filters do not reduce this balance.',
             ),
+        'Received rent before operating expenses.': t(
+            'financeDashboard.notes.rentGrossProfit',
+            'Received rent before operating expenses.',
+        ),
+        'Received rent plus approved cash inflows minus approved cash outflows.':
+            t(
+                'financeDashboard.notes.rentCashPosition',
+                'Received rent plus approved cash inflows minus approved cash outflows.',
+            ),
     };
 
     return notesMap[note] ?? note;
@@ -285,6 +301,10 @@ function localizeModuleName(
         'Inventory Valuation': t(
             'financeDashboard.modules.names.inventoryValuation',
             'Inventory Valuation',
+        ),
+        'Rent & Leases': t(
+            'financeDashboard.modules.names.rentLeases',
+            'Rent & Leases',
         ),
     };
 
@@ -361,6 +381,10 @@ function localizeModuleDescription(
                 'financeDashboard.modules.descriptions.inventoryValuation',
                 'Follow weighted average costing, stock value, and cost of goods sold readiness.',
             ),
+        'Tenant rent receipts, contract periods, and outstanding balances.': t(
+            'financeDashboard.modules.descriptions.rentLeases',
+            'Record tenant rent receipts and monitor contract obligations and outstanding balances.',
+        ),
     };
 
     return descriptionMap[description] ?? description;
@@ -401,6 +425,11 @@ function localizeModuleStatLabel(
         Balance: t('financeDashboard.modules.stats.balance', 'Balance'),
         SKUs: t('financeDashboard.modules.stats.skus', 'SKUs'),
         Value: t('financeDashboard.modules.stats.value', 'Value'),
+        Received: t('financeDashboard.modules.stats.received', 'Received'),
+        Outstanding: t(
+            'financeDashboard.modules.stats.outstanding',
+            'Outstanding',
+        ),
     };
 
     return labelMap[label] ?? label;
@@ -507,6 +536,10 @@ function moduleHref(name: string): string | null {
 
     if (name === 'Cash & Bank') {
         return '/finance/cash-bank';
+    }
+
+    if (name === 'Rent & Leases') {
+        return '/finance/rentals';
     }
 
     return null;
@@ -976,6 +1009,42 @@ export default function FinancePage({
                             'Completed order revenue in selected period',
                         )}
                         icon={<Banknote className="h-5 w-5" />}
+                    />
+                    <SummaryCard
+                        title={t(
+                            'financeDashboard.summary.rentExpected',
+                            'Contracted Rent',
+                        )}
+                        value={formatAfn(dashboard.summary.rentExpected)}
+                        subtitle={t(
+                            'financeDashboard.summary.rentExpectedSubtitle',
+                            'Rent due from active contracts in this period',
+                        )}
+                        icon={<CalendarRange className="h-5 w-5" />}
+                    />
+                    <SummaryCard
+                        title={t(
+                            'financeDashboard.summary.rentOutstanding',
+                            'Outstanding Rent',
+                        )}
+                        value={formatAfn(dashboard.summary.rentOutstanding)}
+                        subtitle={t(
+                            'financeDashboard.summary.rentOutstandingSubtitle',
+                            'Contracted rent not yet received',
+                        )}
+                        icon={<WalletCards className="h-5 w-5" />}
+                    />
+                    <SummaryCard
+                        title={t(
+                            'financeDashboard.summary.activeLeases',
+                            'Active Leases',
+                        )}
+                        value={formatNumber(dashboard.summary.activeLeases)}
+                        subtitle={t(
+                            'financeDashboard.summary.activeLeasesSubtitle',
+                            'Current tenant and property contracts',
+                        )}
+                        icon={<FileSignature className="h-5 w-5" />}
                     />
                     <SummaryCard
                         title={t(

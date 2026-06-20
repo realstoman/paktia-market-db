@@ -173,6 +173,9 @@ const en = {
             noCredentials: 'No property sync credentials are available.',
         },
         notes: {
+            rentGrossProfit: 'Received rent before operating expenses.',
+            rentCashPosition:
+                'Received rent plus approved cash inflows minus approved cash outflows.',
             title: 'Runtime Notes',
             projection:
                 'Projection health highlights delayed property finance calculations.',
@@ -1206,7 +1209,7 @@ const en = {
         heroDescription:
             'Review market, property, warehouse, finance, employee, and access reports from one clean workspace.',
         badges: {
-            liveFamilies: '5 live report families',
+            liveFamilies: '6 live report families',
             pdf: 'True PDF export',
             excel: 'Native Excel .xlsx',
             presets: 'Saved presets',
@@ -1296,6 +1299,9 @@ const en = {
             roleMixDescription: 'User distribution across assigned roles.',
             unknown: 'Unknown',
             unassigned: 'Unassigned',
+            rentalBalances: 'Rent balances',
+            rentalBalancesDescription:
+                'Outstanding rent by tenant contract in the selected period.',
         },
         insights: {
             empty: 'No insight rows matched this report window.',
@@ -1553,6 +1559,59 @@ const en = {
             shiftDeleted: 'Shift deleted.',
         },
     },
+    rentals: {
+        pageTitle: 'Rent & Lease Finance',
+        subtitle:
+            'Record tenant rent receipts, monitor contracted income and balances, and review every property from one ledger.',
+        back: 'Back to Finance',
+        recordPayment: 'Record payment',
+        recordHelp:
+            'Select the tenant contract and record the rent period and payment details.',
+        allProperties: 'All properties',
+        apply: 'Apply filters',
+        paymentHistory: 'Rent payment history',
+        empty: 'No rent payments were found for this period.',
+        selectLease: 'Select tenant contract',
+        save: 'Save payment',
+        void: 'Void',
+        voidTitle: 'Void rent payment',
+        voidHelp:
+            'Voiding keeps the audit record but removes this receipt from financial totals.',
+        voidReason: 'Reason for voiding',
+        confirmVoid: 'Void payment',
+        summary: {
+            expected: 'Contracted rent',
+            received: 'Rent received',
+            outstanding: 'Outstanding rent',
+            activeLeases: 'Active leases',
+            contractCoverage: ':signed signed · :unsigned missing scans',
+        },
+        fields: {
+            property: 'Property',
+            startDate: 'Start date',
+            endDate: 'End date',
+            lease: 'Tenant contract',
+            periodStart: 'Rent period start',
+            periodEnd: 'Rent period end',
+            paymentDate: 'Payment date',
+            amount: 'Amount received',
+            method: 'Payment method',
+            reference: 'Reference',
+            notes: 'Notes',
+        },
+        table: {
+            receipt: 'Receipt',
+            date: 'Payment date',
+            tenant: 'Tenant / Contract',
+            property: 'Property',
+            period: 'Rent period',
+            method: 'Method',
+            amount: 'Amount',
+            status: 'Status',
+            actions: 'Actions',
+        },
+        status: { received: 'Received', void: 'Void' },
+    },
     financeDashboard: {
         pageTitle: 'Finance Dashboard',
         eyebrow: 'Finance Dashboard',
@@ -1603,8 +1662,15 @@ const en = {
             },
         },
         summary: {
-            sales: 'Sales',
-            salesSubtitle: 'Completed order revenue in selected period',
+            sales: 'Rent Received',
+            salesSubtitle: 'Tenant rent received in the selected period',
+            rentExpected: 'Contracted Rent',
+            rentExpectedSubtitle:
+                'Rent due from active contracts in this period',
+            rentOutstanding: 'Outstanding Rent',
+            rentOutstandingSubtitle: 'Contracted rent not yet received',
+            activeLeases: 'Active Leases',
+            activeLeasesSubtitle: 'Current tenant and property contracts',
             expenses: 'Expenses',
             expensesSubtitle: 'Recorded operational expenses',
             grossProfit: 'Gross Profit',
@@ -1674,6 +1740,7 @@ const en = {
                 employeeAdvances: 'Employee Advances',
                 cashBank: 'Cash & Bank',
                 inventoryValuation: 'Inventory Valuation',
+                rentLeases: 'Rent & Leases',
             },
             descriptions: {
                 chartOfAccounts:
@@ -1690,6 +1757,8 @@ const en = {
                     'Monitor drawers, deposits, owner funding, and manual inflow or outflow entries.',
                 inventoryValuation:
                     'Follow weighted average costing, stock value, and cost of goods sold readiness.',
+                rentLeases:
+                    'Record tenant rent receipts and monitor contract obligations and outstanding balances.',
             },
             status: {
                 ready: 'Ready',
@@ -1708,6 +1777,8 @@ const en = {
                 balance: 'Balance',
                 skus: 'SKUs',
                 value: 'Value',
+                received: 'Received',
+                outstanding: 'Outstanding',
             },
         },
         generalLedger: {
