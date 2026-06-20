@@ -16,10 +16,11 @@ use Inertia\Inertia;
 
 class PropertyController extends Controller
 {
-    public function index(PropertyService $service)
+    public function index(Request $request, PropertyService $service)
     {
         return Inertia::render('location/properties/index', [
             ...$service->getIndexData(),
+            'openCreate' => $request->boolean('create'),
             'countries' => Country::orderBy('name')->get(),
             'provinces' => Province::orderBy('name')->get(),
             'propertyOptions' => Property::query()

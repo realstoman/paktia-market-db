@@ -48,6 +48,7 @@ interface Props {
     propertyOptions: Property[];
     countries: Country[];
     provinces: Province[];
+    openCreate?: boolean;
 }
 
 interface PropertyForm {
@@ -134,9 +135,10 @@ export default function PropertiesPage({
     propertyOptions,
     countries,
     provinces,
+    openCreate = false,
 }: Props) {
     const { t } = useLocalization();
-    const [open, setOpen] = useState(false);
+    const [open, setOpen] = useState(openCreate);
     const [search, setSearch] = useState('');
     const [type, setType] = useState('all');
     const form = useForm<PropertyForm>(emptyForm);

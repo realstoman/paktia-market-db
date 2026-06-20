@@ -53,6 +53,24 @@ body {
     font-family: 'Bahij Nazanin', serif;
 }
 
+.property-tabs-scroll {
+    scrollbar-color: rgb(0 36 82 / 35%) transparent;
+    scrollbar-width: thin;
+}
+
+.property-tabs-scroll::-webkit-scrollbar {
+    height: 4px;
+}
+
+.property-tabs-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.property-tabs-scroll::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: rgb(0 36 82 / 35%);
+}
+
 @theme {
     --font-sans:
         'App Digits', 'Manrope', ui-sans-serif, system-ui, sans-serif,

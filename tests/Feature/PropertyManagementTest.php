@@ -90,6 +90,13 @@ test('success and error flashes are shared as global toast messages', function (
             ->has('flash.error.id'));
 });
 
+test('property create dialog can be opened from the dashboard action', function () {
+    $this->get(route('properties.index', ['create' => 1]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('openCreate', true));
+});
+
 test('a market can be registered with its portfolio details', function () {
     [$country, $province] = propertyLocation();
 

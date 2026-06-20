@@ -1,13 +1,14 @@
 import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
 import { formatNumber, formatPrice } from '@/utils/format';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import {
     Banknote,
     Building2,
     CircleDollarSign,
     DoorOpen,
     Layers3,
+    Plus,
     ReceiptText,
     Store,
     UsersRound,
@@ -246,7 +247,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
             <Head title={t('propertyDashboard.title', 'Property dashboard')} />
 
             <div className="mx-auto w-full max-w-[1680px] bg-transparent dark:bg-neutral-950">
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <div>
                     <div>
                         <p className="text-xs font-semibold tracking-[0.2em] text-[#d3a450] uppercase">
                             {t(
@@ -267,35 +268,44 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                             )}
                         </p>
                     </div>
-                    <button className="h-11 rounded-xl bg-brand-primary px-5 text-sm font-semibold text-white hover:bg-brand-primary/90">
-                        + {t('propertyDashboard.newRecord', 'New record')}
-                    </button>
                 </div>
 
-                <div className="mt-6 flex gap-2 overflow-x-auto rounded-2xl bg-[#edf1f4] p-1.5">
-                    <button
-                        onClick={() => setActiveTab('overall')}
-                        className={`shrink-0 rounded-xl px-5 py-2.5 text-sm font-semibold transition ${
-                            activeTab === 'overall'
-                                ? 'bg-white text-[#002452] dark:bg-neutral-900 dark:text-white'
-                                : 'text-slate-500 hover:text-[#002452]'
-                        }`}
-                    >
-                        {t('propertyDashboard.overall', 'Overall statistics')}
-                    </button>
-                    {projects.map((project) => (
+                <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="property-tabs-scroll inline-flex w-max max-w-full min-w-0 gap-0.5 overflow-x-auto overscroll-x-contain scroll-smooth rounded-full bg-[#edf1f4] p-1 sm:max-w-[700px]">
                         <button
-                            key={project.id}
-                            onClick={() => setActiveTab(String(project.id))}
-                            className={`shrink-0 rounded-xl px-5 py-2.5 text-sm font-semibold transition ${
-                                activeTab === String(project.id)
-                                    ? 'bg-white text-[#002452] dark:bg-neutral-900 dark:text-white'
-                                    : 'text-slate-500 hover:text-[#002452]'
+                            onClick={() => setActiveTab('overall')}
+                            className={`shrink-0 rounded-full border px-4 py-2 text-base font-medium transition-colors ${
+                                activeTab === 'overall'
+                                    ? 'border-slate-200/80 bg-white text-brand-primary dark:border-neutral-700 dark:bg-neutral-900 dark:text-white'
+                                    : 'border-transparent text-slate-500 hover:text-brand-primary'
                             }`}
                         >
-                            {project.name}
+                            {t(
+                                'propertyDashboard.overall',
+                                'Overall statistics',
+                            )}
                         </button>
-                    ))}
+                        {projects.map((project) => (
+                            <button
+                                key={project.id}
+                                onClick={() => setActiveTab(String(project.id))}
+                                className={`shrink-0 rounded-full border px-4 py-2 text-base font-medium transition-colors ${
+                                    activeTab === String(project.id)
+                                        ? 'border-slate-200/80 bg-white text-brand-primary dark:border-neutral-700 dark:bg-neutral-900 dark:text-white'
+                                        : 'border-transparent text-slate-500 hover:text-brand-primary'
+                                }`}
+                            >
+                                {project.name}
+                            </button>
+                        ))}
+                    </div>
+                    <Link
+                        href="/properties?create=1"
+                        className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-brand-primary px-5 text-sm font-semibold text-white transition-colors hover:bg-brand-primary/90"
+                    >
+                        <Plus className="size-4" />
+                        {t('propertyWorkspace.register', 'Register property')}
+                    </Link>
                 </div>
 
                 {activeTab === 'overall' ? (
