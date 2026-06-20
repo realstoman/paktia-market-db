@@ -461,12 +461,7 @@ export interface Property {
     description_translations?: Partial<
         Record<'fa' | 'ps' | 'en', string>
     > | null;
-    property_type?:
-        | 'market'
-        | 'mall'
-        | 'block'
-        | 'house'
-        | 'commercial_unit';
+    property_type?: 'market' | 'mall' | 'block' | 'house' | 'commercial_unit';
     usage_type?: 'commercial' | 'residential' | 'mixed';
     image_url?: string | null;
     distance_from_city_km?: string | null;
@@ -489,11 +484,7 @@ export interface Property {
     external_unit_number?: string | null;
     external_floor?: string | null;
     ownership_type?: 'owned' | 'leased' | 'managed';
-    operating_mode?:
-        | 'owner_occupied'
-        | 'vacant'
-        | 'rented'
-        | 'maintenance';
+    operating_mode?: 'owner_occupied' | 'vacant' | 'rented' | 'maintenance';
     business_activities?: string[] | null;
     title_deed_number?: string | null;
     documents?: PropertyDocument[];

@@ -2982,7 +2982,8 @@ const fa = {
 
     propertyWorkspace: {
         title: 'مارکیت‌ها و جایدادها',
-        subtitle: 'نمای واضح تمام مارکیت‌ها، مال‌ها، بلاک‌ها و خانه‌ها.',
+        subtitle:
+            'نمای واضح تمام مارکیت‌ها، مال‌ها، واحدهای تجارتی، بلاک‌ها و خانه‌ها.',
         register: 'ثبت جایداد',
         registerTitle: 'ثبت مارکیت یا جایداد',
         registerHelp:
@@ -3000,6 +3001,7 @@ const fa = {
         markets: 'مارکیت‌ها و مال‌ها',
         homes: 'خانه‌ها و بلاک‌ها',
         spaces: 'ساحات ثبت‌شده',
+        commercialUnit: 'واحد تجارتی',
         search: 'جستجو با نام، آدرس یا ولایت…',
         searchOptions: 'جستجوی گزینه‌ها…',
         noOptions: 'گزینه‌ای یافت نشد.',
@@ -3045,6 +3047,11 @@ const fa = {
         deleteSpace: 'این ساحه حذف شود؟',
         houseHelp:
             'جزئیات خانه در سطح جایداد مدیریت می‌شود و بعداً تمام خانه به یک قرارداد کرایی سپرده می‌شود.',
+        commercialUnitHelp:
+            'این یک دکان یا دفتر ملکیت‌شده در داخل مارکیتی است که توسط دیگران مدیریت می‌شود. سایر واحدهای آن مارکیت عمداً ثبت نمی‌شوند.',
+        commercialUnitManagement: 'مدیریت واحد تجارتی',
+        commercialUnitRentalHelp:
+            'هنگام استفاده مالک، کارمندان و مصارف را به همین واحد وصل کنید؛ هنگام کرایه، تمام واحد را به یک مستأجر بسپارید.',
         uploadPhoto: 'تصویر جایداد را آپلود کنید',
         uploadPhotoHelp: 'PNG، JPG یا WebP تا حجم ۵ مگابایت.',
         choosePhoto: 'انتخاب تصویر',
@@ -3080,6 +3087,13 @@ const fa = {
             waterMeter: 'میتر آب',
             shopNumber: 'نمبر دکان',
             apartmentNumber: 'نمبر آپارتمان',
+            hostMarketName: 'نام مارکیت بیرونی',
+            externalUnitNumber: 'نمبر دکان / دفتر',
+            externalFloor: 'منزل در داخل مارکیت بیرونی',
+            ownershipType: 'وضعیت مالکیت',
+            operatingMode: 'وضعیت فعلی استفاده',
+            businessActivities: 'فعالیت‌های تجارتی',
+            titleDeedNumber: 'نمبر قباله / سند مالکیت',
         },
         languages: { fa: 'دری', ps: 'پشتو', en: 'انگلیسی' },
         dariRequired: 'دری الزامی است و در نبود ترجمه دیگر نمایش داده می‌شود.',
@@ -3089,8 +3103,41 @@ const fa = {
             mall: 'مال',
             block: 'بلاک رهایشی',
             house: 'خانه',
+            commercial_unit: 'واحد تجارتی / دکان–دفتر',
         },
         usage: { commercial: 'تجارتی', residential: 'رهایشی', mixed: 'مختلط' },
+        ownership: {
+            owned: 'ملکیت شرکت',
+            leased: 'کرایه‌شده توسط شرکت',
+            managed: 'مدیریت برای مالک دیگر',
+        },
+        operatingMode: {
+            owner_occupied: 'استفاده توسط مالک',
+            vacant: 'خالی و آماده کرایه',
+            rented: 'کرایه داده‌شده',
+            maintenance: 'تحت ترمیم',
+        },
+        businessActivities: {
+            money_exchange: 'صرافی',
+            jewelry: 'طلا و جواهرات',
+            office: 'دفتر',
+            retail: 'فروش پرچون',
+            other: 'سایر',
+        },
+        documents: {
+            title: 'اسناد مالکیت',
+            help: 'قباله، قرارداد خرید، اسناد اثبات مالکیت و سایر اسناد محرمانه جایداد را نگهداری کنید.',
+            upload: 'بارگذاری اسناد',
+            empty: 'هنوز سندی برای این جایداد بارگذاری نشده است.',
+            delete: 'حذف سند',
+            deleteConfirm: 'این سند جایداد حذف شود؟',
+            types: {
+                title_deed: 'قباله ملکیت',
+                purchase_contract: 'قرارداد خرید',
+                ownership: 'سند اثبات مالکیت',
+                other: 'سند دیگر',
+            },
+        },
         selectCountry: 'کشور را انتخاب کنید',
         selectProvince: 'ولایت را انتخاب کنید',
         cancel: 'انصراف',

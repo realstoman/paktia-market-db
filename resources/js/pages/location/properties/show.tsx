@@ -152,17 +152,17 @@ export default function PropertyShow({
                                       'propertyWorkspace.fields.externalUnitNumber',
                                   )
                                 : isMarket
-                                ? t('propertyWorkspace.shops')
-                                : property.property_type === 'block'
-                                  ? t('propertyWorkspace.apartments')
-                                  : t('propertyWorkspace.rooms')
+                                  ? t('propertyWorkspace.shops')
+                                  : property.property_type === 'block'
+                                    ? t('propertyWorkspace.apartments')
+                                    : t('propertyWorkspace.rooms')
                         }
                         value={
                             isCommercialUnit
                                 ? (property.external_unit_number ?? '—')
                                 : property.property_type === 'house'
-                                ? (property.rooms_count ?? 0)
-                                : units.length
+                                  ? (property.rooms_count ?? 0)
+                                  : units.length
                         }
                         hint={
                             !isCommercialUnit && property.declared_units
@@ -307,7 +307,8 @@ export default function PropertyShow({
                                                 'propertyWorkspace.fields.titleDeedNumber',
                                             )}
                                             value={
-                                                property.title_deed_number ?? '—'
+                                                property.title_deed_number ??
+                                                '—'
                                             }
                                         />
                                         <Detail
@@ -346,10 +347,9 @@ export default function PropertyShow({
                                     label={t('propertyWorkspace.parking')}
                                     value={property.parking_spaces ?? '—'}
                                 />
-                                {[
-                                    'house',
-                                    'commercial_unit',
-                                ].includes(property.property_type ?? '') && (
+                                {['house', 'commercial_unit'].includes(
+                                    property.property_type ?? '',
+                                ) && (
                                     <>
                                         <Detail
                                             label={t('propertyWorkspace.rooms')}
@@ -440,9 +440,7 @@ export default function PropertyShow({
                                           ).replace(
                                               ':spaces',
                                               isMarket
-                                                  ? t(
-                                                        'propertyWorkspace.shops',
-                                                    )
+                                                  ? t('propertyWorkspace.shops')
                                                   : t(
                                                         'propertyWorkspace.apartments',
                                                     ),
@@ -458,9 +456,7 @@ export default function PropertyShow({
                             </div>
                             {!['house', 'commercial_unit'].includes(
                                 property.property_type ?? '',
-                            ) && (
-                                <AddFloor property={property} />
-                            )}
+                            ) && <AddFloor property={property} />}
                         </div>
                         {['house', 'commercial_unit'].includes(
                             property.property_type ?? '',
@@ -553,9 +549,7 @@ function PropertyDocuments({
                                 `propertyWorkspace.documents.types.${value}`,
                             ),
                         }))}
-                        searchPlaceholder={t(
-                            'propertyWorkspace.searchOptions',
-                        )}
+                        searchPlaceholder={t('propertyWorkspace.searchOptions')}
                         emptyText={t('propertyWorkspace.noOptions')}
                     />
                     <Input

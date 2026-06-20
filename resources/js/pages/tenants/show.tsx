@@ -617,22 +617,21 @@ function AssignmentForm({
     const property = properties.find(
         (item) => String(item.id) === form.data.property_id,
     );
-    const units =
-        ['house', 'commercial_unit'].includes(
-            property?.property_type ?? '',
-        )
-            ? [{ value: '', label: t('tenants.lease.wholeProperty') }]
-            : [
-                  ...(property?.property_type === 'block'
-                      ? [{ value: '', label: t('tenants.lease.wholeProperty') }]
-                      : []),
-                  ...(property?.floors ?? []).flatMap((floor) =>
-                      (floor.units ?? []).map((unit) => ({
-                          value: String(unit.id),
-                          label: `${floor.name} · ${t(`tenants.lease.${unit.unit_type}`)} ${unit.unit_number}`,
-                      })),
-                  ),
-              ];
+    const units = ['house', 'commercial_unit'].includes(
+        property?.property_type ?? '',
+    )
+        ? [{ value: '', label: t('tenants.lease.wholeProperty') }]
+        : [
+              ...(property?.property_type === 'block'
+                  ? [{ value: '', label: t('tenants.lease.wholeProperty') }]
+                  : []),
+              ...(property?.floors ?? []).flatMap((floor) =>
+                  (floor.units ?? []).map((unit) => ({
+                      value: String(unit.id),
+                      label: `${floor.name} · ${t(`tenants.lease.${unit.unit_type}`)} ${unit.unit_number}`,
+                  })),
+              ),
+          ];
     const submit = (event: FormEvent) => {
         event.preventDefault();
         form.post(`/tenants/${tenant.id}/leases`, {

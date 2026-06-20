@@ -31,8 +31,8 @@ import {
 import {
     ArrowDown,
     ArrowUp,
-    Building2,
     BriefcaseBusiness,
+    Building2,
     CheckCircle2,
     DoorOpen,
     Home,
@@ -280,40 +280,42 @@ export default function PropertiesPage({
                                         />
                                     </Field>
                                     {form.data.property_type !==
-                                        'commercial_unit' && <Field
-                                        label={t(
-                                            'propertyWorkspace.fields.usage',
-                                        )}
-                                    >
-                                        <SearchableDropdown
-                                            value={form.data.usage_type}
-                                            onValueChange={(value) =>
-                                                form.setData(
-                                                    'usage_type',
-                                                    value,
-                                                )
-                                            }
-                                            options={[
-                                                'commercial',
-                                                'residential',
-                                                'mixed',
-                                            ].map((value) => ({
-                                                value,
-                                                label: t(
-                                                    `propertyWorkspace.usage.${value}`,
-                                                ),
-                                            }))}
-                                            placeholder={t(
+                                        'commercial_unit' && (
+                                        <Field
+                                            label={t(
                                                 'propertyWorkspace.fields.usage',
                                             )}
-                                            searchPlaceholder={t(
-                                                'propertyWorkspace.searchOptions',
-                                            )}
-                                            emptyText={t(
-                                                'propertyWorkspace.noOptions',
-                                            )}
-                                        />
-                                    </Field>}
+                                        >
+                                            <SearchableDropdown
+                                                value={form.data.usage_type}
+                                                onValueChange={(value) =>
+                                                    form.setData(
+                                                        'usage_type',
+                                                        value,
+                                                    )
+                                                }
+                                                options={[
+                                                    'commercial',
+                                                    'residential',
+                                                    'mixed',
+                                                ].map((value) => ({
+                                                    value,
+                                                    label: t(
+                                                        `propertyWorkspace.usage.${value}`,
+                                                    ),
+                                                }))}
+                                                placeholder={t(
+                                                    'propertyWorkspace.fields.usage',
+                                                )}
+                                                searchPlaceholder={t(
+                                                    'propertyWorkspace.searchOptions',
+                                                )}
+                                                emptyText={t(
+                                                    'propertyWorkspace.noOptions',
+                                                )}
+                                            />
+                                        </Field>
+                                    )}
                                     <Field
                                         label={t(
                                             'propertyWorkspace.fields.country',
@@ -377,56 +379,64 @@ export default function PropertiesPage({
                                             )}
                                         />
                                     </Field>
-                                    <Field
-                                        label={t(
-                                            'propertyWorkspace.relatedLocation',
-                                        )}
-                                        className="sm:col-span-2 lg:col-span-3"
-                                        error={form.errors.parent_property_id}
-                                    >
-                                        <SearchableDropdown
-                                            value={
-                                                form.data.parent_property_id ||
-                                                'none'
+                                    {form.data.property_type !==
+                                        'commercial_unit' && (
+                                        <Field
+                                            label={t(
+                                                'propertyWorkspace.relatedLocation',
+                                            )}
+                                            className="sm:col-span-2 lg:col-span-3"
+                                            error={
+                                                form.errors.parent_property_id
                                             }
-                                            onValueChange={(value) =>
-                                                form.setData(
-                                                    'parent_property_id',
-                                                    value === 'none'
-                                                        ? ''
-                                                        : value,
-                                                )
-                                            }
-                                            options={[
-                                                {
-                                                    value: 'none',
-                                                    label: t(
-                                                        'propertyWorkspace.independent',
-                                                    ),
-                                                },
-                                                ...propertyOptions.map(
-                                                    (property) => ({
-                                                        value: String(
-                                                            property.id,
+                                        >
+                                            <SearchableDropdown
+                                                value={
+                                                    form.data
+                                                        .parent_property_id ||
+                                                    'none'
+                                                }
+                                                onValueChange={(value) =>
+                                                    form.setData(
+                                                        'parent_property_id',
+                                                        value === 'none'
+                                                            ? ''
+                                                            : value,
+                                                    )
+                                                }
+                                                options={[
+                                                    {
+                                                        value: 'none',
+                                                        label: t(
+                                                            'propertyWorkspace.independent',
                                                         ),
-                                                        label: `${property.name} · ${typeLabel(property.property_type)}`,
-                                                    }),
-                                                ),
-                                            ]}
-                                            placeholder={t(
-                                                'propertyWorkspace.independent',
-                                            )}
-                                            searchPlaceholder={t(
-                                                'propertyWorkspace.searchOptions',
-                                            )}
-                                            emptyText={t(
-                                                'propertyWorkspace.noOptions',
-                                            )}
-                                        />
-                                        <p className="text-xs text-muted-foreground">
-                                            {t('propertyWorkspace.relatedHelp')}
-                                        </p>
-                                    </Field>
+                                                    },
+                                                    ...propertyOptions.map(
+                                                        (property) => ({
+                                                            value: String(
+                                                                property.id,
+                                                            ),
+                                                            label: `${property.name} · ${typeLabel(property.property_type)}`,
+                                                        }),
+                                                    ),
+                                                ]}
+                                                placeholder={t(
+                                                    'propertyWorkspace.independent',
+                                                )}
+                                                searchPlaceholder={t(
+                                                    'propertyWorkspace.searchOptions',
+                                                )}
+                                                emptyText={t(
+                                                    'propertyWorkspace.noOptions',
+                                                )}
+                                            />
+                                            <p className="text-xs text-muted-foreground">
+                                                {t(
+                                                    'propertyWorkspace.relatedHelp',
+                                                )}
+                                            </p>
+                                        </Field>
+                                    )}
 
                                     {form.data.property_type ===
                                         'commercial_unit' && (
@@ -701,10 +711,7 @@ export default function PropertiesPage({
                                             />
                                             <NumberField
                                                 label={t(
-                                                    [
-                                                        'market',
-                                                        'mall',
-                                                    ].includes(
+                                                    ['market', 'mall'].includes(
                                                         form.data.property_type,
                                                     )
                                                         ? 'propertyWorkspace.fields.expectedShops'
@@ -722,10 +729,9 @@ export default function PropertiesPage({
                                             />
                                         </>
                                     )}
-                                    {[
-                                        'house',
-                                        'commercial_unit',
-                                    ].includes(form.data.property_type) && (
+                                    {['house', 'commercial_unit'].includes(
+                                        form.data.property_type,
+                                    ) && (
                                         <>
                                             <NumberField
                                                 label={t(

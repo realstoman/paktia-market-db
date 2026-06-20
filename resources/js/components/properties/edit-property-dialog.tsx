@@ -57,10 +57,8 @@ export function EditPropertyDialog({
             property.host_market_name_translations?.fa ??
             property.host_market_name ??
             '',
-        host_market_name_ps:
-            property.host_market_name_translations?.ps ?? '',
-        host_market_name_en:
-            property.host_market_name_translations?.en ?? '',
+        host_market_name_ps: property.host_market_name_translations?.ps ?? '',
+        host_market_name_en: property.host_market_name_translations?.en ?? '',
         external_unit_number: property.external_unit_number ?? '',
         external_floor: property.external_floor ?? '',
         ownership_type: property.ownership_type ?? 'owned',
@@ -215,11 +213,9 @@ export function EditPropertyDialog({
                                 'house',
                                 'commercial_unit',
                             ].map((value) => ({
-                                    value,
-                                    label: t(
-                                        `propertyWorkspace.types.${value}`,
-                                    ),
-                                }))}
+                                value,
+                                label: t(`propertyWorkspace.types.${value}`),
+                            }))}
                             placeholder={t('propertyWorkspace.fields.type')}
                             searchPlaceholder={t(
                                 'propertyWorkspace.searchOptions',
@@ -227,33 +223,39 @@ export function EditPropertyDialog({
                             emptyText={t('propertyWorkspace.noOptions')}
                         />
                     </Field>
-                    <Field label={t('propertyWorkspace.fields.usage')}>
-                        <SearchableDropdown
-                            value={form.data.usage_type}
-                            onValueChange={(value) =>
-                                form.setData(
-                                    'usage_type',
-                                    value as
-                                        | 'commercial'
-                                        | 'residential'
-                                        | 'mixed',
-                                )
-                            }
-                            options={['commercial', 'residential', 'mixed'].map(
-                                (value) => ({
+                    {form.data.property_type !== 'commercial_unit' && (
+                        <Field label={t('propertyWorkspace.fields.usage')}>
+                            <SearchableDropdown
+                                value={form.data.usage_type}
+                                onValueChange={(value) =>
+                                    form.setData(
+                                        'usage_type',
+                                        value as
+                                            | 'commercial'
+                                            | 'residential'
+                                            | 'mixed',
+                                    )
+                                }
+                                options={[
+                                    'commercial',
+                                    'residential',
+                                    'mixed',
+                                ].map((value) => ({
                                     value,
                                     label: t(
                                         `propertyWorkspace.usage.${value}`,
                                     ),
-                                }),
-                            )}
-                            placeholder={t('propertyWorkspace.fields.usage')}
-                            searchPlaceholder={t(
-                                'propertyWorkspace.searchOptions',
-                            )}
-                            emptyText={t('propertyWorkspace.noOptions')}
-                        />
-                    </Field>
+                                }))}
+                                placeholder={t(
+                                    'propertyWorkspace.fields.usage',
+                                )}
+                                searchPlaceholder={t(
+                                    'propertyWorkspace.searchOptions',
+                                )}
+                                emptyText={t('propertyWorkspace.noOptions')}
+                            />
+                        </Field>
+                    )}
                     <Field label={t('propertyWorkspace.fields.country')}>
                         <SearchableDropdown
                             value={form.data.country_id}
@@ -289,32 +291,36 @@ export function EditPropertyDialog({
                             emptyText={t('propertyWorkspace.noOptions')}
                         />
                     </Field>
-                    {form.data.property_type !== 'commercial_unit' && <Field label={t('propertyWorkspace.relatedLocation')}>
-                        <SearchableDropdown
-                            value={form.data.parent_property_id || 'none'}
-                            onValueChange={(value) =>
-                                form.setData(
-                                    'parent_property_id',
-                                    value === 'none' ? '' : value,
-                                )
-                            }
-                            options={[
-                                {
-                                    value: 'none',
-                                    label: t('propertyWorkspace.independent'),
-                                },
-                                ...propertyOptions.map((option) => ({
-                                    value: String(option.id),
-                                    label: option.name,
-                                })),
-                            ]}
-                            placeholder={t('propertyWorkspace.independent')}
-                            searchPlaceholder={t(
-                                'propertyWorkspace.searchOptions',
-                            )}
-                            emptyText={t('propertyWorkspace.noOptions')}
-                        />
-                    </Field>}
+                    {form.data.property_type !== 'commercial_unit' && (
+                        <Field label={t('propertyWorkspace.relatedLocation')}>
+                            <SearchableDropdown
+                                value={form.data.parent_property_id || 'none'}
+                                onValueChange={(value) =>
+                                    form.setData(
+                                        'parent_property_id',
+                                        value === 'none' ? '' : value,
+                                    )
+                                }
+                                options={[
+                                    {
+                                        value: 'none',
+                                        label: t(
+                                            'propertyWorkspace.independent',
+                                        ),
+                                    },
+                                    ...propertyOptions.map((option) => ({
+                                        value: String(option.id),
+                                        label: option.name,
+                                    })),
+                                ]}
+                                placeholder={t('propertyWorkspace.independent')}
+                                searchPlaceholder={t(
+                                    'propertyWorkspace.searchOptions',
+                                )}
+                                emptyText={t('propertyWorkspace.noOptions')}
+                            />
+                        </Field>
+                    )}
                     {form.data.property_type === 'commercial_unit' && (
                         <>
                             <TextField
@@ -382,25 +388,24 @@ export function EditPropertyDialog({
                                     onValueChange={(value) =>
                                         form.setData(
                                             'ownership_type',
-                                            value as 'owned' | 'leased' | 'managed',
+                                            value as
+                                                | 'owned'
+                                                | 'leased'
+                                                | 'managed',
                                         )
                                     }
-                                    options={[
-                                        'owned',
-                                        'leased',
-                                        'managed',
-                                    ].map((value) => ({
-                                        value,
-                                        label: t(
-                                            `propertyWorkspace.ownership.${value}`,
-                                        ),
-                                    }))}
+                                    options={['owned', 'leased', 'managed'].map(
+                                        (value) => ({
+                                            value,
+                                            label: t(
+                                                `propertyWorkspace.ownership.${value}`,
+                                            ),
+                                        }),
+                                    )}
                                     searchPlaceholder={t(
                                         'propertyWorkspace.searchOptions',
                                     )}
-                                    emptyText={t(
-                                        'propertyWorkspace.noOptions',
-                                    )}
+                                    emptyText={t('propertyWorkspace.noOptions')}
                                 />
                             </Field>
                             <Field
@@ -434,9 +439,7 @@ export function EditPropertyDialog({
                                     searchPlaceholder={t(
                                         'propertyWorkspace.searchOptions',
                                     )}
-                                    emptyText={t(
-                                        'propertyWorkspace.noOptions',
-                                    )}
+                                    emptyText={t('propertyWorkspace.noOptions')}
                                 />
                             </Field>
                             <Field
@@ -495,11 +498,15 @@ export function EditPropertyDialog({
                             form.setData('distance_from_city_km', value)
                         }
                     />
-                    {form.data.property_type !== 'commercial_unit' && <NumericField
-                        label={t('propertyWorkspace.fields.landArea')}
-                        value={form.data.land_area_sqm}
-                        set={(value) => form.setData('land_area_sqm', value)}
-                    />}
+                    {form.data.property_type !== 'commercial_unit' && (
+                        <NumericField
+                            label={t('propertyWorkspace.fields.landArea')}
+                            value={form.data.land_area_sqm}
+                            set={(value) =>
+                                form.setData('land_area_sqm', value)
+                            }
+                        />
+                    )}
                     <NumericField
                         label={t('propertyWorkspace.fields.buildingArea')}
                         value={form.data.building_area_sqm}

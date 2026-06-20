@@ -108,6 +108,8 @@ class PropertyController extends Controller
 
     public function storeFloor(Request $request, Property $property)
     {
+        abort_if(in_array($property->property_type, ['house', 'commercial_unit'], true), 422);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100'],
             'level_number' => [
@@ -136,6 +138,7 @@ class PropertyController extends Controller
     public function storeUnit(Request $request, Property $property, PropertyFloor $floor)
     {
         abort_unless($floor->property_id === $property->id, 404);
+        abort_if(in_array($property->property_type, ['house', 'commercial_unit'], true), 422);
 
         $expectedType = in_array($property->property_type, ['market', 'mall'], true) ? 'shop' : 'apartment';
         $validated = $request->validate([
@@ -231,8 +234,8 @@ class PropertyController extends Controller
             'host_market_name_en' => ['nullable', 'string', 'max:255'],
             'external_unit_number' => ['nullable', 'required_if:property_type,commercial_unit', 'string', 'max:100'],
             'external_floor' => ['nullable', 'string', 'max:100'],
-            'ownership_type' => ['required', Rule::in(['owned', 'leased', 'managed'])],
-            'operating_mode' => ['required', Rule::in(['owner_occupied', 'vacant', 'rented', 'maintenance'])],
+            'ownership_type' => ['nullable', Rule::in(['owned', 'leased', 'managed'])],
+            'operating_mode' => ['nullable', Rule::in(['owner_occupied', 'vacant', 'rented', 'maintenance'])],
             'business_activities' => ['nullable', 'array', 'max:10'],
             'business_activities.*' => ['string', Rule::in(['money_exchange', 'jewelry', 'office', 'retail', 'other'])],
             'title_deed_number' => ['nullable', 'string', 'max:150'],
@@ -281,6 +284,9 @@ class PropertyController extends Controller
 
     private function prepareTranslations(array $validated): array
     {
+        $validated['ownership_type'] = $validated['ownership_type'] ?? 'owned';
+        $validated['operating_mode'] = $validated['operating_mode'] ?? 'owner_occupied';
+
         foreach (['name', 'address', 'description', 'host_market_name'] as $field) {
             $validated["{$field}_translations"] = array_filter([
                 'fa' => $validated[$field] ?? null,

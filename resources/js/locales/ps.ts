@@ -2966,7 +2966,8 @@ const ps = {
 
     propertyWorkspace: {
         title: 'مارکېټونه او جایدادونه',
-        subtitle: 'د ټولو مارکېټونو، مالونو، بلاکونو او کورونو روښانه کتنه.',
+        subtitle:
+            'د ټولو مارکېټونو، مالونو، سوداګریزو واحدونو، بلاکونو او کورونو روښانه کتنه.',
         register: 'جایداد ثبت کړئ',
         registerTitle: 'مارکېټ یا جایداد ثبت کړئ',
         registerHelp:
@@ -2984,6 +2985,7 @@ const ps = {
         markets: 'مارکېټونه او مالونه',
         homes: 'کورونه او بلاکونه',
         spaces: 'ثبت شوي ځایونه',
+        commercialUnit: 'سوداګریز واحد',
         search: 'د نوم، پتې یا ولایت له مخې لټون…',
         searchOptions: 'غوراوي ولټوئ…',
         noOptions: 'سمون لرونکی غوراوی ونه موندل شو.',
@@ -3029,6 +3031,11 @@ const ps = {
         deleteSpace: 'دا ځای حذف شي؟',
         houseHelp:
             'د کور معلومات د جایداد په کچه اداره کېږي او وروسته ټول کور یوه کرایي قرارداد ته سپارل کېږي.',
+        commercialUnitHelp:
+            'دا په هغه بهرني مارکېټ کې یو ملکیت شوی دوکان یا دفتر دی چې نور یې اداره کوي. د هغه مارکېټ نور واحدونه نه ثبتېږي.',
+        commercialUnitManagement: 'د سوداګریز واحد مدیریت',
+        commercialUnitRentalHelp:
+            'د مالک د کارونې پر مهال کارکوونکي او لګښتونه همدې واحد ته وتړئ؛ د کرایې پر مهال ټول واحد یوه کرایه‌دار ته وسپارئ.',
         uploadPhoto: 'د جایداد انځور پورته کړئ',
         uploadPhotoHelp: 'PNG، JPG یا WebP تر ۵ مېګابایټه پورې.',
         choosePhoto: 'انځور وټاکئ',
@@ -3064,6 +3071,13 @@ const ps = {
             waterMeter: 'د اوبو میتر',
             shopNumber: 'د دوکان نمبر',
             apartmentNumber: 'د اپارتمان نمبر',
+            hostMarketName: 'د بهرني مارکېټ نوم',
+            externalUnitNumber: 'د دوکان / دفتر نمبر',
+            externalFloor: 'په بهرني مارکېټ کې منزل',
+            ownershipType: 'د مالکیت حالت',
+            operatingMode: 'د اوسني استعمال حالت',
+            businessActivities: 'سوداګریز فعالیتونه',
+            titleDeedNumber: 'د قبالې / مالکیت سند نمبر',
         },
         languages: { fa: 'دري', ps: 'پښتو', en: 'انګلیسي' },
         dariRequired: 'دري اړینه ده او د نورو ژباړو د نشتون پر مهال ښودل کېږي.',
@@ -3073,8 +3087,41 @@ const ps = {
             mall: 'مال',
             block: 'استوګنیز بلاک',
             house: 'کور',
+            commercial_unit: 'سوداګریز واحد / دوکان–دفتر',
         },
         usage: { commercial: 'سوداګریز', residential: 'استوګنیز', mixed: 'ګډ' },
+        ownership: {
+            owned: 'د شرکت ملکیت',
+            leased: 'د شرکت له خوا په کرایه اخیستل شوی',
+            managed: 'د بل مالک لپاره اداره کېږي',
+        },
+        operatingMode: {
+            owner_occupied: 'د مالک له خوا کارول کېږي',
+            vacant: 'خالي او کرایې ته چمتو',
+            rented: 'کرایه ورکړل شوی',
+            maintenance: 'تر ترمیم لاندې',
+        },
+        businessActivities: {
+            money_exchange: 'صرافي',
+            jewelry: 'زرګري او ګاڼې',
+            office: 'دفتر',
+            retail: 'پرچون پلور',
+            other: 'نور',
+        },
+        documents: {
+            title: 'د مالکیت اسناد',
+            help: 'قباله، د پېر قرارداد، د مالکیت ثبوت او نور شخصي اسناد خوندي کړئ.',
+            upload: 'اسناد پورته کړئ',
+            empty: 'تر اوسه د دې جایداد کوم سند نه دی پورته شوی.',
+            delete: 'سند حذف کړئ',
+            deleteConfirm: 'د جایداد دا سند حذف شي؟',
+            types: {
+                title_deed: 'د مالکیت قباله',
+                purchase_contract: 'د پېر قرارداد',
+                ownership: 'د مالکیت ثبوت',
+                other: 'بل سند',
+            },
+        },
         selectCountry: 'هېواد وټاکئ',
         selectProvince: 'ولایت وټاکئ',
         cancel: 'لغوه',
