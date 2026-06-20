@@ -34,7 +34,7 @@ function tenantProperty(string $type = 'market', string $name = 'Central Market'
     return Property::query()->create([
         'name' => $name,
         'property_type' => $type,
-        'usage_type' => in_array($type, ['market', 'mall'], true) ? 'commercial' : 'residential',
+        'usage_type' => in_array($type, ['market', 'mall', 'commercial_unit'], true) ? 'commercial' : 'residential',
         'country_id' => $country->id,
         'province_id' => $province->id,
         'address' => 'Gardez',
@@ -140,6 +140,33 @@ test('a residential block supports either an apartment or complete block assignm
     $lease = $tenant->leases()->firstOrFail();
     expect($lease->leased_space_type)->toBe('apartment')
         ->and($lease->property_floor_id)->toBe($apartment->property_floor_id);
+});
+
+test('a commercial unit is rented as one complete shop without internal market units', function () {
+    $property = tenantProperty('commercial_unit', 'Kabul Exchange Office');
+    $property->update([
+        'host_market_name' => 'Kabul Money Exchange Market',
+        'external_unit_number' => '47',
+        'operating_mode' => 'vacant',
+    ]);
+    $tenant = Tenant::query()->create([
+        'full_name' => 'Exchange Tenant',
+        'phone' => '0700000099',
+    ]);
+
+    $this->post(route('tenants.leases.store', $tenant), [
+        'property_id' => $property->id,
+        'property_unit_id' => null,
+        'start_date' => '2026-07-01',
+        'rent_amount' => 50000,
+        'payment_frequency' => 'monthly',
+        'status' => 'active',
+    ])->assertSessionHasNoErrors();
+
+    $lease = $tenant->leases()->firstOrFail();
+    expect($lease->leased_space_type)->toBe('shop')
+        ->and($lease->property_unit_id)->toBeNull()
+        ->and($property->fresh()->operating_mode)->toBe('rented');
 });
 
 test('finance users can view tenant profiles and cards but cannot manage tenants', function () {

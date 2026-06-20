@@ -6,7 +6,9 @@ use App\Models\PropertyFloor;
 use App\Models\Province;
 use App\Models\User;
 use Database\Seeders\RolePermissionSeeder;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 
 beforeEach(function () {
@@ -262,4 +264,68 @@ test('property details and translations can be edited', function () {
 
     App::setLocale('en');
     expect($property->fresh()->name)->toBe('New Market');
+});
+
+test('an owned commercial unit can be registered inside an external market', function () {
+    [$country, $province] = propertyLocation();
+
+    $this->post(route('properties.store'), [
+        'name' => 'دفتر صرافی و جواهرات کابل',
+        'name_en' => 'Kabul Exchange and Jewelry Office',
+        'property_type' => 'commercial_unit',
+        'usage_type' => 'residential',
+        'country_id' => $country->id,
+        'province_id' => $province->id,
+        'address' => 'کابل',
+        'host_market_name' => 'مارکیت صرافی کابل',
+        'host_market_name_en' => 'Kabul Money Exchange Market',
+        'external_unit_number' => 'Shop 47',
+        'external_floor' => 'Ground floor',
+        'ownership_type' => 'owned',
+        'operating_mode' => 'owner_occupied',
+        'business_activities' => ['money_exchange', 'jewelry', 'office'],
+        'title_deed_number' => 'DEED-47',
+        'building_area_sqm' => 36,
+    ])->assertRedirect(route('properties.index'))
+        ->assertSessionHasNoErrors();
+
+    $property = Property::query()->where('property_type', 'commercial_unit')->firstOrFail();
+
+    expect($property->usage_type)->toBe('commercial')
+        ->and($property->parent_property_id)->toBeNull()
+        ->and($property->declared_units)->toBe(1)
+        ->and($property->business_activities)->toBe(['money_exchange', 'jewelry', 'office']);
+
+    App::setLocale('en');
+    expect($property->fresh()->host_market_name)->toBe('Kabul Money Exchange Market');
+});
+
+test('property ownership documents can be uploaded and removed securely', function () {
+    Storage::fake('local');
+    [$country, $province] = propertyLocation();
+    $property = Property::query()->create([
+        'name' => 'Owned Shop',
+        'property_type' => 'commercial_unit',
+        'usage_type' => 'commercial',
+        'country_id' => $country->id,
+        'province_id' => $province->id,
+        'host_market_name' => 'External Market',
+        'external_unit_number' => 'A-12',
+    ]);
+
+    $this->post(route('properties.documents.store', $property), [
+        'document_type' => 'title_deed',
+        'documents' => [
+            UploadedFile::fake()->create('title-deed.pdf', 120, 'application/pdf'),
+        ],
+    ])->assertRedirect()->assertSessionHasNoErrors();
+
+    $document = $property->documents()->firstOrFail();
+    Storage::disk('local')->assertExists($document->path);
+
+    $this->get(route('properties.documents.download', [$property, $document]))->assertOk();
+    $this->delete(route('properties.documents.destroy', [$property, $document]))->assertRedirect();
+
+    Storage::disk('local')->assertMissing($document->path);
+    $this->assertDatabaseMissing('property_documents', ['id' => $document->id]);
 });
