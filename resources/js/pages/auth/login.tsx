@@ -52,7 +52,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                             href={LOGIN_BRAND_URL}
                             target="_blank"
                             rel="noreferrer"
-                            className="flex h-26 w-26 items-center justify-center rounded-xl bg-white/95 p-2 shadow-sm transition-transform hover:scale-[1.03]"
+                            className="flex h-26 w-26 items-center justify-center rounded-xl shadow-sm transition-transform hover:scale-[1.03]"
                         >
                             <img
                                 src={LOGIN_BRAND_LOGO}
@@ -62,8 +62,8 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                         </a>
                     </div>
 
-                    <div className="absolute inset-x-0 bottom-0 p-9 text-white xl:p-11">
-                        <p className="max-w-sm text-[2rem] leading-[1.12] font-bold tracking-[-0.035em] xl:text-[2.20rem]">
+                    <div className="absolute inset-x-0 bottom-0 p-4 text-white xl:p-6">
+                        <p className="max-w-sm text-[1.4rem] leading-[1.12] font-semibold tracking-[-0.035em] xl:text-[1.8rem]">
                             {t(
                                 'auth.login.mallQuote',
                                 'Manage Paktiawal Group markets and properties, in one place.',
@@ -254,15 +254,22 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                             {processing ? <Spinner /> : null}
                                             {t('auth.login.submit', 'Log in')}
                                         </Button>
+                                        <p className="flex items-center justify-center gap-1.5 text-[15px] text-neutral-400">
+                                            <ShieldCheck className="h-3.5 w-3.5" />
+                                            {t(
+                                                'auth.securedBy',
+                                                'Secured by industry-standard encryption',
+                                            )}
+                                        </p>
                                     </>
                                 )}
                             </Form>
                         </div>
                     </div>
 
-                    <footer className="w-full pb-6 text-center sm:pb-8">
-                        <div className="mx-auto max-w-107.5 border-t border-neutral-100 pt-5">
-                            <p className="flex items-center justify-center gap-2 text-[15px] text-neutral-600">
+                    <footer className="w-full pb-4 text-center sm:pb-6">
+                        <div className="mx-auto max-w-107.5">
+                            <p className="flex items-center justify-center gap-2 text-[15px] font-medium text-neutral-500">
                                 <Copyright className="h-3.5 w-3.5" />
                                 <span>
                                     {copyrightYear}{' '}
@@ -270,7 +277,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                         href={LOGIN_BRAND_URL}
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="font-medium text-brand-primary transition-colors hover:text-brand-secondary"
+                                        className="text-brand-primary/80 transition-colors hover:text-brand-secondary"
                                     >
                                         {loginBrandName}
                                     </a>
@@ -280,13 +287,6 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                         'All rights reserved.',
                                     )}
                                 </span>
-                            </p>
-                            <p className="mt-2 flex items-center justify-center gap-1.5 text-[15px] text-neutral-400">
-                                <ShieldCheck className="h-3.5 w-3.5" />
-                                {t(
-                                    'auth.securedBy',
-                                    'Secured by industry-standard encryption',
-                                )}
                             </p>
                         </div>
                     </footer>
