@@ -1207,7 +1207,7 @@ const ps = {
         heroDescription:
             'د مارکېټ، جایداد، ګدام، مالي، کارکوونکو او لاسرسي راپورونه په یوه منظم ځای کې وګورئ.',
         badges: {
-            liveFamilies: '۶ فعال راپور کورنۍ',
+            liveFamilies: '۷ فعال راپور کورنۍ',
             pdf: 'اصلي PDF خروجی',
             excel: 'Excel .xlsx خروجی',
             presets: 'خوندي شوې بڼې',
@@ -1773,6 +1773,12 @@ const ps = {
                 received: 'ترلاسه شوې',
                 outstanding: 'پاتې',
             },
+        },
+        shareholderPnl: {
+            title: 'د شریکانو ګټه او زیان',
+            description: 'د ټاکلې مودې د جایداد مالي پایله د اغېزمنې ونډې فیصدۍ له مخې وېشل کېږي.',
+            shareholder: 'شریک', property: 'جایداد', share: 'د ونډې فیصدۍ', net: 'د جایداد ګټه او زیان', allocated: 'د شریک ګټه او زیان',
+            empty: 'په دې موده کې کوم اغېزمن شریک نه دی ټاکل شوی.',
         },
         generalLedger: {
             title: 'د عمومي لیجر مخکتنه',

@@ -1209,7 +1209,7 @@ const en = {
         heroDescription:
             'Review market, property, warehouse, finance, employee, and access reports from one clean workspace.',
         badges: {
-            liveFamilies: '6 live report families',
+            liveFamilies: '7 live report families',
             pdf: 'True PDF export',
             excel: 'Native Excel .xlsx',
             presets: 'Saved presets',
@@ -1780,6 +1780,12 @@ const en = {
                 received: 'Received',
                 outstanding: 'Outstanding',
             },
+        },
+        shareholderPnl: {
+            title: 'Shareholder Profit & Loss',
+            description: 'Property results allocated by effective ownership percentages for the selected period.',
+            shareholder: 'Shareholder', property: 'Property', share: 'Share', net: 'Property P&L', allocated: 'Allocated P&L',
+            empty: 'No effective shareholder assignments were found for this period.',
         },
         generalLedger: {
             title: 'General Ledger Preview',

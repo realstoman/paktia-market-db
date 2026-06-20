@@ -18,6 +18,7 @@ return [
             'title' => 'Rent & Contracts',
             'description' => 'Tenant leases, rent collection, balances, and signed-contract coverage.',
         ],
+        'shareholders' => ['title' => 'Shareholder P&L', 'description' => 'Profit and loss allocation based on property ownership percentages.'],
         'properties' => [
             'title' => 'Markets & Properties',
             'description' => 'Property staffing and inventory coverage.',
@@ -40,6 +41,8 @@ return [
         'rent_received' => 'Rent received',
         'active_leases' => 'Active leases',
         'rent_outstanding' => 'Outstanding rent',
+        'shareholder_allocations' => 'Shareholder allocations',
+        'allocated_pnl' => 'Allocated P&L',
         'pending_approvals' => 'Pending approvals',
         'branches' => 'Markets',
         'active_branches' => 'Active markets',
@@ -63,6 +66,7 @@ return [
             'title' => 'Rent & Contracts Report',
             'description' => 'Lease obligations, receipts, outstanding rent, and signed contracts.',
         ],
+        'shareholders' => ['title' => 'Shareholder P&L Report', 'description' => 'Property profit or loss allocated by effective share percentage.'],
         'properties' => [
             'title' => 'Markets & Properties Report',
             'description' => 'Property staffing and inventory coverage.',
@@ -105,6 +109,7 @@ return [
         'received' => 'Received',
         'outstanding' => 'Outstanding',
         'signed_contract' => 'Signed Contract',
+        'shareholder' => 'Shareholder', 'share_percentage' => 'Share %', 'rent_revenue' => 'Rent Revenue', 'expenses' => 'Expenses', 'net_pnl' => 'Property P&L', 'shareholder_pnl' => 'Shareholder P&L',
     ],
     'status' => [
         'unassigned' => 'Unassigned',
@@ -134,6 +139,7 @@ return [
         'active_leases' => 'Active Leases',
         'expected_rent' => 'Contracted Rent',
         'rent_outstanding' => 'Outstanding Rent',
+        'property_net_pnl' => 'Property Net P&L', 'shareholder_allocated_pnl' => 'Allocated Shareholder P&L',
         'branches' => 'Markets',
         'accounts' => 'Accounts',
     ],

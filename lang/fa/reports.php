@@ -18,6 +18,7 @@ return [
             'title' => 'کرایه و قراردادها',
             'description' => 'قراردادهای مستأجران، دریافت کرایه، باقیات و اسناد امضاءشده.',
         ],
+        'shareholders' => ['title' => 'سود و زیان سهمداران', 'description' => 'تخصیص سود و زیان بر اساس فیصدی سهم هر جایداد.'],
         'properties' => [
             'title' => 'مارکیت‌ها و جایدادها',
             'description' => 'پوشش کارمندان و گدام در جایدادها.',
@@ -40,6 +41,8 @@ return [
         'rent_received' => 'کرایه دریافت‌شده',
         'active_leases' => 'قراردادهای فعال',
         'rent_outstanding' => 'باقیات کرایه',
+        'shareholder_allocations' => 'تخصیصات سهمداران',
+        'allocated_pnl' => 'سود و زیان تخصیص‌شده',
         'pending_approvals' => 'در انتظار منظوری',
         'branches' => 'مارکیت‌ها',
         'active_branches' => 'مارکیت‌های فعال',
@@ -63,6 +66,7 @@ return [
             'title' => 'گزارش کرایه و قراردادها',
             'description' => 'تعهدات قرارداد، دریافت‌ها، باقیات کرایه و قراردادهای امضاءشده.',
         ],
+        'shareholders' => ['title' => 'گزارش سود و زیان سهمداران', 'description' => 'سود یا زیان جایداد بر اساس فیصدی مؤثر سهم تخصیص می‌گردد.'],
         'properties' => [
             'title' => 'گزارش مارکیت‌ها و جایدادها',
             'description' => 'پوشش کارمندان و گدام در جایدادها.',
@@ -105,6 +109,7 @@ return [
         'received' => 'دریافت‌شده',
         'outstanding' => 'باقیات',
         'signed_contract' => 'قرارداد امضاءشده',
+        'shareholder' => 'سهامدار', 'share_percentage' => 'فیصدی سهم', 'rent_revenue' => 'عواید کرایه', 'expenses' => 'مصارف', 'net_pnl' => 'سود و زیان جایداد', 'shareholder_pnl' => 'سود و زیان سهمدار',
     ],
     'status' => [
         'unassigned' => 'تعیین نشده',
@@ -134,6 +139,7 @@ return [
         'active_leases' => 'قراردادهای فعال',
         'expected_rent' => 'کرایه قراردادی',
         'rent_outstanding' => 'باقیات کرایه',
+        'property_net_pnl' => 'سود و زیان خالص جایداد', 'shareholder_allocated_pnl' => 'سود و زیان تخصیص‌شده سهمداران',
         'branches' => 'مارکیت‌ها',
         'accounts' => 'حساب‌ها',
     ],

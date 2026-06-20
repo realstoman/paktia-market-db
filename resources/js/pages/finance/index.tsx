@@ -109,6 +109,16 @@ interface FinanceDashboardData {
         property: string;
         revenue: number;
     }>;
+    shareholderPnl: Array<{
+        id: number;
+        shareholder: string;
+        property: string;
+        percentage: number;
+        revenue: number;
+        expenses: number;
+        net: number;
+        allocated: number;
+    }>;
     topExpenseCategories: Array<{
         value: string;
         category: string;
@@ -1383,6 +1393,49 @@ export default function FinancePage({
                         </CardContent>
                     </Card>
                 </div>
+
+                <Card className="border-neutral-200/80 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
+                    <CardHeader>
+                        <CardTitle>
+                            {t(
+                                'financeDashboard.shareholderPnl.title',
+                                'Shareholder Profit & Loss',
+                            )}
+                        </CardTitle>
+                        <CardDescription>
+                            {t(
+                                'financeDashboard.shareholderPnl.description',
+                                'Property results allocated by effective ownership percentages for the selected period.',
+                            )}
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        {dashboard.shareholderPnl.length ? (
+                            <div className="overflow-x-auto rounded-2xl border">
+                                <div className="grid min-w-[760px] grid-cols-[1.2fr_1.2fr_0.6fr_1fr_1fr] gap-3 bg-[#edf1f4] px-4 py-3 text-xs font-medium text-muted-foreground">
+                                    <span>{t('financeDashboard.shareholderPnl.shareholder', 'Shareholder')}</span>
+                                    <span>{t('financeDashboard.shareholderPnl.property', 'Property')}</span>
+                                    <span>{t('financeDashboard.shareholderPnl.share', 'Share')}</span>
+                                    <span>{t('financeDashboard.shareholderPnl.net', 'Property P&L')}</span>
+                                    <span>{t('financeDashboard.shareholderPnl.allocated', 'Allocated P&L')}</span>
+                                </div>
+                                {dashboard.shareholderPnl.map((row) => (
+                                    <div key={row.id} className="grid min-w-[760px] grid-cols-[1.2fr_1.2fr_0.6fr_1fr_1fr] gap-3 border-t px-4 py-3 text-sm">
+                                        <span className="font-medium">{row.shareholder}</span>
+                                        <span>{row.property}</span>
+                                        <span>{formatNumber(row.percentage)}%</span>
+                                        <span>{formatAfn(row.net)}</span>
+                                        <span className={row.allocated >= 0 ? 'font-semibold text-emerald-700' : 'font-semibold text-red-700'}>{formatAfn(row.allocated)}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="rounded-2xl border border-dashed py-10 text-center text-sm text-muted-foreground">
+                                {t('financeDashboard.shareholderPnl.empty', 'No effective shareholder assignments were found for this period.')}
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
 
                 <div className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
                     <Card className="border-neutral-200/80 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
