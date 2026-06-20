@@ -3,6 +3,7 @@ import { PropertyImageUpload } from '@/components/properties/property-image-uplo
 import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Dialog,
     DialogContent,
@@ -52,6 +53,20 @@ export function EditPropertyDialog({
             : '',
         property_type: property.property_type ?? 'market',
         usage_type: property.usage_type ?? 'commercial',
+        host_market_name:
+            property.host_market_name_translations?.fa ??
+            property.host_market_name ??
+            '',
+        host_market_name_ps:
+            property.host_market_name_translations?.ps ?? '',
+        host_market_name_en:
+            property.host_market_name_translations?.en ?? '',
+        external_unit_number: property.external_unit_number ?? '',
+        external_floor: property.external_floor ?? '',
+        ownership_type: property.ownership_type ?? 'owned',
+        operating_mode: property.operating_mode ?? 'owner_occupied',
+        business_activities: property.business_activities ?? [],
+        title_deed_number: property.title_deed_number ?? '',
         country_id: property.country_id ? String(property.country_id) : '',
         province_id: property.province_id ? String(property.province_id) : '',
         distance_from_city_km: editableNumber(property.distance_from_city_km),
@@ -178,24 +193,33 @@ export function EditPropertyDialog({
                     <Field label={t('propertyWorkspace.fields.type')}>
                         <SearchableDropdown
                             value={form.data.property_type}
-                            onValueChange={(value) =>
+                            onValueChange={(value) => {
                                 form.setData(
                                     'property_type',
                                     value as
                                         | 'market'
                                         | 'mall'
                                         | 'block'
-                                        | 'house',
-                                )
-                            }
-                            options={['market', 'mall', 'block', 'house'].map(
-                                (value) => ({
+                                        | 'house'
+                                        | 'commercial_unit',
+                                );
+                                if (value === 'commercial_unit') {
+                                    form.setData('usage_type', 'commercial');
+                                    form.setData('parent_property_id', '');
+                                }
+                            }}
+                            options={[
+                                'market',
+                                'mall',
+                                'block',
+                                'house',
+                                'commercial_unit',
+                            ].map((value) => ({
                                     value,
                                     label: t(
                                         `propertyWorkspace.types.${value}`,
                                     ),
-                                }),
-                            )}
+                                }))}
                             placeholder={t('propertyWorkspace.fields.type')}
                             searchPlaceholder={t(
                                 'propertyWorkspace.searchOptions',
@@ -265,7 +289,7 @@ export function EditPropertyDialog({
                             emptyText={t('propertyWorkspace.noOptions')}
                         />
                     </Field>
-                    <Field label={t('propertyWorkspace.relatedLocation')}>
+                    {form.data.property_type !== 'commercial_unit' && <Field label={t('propertyWorkspace.relatedLocation')}>
                         <SearchableDropdown
                             value={form.data.parent_property_id || 'none'}
                             onValueChange={(value) =>
@@ -290,7 +314,180 @@ export function EditPropertyDialog({
                             )}
                             emptyText={t('propertyWorkspace.noOptions')}
                         />
-                    </Field>
+                    </Field>}
+                    {form.data.property_type === 'commercial_unit' && (
+                        <>
+                            <TextField
+                                label={t(
+                                    'propertyWorkspace.fields.hostMarketName',
+                                )}
+                                value={form.data.host_market_name}
+                                set={(value) =>
+                                    form.setData('host_market_name', value)
+                                }
+                                error={form.errors.host_market_name}
+                                dir="rtl"
+                            />
+                            <TextField
+                                label={`${t('propertyWorkspace.fields.hostMarketName')} — ${t('propertyWorkspace.languages.ps')}`}
+                                value={form.data.host_market_name_ps}
+                                set={(value) =>
+                                    form.setData('host_market_name_ps', value)
+                                }
+                                dir="rtl"
+                            />
+                            <TextField
+                                label={`${t('propertyWorkspace.fields.hostMarketName')} — ${t('propertyWorkspace.languages.en')}`}
+                                value={form.data.host_market_name_en}
+                                set={(value) =>
+                                    form.setData('host_market_name_en', value)
+                                }
+                                dir="ltr"
+                            />
+                            <TextField
+                                label={t(
+                                    'propertyWorkspace.fields.externalUnitNumber',
+                                )}
+                                value={form.data.external_unit_number}
+                                set={(value) =>
+                                    form.setData('external_unit_number', value)
+                                }
+                                error={form.errors.external_unit_number}
+                            />
+                            <TextField
+                                label={t(
+                                    'propertyWorkspace.fields.externalFloor',
+                                )}
+                                value={form.data.external_floor}
+                                set={(value) =>
+                                    form.setData('external_floor', value)
+                                }
+                            />
+                            <TextField
+                                label={t(
+                                    'propertyWorkspace.fields.titleDeedNumber',
+                                )}
+                                value={form.data.title_deed_number}
+                                set={(value) =>
+                                    form.setData('title_deed_number', value)
+                                }
+                            />
+                            <Field
+                                label={t(
+                                    'propertyWorkspace.fields.ownershipType',
+                                )}
+                            >
+                                <SearchableDropdown
+                                    value={form.data.ownership_type}
+                                    onValueChange={(value) =>
+                                        form.setData(
+                                            'ownership_type',
+                                            value as 'owned' | 'leased' | 'managed',
+                                        )
+                                    }
+                                    options={[
+                                        'owned',
+                                        'leased',
+                                        'managed',
+                                    ].map((value) => ({
+                                        value,
+                                        label: t(
+                                            `propertyWorkspace.ownership.${value}`,
+                                        ),
+                                    }))}
+                                    searchPlaceholder={t(
+                                        'propertyWorkspace.searchOptions',
+                                    )}
+                                    emptyText={t(
+                                        'propertyWorkspace.noOptions',
+                                    )}
+                                />
+                            </Field>
+                            <Field
+                                label={t(
+                                    'propertyWorkspace.fields.operatingMode',
+                                )}
+                            >
+                                <SearchableDropdown
+                                    value={form.data.operating_mode}
+                                    onValueChange={(value) =>
+                                        form.setData(
+                                            'operating_mode',
+                                            value as
+                                                | 'owner_occupied'
+                                                | 'vacant'
+                                                | 'rented'
+                                                | 'maintenance',
+                                        )
+                                    }
+                                    options={[
+                                        'owner_occupied',
+                                        'vacant',
+                                        'rented',
+                                        'maintenance',
+                                    ].map((value) => ({
+                                        value,
+                                        label: t(
+                                            `propertyWorkspace.operatingMode.${value}`,
+                                        ),
+                                    }))}
+                                    searchPlaceholder={t(
+                                        'propertyWorkspace.searchOptions',
+                                    )}
+                                    emptyText={t(
+                                        'propertyWorkspace.noOptions',
+                                    )}
+                                />
+                            </Field>
+                            <Field
+                                label={t(
+                                    'propertyWorkspace.fields.businessActivities',
+                                )}
+                                className="sm:col-span-2"
+                            >
+                                <div className="grid gap-2 rounded-xl border p-3 sm:grid-cols-2">
+                                    {[
+                                        'money_exchange',
+                                        'jewelry',
+                                        'office',
+                                        'retail',
+                                        'other',
+                                    ].map((activity) => (
+                                        <label
+                                            key={activity}
+                                            className="flex items-center gap-2 text-sm"
+                                        >
+                                            <Checkbox
+                                                checked={form.data.business_activities.includes(
+                                                    activity,
+                                                )}
+                                                onCheckedChange={(checked) =>
+                                                    form.setData(
+                                                        'business_activities',
+                                                        checked
+                                                            ? [
+                                                                  ...form.data
+                                                                      .business_activities,
+                                                                  activity,
+                                                              ]
+                                                            : form.data.business_activities.filter(
+                                                                  (value) =>
+                                                                      value !==
+                                                                      activity,
+                                                              ),
+                                                    )
+                                                }
+                                            />
+                                            {t(
+                                                `propertyWorkspace.businessActivities.${activity}`,
+                                            )}
+                                        </label>
+                                    ))}
+                                </div>
+                            </Field>
+                        </>
+                    )}
+
                     <NumericField
                         label={t('propertyWorkspace.fields.distance')}
                         value={form.data.distance_from_city_km}
@@ -298,11 +495,11 @@ export function EditPropertyDialog({
                             form.setData('distance_from_city_km', value)
                         }
                     />
-                    <NumericField
+                    {form.data.property_type !== 'commercial_unit' && <NumericField
                         label={t('propertyWorkspace.fields.landArea')}
                         value={form.data.land_area_sqm}
                         set={(value) => form.setData('land_area_sqm', value)}
-                    />
+                    />}
                     <NumericField
                         label={t('propertyWorkspace.fields.buildingArea')}
                         value={form.data.building_area_sqm}
@@ -310,26 +507,40 @@ export function EditPropertyDialog({
                             form.setData('building_area_sqm', value)
                         }
                     />
-                    <NumericField
-                        label={t('propertyWorkspace.fields.floors')}
-                        value={form.data.declared_floors}
-                        set={(value) => form.setData('declared_floors', value)}
-                    />
-                    <NumericField
-                        label={t(
-                            ['market', 'mall'].includes(form.data.property_type)
-                                ? 'propertyWorkspace.fields.expectedShops'
-                                : 'propertyWorkspace.fields.expectedApartments',
-                        )}
-                        value={form.data.declared_units}
-                        set={(value) => form.setData('declared_units', value)}
-                    />
-                    <NumericField
-                        label={t('propertyWorkspace.fields.parking')}
-                        value={form.data.parking_spaces}
-                        set={(value) => form.setData('parking_spaces', value)}
-                    />
-                    {form.data.property_type === 'house' && (
+                    {form.data.property_type !== 'commercial_unit' && (
+                        <>
+                            <NumericField
+                                label={t('propertyWorkspace.fields.floors')}
+                                value={form.data.declared_floors}
+                                set={(value) =>
+                                    form.setData('declared_floors', value)
+                                }
+                            />
+                            <NumericField
+                                label={t(
+                                    ['market', 'mall'].includes(
+                                        form.data.property_type,
+                                    )
+                                        ? 'propertyWorkspace.fields.expectedShops'
+                                        : 'propertyWorkspace.fields.expectedApartments',
+                                )}
+                                value={form.data.declared_units}
+                                set={(value) =>
+                                    form.setData('declared_units', value)
+                                }
+                            />
+                            <NumericField
+                                label={t('propertyWorkspace.fields.parking')}
+                                value={form.data.parking_spaces}
+                                set={(value) =>
+                                    form.setData('parking_spaces', value)
+                                }
+                            />
+                        </>
+                    )}
+                    {['house', 'commercial_unit'].includes(
+                        form.data.property_type,
+                    ) && (
                         <>
                             <NumericField
                                 label={t('propertyWorkspace.fields.rooms')}
@@ -389,14 +600,16 @@ export function EditPropertyDialog({
 function Field({
     label,
     error,
+    className = '',
     children,
 }: {
     label: string;
     error?: string;
+    className?: string;
     children: React.ReactNode;
 }) {
     return (
-        <div className="grid gap-2">
+        <div className={`grid gap-2 ${className}`}>
             <Label>{label}</Label>
             {children}
             <InputError message={error} />
@@ -408,13 +621,13 @@ function TextField({
     value,
     set,
     error,
-    dir,
+    dir = 'rtl',
 }: {
     label: string;
     value: string;
     set: (value: string) => void;
     error?: string;
-    dir: 'rtl' | 'ltr';
+    dir?: 'rtl' | 'ltr';
 }) {
     return (
         <Field label={label} error={error}>

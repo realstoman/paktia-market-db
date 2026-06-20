@@ -428,6 +428,243 @@ export default function PropertiesPage({
                                         </p>
                                     </Field>
 
+                                    {form.data.property_type ===
+                                        'commercial_unit' && (
+                                        <>
+                                            <Field
+                                                label={t(
+                                                    'propertyWorkspace.fields.hostMarketName',
+                                                )}
+                                                error={
+                                                    form.errors.host_market_name
+                                                }
+                                            >
+                                                <Input
+                                                    dir="rtl"
+                                                    value={
+                                                        form.data
+                                                            .host_market_name
+                                                    }
+                                                    onChange={(event) =>
+                                                        form.setData(
+                                                            'host_market_name',
+                                                            event.target.value,
+                                                        )
+                                                    }
+                                                />
+                                            </Field>
+                                            <Field
+                                                label={`${t('propertyWorkspace.fields.hostMarketName')} — ${t('propertyWorkspace.languages.ps')}`}
+                                            >
+                                                <Input
+                                                    dir="rtl"
+                                                    value={
+                                                        form.data
+                                                            .host_market_name_ps
+                                                    }
+                                                    onChange={(event) =>
+                                                        form.setData(
+                                                            'host_market_name_ps',
+                                                            event.target.value,
+                                                        )
+                                                    }
+                                                />
+                                            </Field>
+                                            <Field
+                                                label={`${t('propertyWorkspace.fields.hostMarketName')} — ${t('propertyWorkspace.languages.en')}`}
+                                            >
+                                                <Input
+                                                    dir="ltr"
+                                                    value={
+                                                        form.data
+                                                            .host_market_name_en
+                                                    }
+                                                    onChange={(event) =>
+                                                        form.setData(
+                                                            'host_market_name_en',
+                                                            event.target.value,
+                                                        )
+                                                    }
+                                                />
+                                            </Field>
+                                            <Field
+                                                label={t(
+                                                    'propertyWorkspace.fields.externalUnitNumber',
+                                                )}
+                                                error={
+                                                    form.errors
+                                                        .external_unit_number
+                                                }
+                                            >
+                                                <Input
+                                                    value={
+                                                        form.data
+                                                            .external_unit_number
+                                                    }
+                                                    onChange={(event) =>
+                                                        form.setData(
+                                                            'external_unit_number',
+                                                            event.target.value,
+                                                        )
+                                                    }
+                                                />
+                                            </Field>
+                                            <Field
+                                                label={t(
+                                                    'propertyWorkspace.fields.externalFloor',
+                                                )}
+                                            >
+                                                <Input
+                                                    value={
+                                                        form.data.external_floor
+                                                    }
+                                                    onChange={(event) =>
+                                                        form.setData(
+                                                            'external_floor',
+                                                            event.target.value,
+                                                        )
+                                                    }
+                                                />
+                                            </Field>
+                                            <Field
+                                                label={t(
+                                                    'propertyWorkspace.fields.titleDeedNumber',
+                                                )}
+                                            >
+                                                <Input
+                                                    value={
+                                                        form.data
+                                                            .title_deed_number
+                                                    }
+                                                    onChange={(event) =>
+                                                        form.setData(
+                                                            'title_deed_number',
+                                                            event.target.value,
+                                                        )
+                                                    }
+                                                />
+                                            </Field>
+                                            <Field
+                                                label={t(
+                                                    'propertyWorkspace.fields.ownershipType',
+                                                )}
+                                            >
+                                                <SearchableDropdown
+                                                    value={
+                                                        form.data.ownership_type
+                                                    }
+                                                    onValueChange={(value) =>
+                                                        form.setData(
+                                                            'ownership_type',
+                                                            value,
+                                                        )
+                                                    }
+                                                    options={[
+                                                        'owned',
+                                                        'leased',
+                                                        'managed',
+                                                    ].map((value) => ({
+                                                        value,
+                                                        label: t(
+                                                            `propertyWorkspace.ownership.${value}`,
+                                                        ),
+                                                    }))}
+                                                    searchPlaceholder={t(
+                                                        'propertyWorkspace.searchOptions',
+                                                    )}
+                                                    emptyText={t(
+                                                        'propertyWorkspace.noOptions',
+                                                    )}
+                                                />
+                                            </Field>
+                                            <Field
+                                                label={t(
+                                                    'propertyWorkspace.fields.operatingMode',
+                                                )}
+                                            >
+                                                <SearchableDropdown
+                                                    value={
+                                                        form.data.operating_mode
+                                                    }
+                                                    onValueChange={(value) =>
+                                                        form.setData(
+                                                            'operating_mode',
+                                                            value,
+                                                        )
+                                                    }
+                                                    options={[
+                                                        'owner_occupied',
+                                                        'vacant',
+                                                        'rented',
+                                                        'maintenance',
+                                                    ].map((value) => ({
+                                                        value,
+                                                        label: t(
+                                                            `propertyWorkspace.operatingMode.${value}`,
+                                                        ),
+                                                    }))}
+                                                    searchPlaceholder={t(
+                                                        'propertyWorkspace.searchOptions',
+                                                    )}
+                                                    emptyText={t(
+                                                        'propertyWorkspace.noOptions',
+                                                    )}
+                                                />
+                                            </Field>
+                                            <Field
+                                                label={t(
+                                                    'propertyWorkspace.fields.businessActivities',
+                                                )}
+                                                className="sm:col-span-2"
+                                            >
+                                                <div className="grid gap-2 rounded-xl border p-3 sm:grid-cols-2">
+                                                    {[
+                                                        'money_exchange',
+                                                        'jewelry',
+                                                        'office',
+                                                        'retail',
+                                                        'other',
+                                                    ].map((activity) => (
+                                                        <label
+                                                            key={activity}
+                                                            className="flex items-center gap-2 text-sm"
+                                                        >
+                                                            <Checkbox
+                                                                checked={form.data.business_activities.includes(
+                                                                    activity,
+                                                                )}
+                                                                onCheckedChange={(
+                                                                    checked,
+                                                                ) =>
+                                                                    form.setData(
+                                                                        'business_activities',
+                                                                        checked
+                                                                            ? [
+                                                                                  ...form
+                                                                                      .data
+                                                                                      .business_activities,
+                                                                                  activity,
+                                                                              ]
+                                                                            : form.data.business_activities.filter(
+                                                                                  (
+                                                                                      value,
+                                                                                  ) =>
+                                                                                      value !==
+                                                                                      activity,
+                                                                              ),
+                                                                    )
+                                                                }
+                                                            />
+                                                            {t(
+                                                                `propertyWorkspace.businessActivities.${activity}`,
+                                                            )}
+                                                        </label>
+                                                    ))}
+                                                </div>
+                                            </Field>
+                                        </>
+                                    )}
+
                                     <NumberField
                                         label={t(
                                             'propertyWorkspace.fields.distance',
@@ -435,13 +672,16 @@ export default function PropertiesPage({
                                         name="distance_from_city_km"
                                         form={form}
                                     />
-                                    <NumberField
-                                        label={t(
-                                            'propertyWorkspace.fields.landArea',
-                                        )}
-                                        name="land_area_sqm"
-                                        form={form}
-                                    />
+                                    {form.data.property_type !==
+                                        'commercial_unit' && (
+                                        <NumberField
+                                            label={t(
+                                                'propertyWorkspace.fields.landArea',
+                                            )}
+                                            name="land_area_sqm"
+                                            form={form}
+                                        />
+                                    )}
                                     <NumberField
                                         label={t(
                                             'propertyWorkspace.fields.buildingArea',
@@ -449,32 +689,43 @@ export default function PropertiesPage({
                                         name="building_area_sqm"
                                         form={form}
                                     />
-                                    <NumberField
-                                        label={t(
-                                            'propertyWorkspace.fields.floors',
-                                        )}
-                                        name="declared_floors"
-                                        form={form}
-                                    />
-                                    <NumberField
-                                        label={t(
-                                            ['market', 'mall'].includes(
-                                                form.data.property_type,
-                                            )
-                                                ? 'propertyWorkspace.fields.expectedShops'
-                                                : 'propertyWorkspace.fields.expectedApartments',
-                                        )}
-                                        name="declared_units"
-                                        form={form}
-                                    />
-                                    <NumberField
-                                        label={t(
-                                            'propertyWorkspace.fields.parking',
-                                        )}
-                                        name="parking_spaces"
-                                        form={form}
-                                    />
-                                    {form.data.property_type === 'house' && (
+                                    {form.data.property_type !==
+                                        'commercial_unit' && (
+                                        <>
+                                            <NumberField
+                                                label={t(
+                                                    'propertyWorkspace.fields.floors',
+                                                )}
+                                                name="declared_floors"
+                                                form={form}
+                                            />
+                                            <NumberField
+                                                label={t(
+                                                    [
+                                                        'market',
+                                                        'mall',
+                                                    ].includes(
+                                                        form.data.property_type,
+                                                    )
+                                                        ? 'propertyWorkspace.fields.expectedShops'
+                                                        : 'propertyWorkspace.fields.expectedApartments',
+                                                )}
+                                                name="declared_units"
+                                                form={form}
+                                            />
+                                            <NumberField
+                                                label={t(
+                                                    'propertyWorkspace.fields.parking',
+                                                )}
+                                                name="parking_spaces"
+                                                form={form}
+                                            />
+                                        </>
+                                    )}
+                                    {[
+                                        'house',
+                                        'commercial_unit',
+                                    ].includes(form.data.property_type) && (
                                         <>
                                             <NumberField
                                                 label={t(
@@ -564,7 +815,11 @@ export default function PropertiesPage({
                         icon={DoorOpen}
                         label={t('propertyWorkspace.spaces')}
                         value={properties.reduce(
-                            (total, item) => total + (item.units_count ?? 0),
+                            (total, item) =>
+                                total +
+                                (item.property_type === 'commercial_unit'
+                                    ? 1
+                                    : (item.units_count ?? 0)),
                             0,
                         )}
                     />
@@ -831,7 +1086,9 @@ function PropertyCard({ property }: { property: Property }) {
         ? t('propertyWorkspace.shops')
         : type === 'block'
           ? t('propertyWorkspace.apartments')
-          : t('propertyWorkspace.rooms');
+          : type === 'commercial_unit'
+            ? t('propertyWorkspace.commercialUnit')
+            : t('propertyWorkspace.rooms');
 
     return (
         <Link href={`/properties/${property.id}`} className="group">
@@ -893,17 +1150,25 @@ function PropertyCard({ property }: { property: Property }) {
                     <div className="grid grid-cols-3 divide-x rounded-lg border bg-muted/30 py-3 text-center text-xs rtl:divide-x-reverse">
                         <Stat
                             value={
-                                property.floors_count ??
-                                property.declared_floors ??
-                                0
+                                type === 'commercial_unit'
+                                    ? (property.external_floor ?? '—')
+                                    : (property.floors_count ??
+                                      property.declared_floors ??
+                                      0)
                             }
-                            label={t('propertyWorkspace.floors')}
+                            label={t(
+                                type === 'commercial_unit'
+                                    ? 'propertyWorkspace.fields.externalFloor'
+                                    : 'propertyWorkspace.floors',
+                            )}
                         />
                         <Stat
                             value={
-                                property.units_count ??
-                                property.declared_units ??
-                                0
+                                type === 'commercial_unit'
+                                    ? (property.external_unit_number ?? '—')
+                                    : (property.units_count ??
+                                      property.declared_units ??
+                                      0)
                             }
                             label={spacesLabel}
                         />
