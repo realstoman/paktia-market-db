@@ -425,6 +425,16 @@ const ps = {
             financialStatus: 'مالي حالت',
             printCard: 'د پېژند کارت چاپ',
         },
+        statusConfirm: {
+            title: 'د کرایه‌دار د حالت بدلون تایید',
+            activateDescription:
+                'ایا :name فعال شي؟ د کرایه‌دار پروفایل به بیا د روانو چارو لپاره د کارولو وړ وي.',
+            deactivateDescription:
+                'ایا :name غیرفعال شي؟ پروفایل او مخینه به یې خوندي پاتې شي، خو کرایه‌دار به غیرفعال وښودل شي.',
+            confirmActivate: 'کرایه‌دار فعال کړئ',
+            confirmDeactivate: 'کرایه‌دار غیرفعال کړئ',
+            cancel: 'لغوه',
+        },
         fields: {
             tenantType: 'د کرایه‌دار ډول',
             fullName: 'بشپړ نوم / مسؤل شخص',

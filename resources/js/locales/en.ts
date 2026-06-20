@@ -425,6 +425,16 @@ const en = {
             financialStatus: 'Financial status',
             printCard: 'Print ID card',
         },
+        statusConfirm: {
+            title: 'Confirm tenant status change',
+            activateDescription:
+                'Activate :name? Their tenant profile will become available for active operations.',
+            deactivateDescription:
+                'Deactivate :name? Their profile and history will remain saved, but the tenant will be marked inactive.',
+            confirmActivate: 'Activate tenant',
+            confirmDeactivate: 'Deactivate tenant',
+            cancel: 'Cancel',
+        },
         fields: {
             tenantType: 'Renter type',
             fullName: 'Full name / responsible person',

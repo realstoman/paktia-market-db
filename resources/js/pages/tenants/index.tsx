@@ -2,6 +2,16 @@ import InputError from '@/components/input-error';
 import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -528,72 +538,123 @@ function TenantRowActions({
     tenant: Tenant;
     canManage: boolean;
 }) {
-    const { t } = useLocalization();
+    const { t, isRtl } = useLocalization();
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [isChangingStatus, setIsChangingStatus] = useState(false);
+
+    const changeStatus = () => {
+        router.post(
+            `/tenants/${tenant.id}/toggle`,
+            {},
+            {
+                preserveScroll: true,
+                onStart: () => setIsChangingStatus(true),
+                onFinish: () => {
+                    setIsChangingStatus(false);
+                    setConfirmOpen(false);
+                },
+            },
+        );
+    };
 
     return (
-        <DropdownMenu modal={false}>
-            <DropdownMenuTrigger asChild>
-                <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    aria-label={t('tenants.table.actions')}
-                >
-                    <MoreHorizontal className="size-4" />
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="min-w-52">
-                <DropdownMenuLabel>
-                    {t('tenants.table.actions')}
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                    <Link href={`/tenants/${tenant.id}`}>
-                        <Eye />
-                        {t('tenants.actions.view')}
-                    </Link>
-                </DropdownMenuItem>
-                {canManage && (
+        <>
+            <DropdownMenu modal={false}>
+                <DropdownMenuTrigger asChild>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        aria-label={t('tenants.table.actions')}
+                    >
+                        <MoreHorizontal className="size-4" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="min-w-52">
+                    <DropdownMenuLabel>
+                        {t('tenants.table.actions')}
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                        <Link href={`/tenants/${tenant.id}?edit=1`}>
-                            <Pencil />
-                            {t('tenants.actions.edit')}
+                        <Link href={`/tenants/${tenant.id}`}>
+                            <Eye />
+                            {t('tenants.actions.view')}
                         </Link>
                     </DropdownMenuItem>
-                )}
-                <DropdownMenuItem asChild>
-                    <Link href={`/tenants/${tenant.id}#tenant-finance`}>
-                        <Banknote />
-                        {t('tenants.actions.financialStatus')}
-                    </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                    <Link href={`/tenants/${tenant.id}/card`}>
-                        <Printer />
-                        {t('tenants.actions.printCard')}
-                    </Link>
-                </DropdownMenuItem>
-                {canManage && (
-                    <>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                            onSelect={() =>
-                                router.post(
-                                    `/tenants/${tenant.id}/toggle`,
-                                    {},
-                                    {
-                                        preserveScroll: true,
-                                    },
-                                )
-                            }
-                        >
-                            <ShieldCheck />
-                            {t('tenants.statusAction')}
+                    {canManage && (
+                        <DropdownMenuItem asChild>
+                            <Link href={`/tenants/${tenant.id}?edit=1`}>
+                                <Pencil />
+                                {t('tenants.actions.edit')}
+                            </Link>
                         </DropdownMenuItem>
-                    </>
-                )}
-            </DropdownMenuContent>
-        </DropdownMenu>
+                    )}
+                    <DropdownMenuItem asChild>
+                        <Link href={`/tenants/${tenant.id}#tenant-finance`}>
+                            <Banknote />
+                            {t('tenants.actions.financialStatus')}
+                        </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                        <Link href={`/tenants/${tenant.id}/card`}>
+                            <Printer />
+                            {t('tenants.actions.printCard')}
+                        </Link>
+                    </DropdownMenuItem>
+                    {canManage && (
+                        <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                                onSelect={() => setConfirmOpen(true)}
+                            >
+                                <ShieldCheck />
+                                {t('tenants.statusAction')}
+                            </DropdownMenuItem>
+                        </>
+                    )}
+                </DropdownMenuContent>
+            </DropdownMenu>
+
+            <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+                <AlertDialogContent dir={isRtl ? 'rtl' : 'ltr'}>
+                    <AlertDialogHeader
+                        className={isRtl ? 'text-right sm:text-right' : ''}
+                    >
+                        <AlertDialogTitle>
+                            {t('tenants.statusConfirm.title')}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {t(
+                                tenant.is_active
+                                    ? 'tenants.statusConfirm.deactivateDescription'
+                                    : 'tenants.statusConfirm.activateDescription',
+                            ).replace(
+                                ':name',
+                                tenant.business_name || tenant.full_name,
+                            )}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isChangingStatus}>
+                            {t('tenants.statusConfirm.cancel')}
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            variant={
+                                tenant.is_active ? 'destructive' : 'default'
+                            }
+                            disabled={isChangingStatus}
+                            onClick={changeStatus}
+                        >
+                            {t(
+                                tenant.is_active
+                                    ? 'tenants.statusConfirm.confirmDeactivate'
+                                    : 'tenants.statusConfirm.confirmActivate',
+                            )}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </>
     );
 }
 

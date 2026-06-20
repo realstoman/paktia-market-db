@@ -423,6 +423,16 @@ const fa = {
             financialStatus: 'وضعیت مالی',
             printCard: 'چاپ کارت شناسایی',
         },
+        statusConfirm: {
+            title: 'تأیید تغییر وضعیت مستأجر',
+            activateDescription:
+                'آیا :name فعال شود؟ پروفایل مستأجر دوباره برای فعالیت‌های جاری قابل استفاده خواهد بود.',
+            deactivateDescription:
+                'آیا :name غیرفعال شود؟ پروفایل و سوابق آن محفوظ می‌ماند، اما مستأجر غیرفعال نشان داده می‌شود.',
+            confirmActivate: 'فعال‌سازی مستأجر',
+            confirmDeactivate: 'غیرفعال‌سازی مستأجر',
+            cancel: 'انصراف',
+        },
         fields: {
             tenantType: 'نوع مستأجر',
             fullName: 'نام کامل / شخص مسئول',
