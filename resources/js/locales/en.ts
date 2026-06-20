@@ -2996,7 +2996,8 @@ const en = {
 
     propertyWorkspace: {
         title: 'Markets & Properties',
-        subtitle: 'A clear overview of every market, mall, block and house.',
+        subtitle:
+            'A clear overview of every market, mall, commercial unit, block and house.',
         register: 'Register property',
         registerTitle: 'Register market or property',
         registerHelp:
@@ -3015,6 +3016,7 @@ const en = {
         markets: 'Markets & malls',
         homes: 'Houses & blocks',
         spaces: 'Configured spaces',
+        commercialUnit: 'Commercial unit',
         search: 'Search by name, address or province…',
         searchOptions: 'Search options…',
         noOptions: 'No matching option found.',
@@ -3061,6 +3063,11 @@ const en = {
         deleteSpace: 'Delete this space?',
         houseHelp:
             'House details are managed at property level. The complete house can later be assigned to one rental contract.',
+        commercialUnitHelp:
+            'This is one owned shop or office inside an externally managed market. The external market’s other units are intentionally not registered.',
+        commercialUnitManagement: 'Commercial unit management',
+        commercialUnitRentalHelp:
+            'Use this complete unit for employees and expenses while owner-operated, or assign it to one tenant when rented.',
         uploadPhoto: 'Upload a property photo',
         uploadPhotoHelp: 'PNG, JPG or WebP, up to 5 MB.',
         choosePhoto: 'Choose photo',
@@ -3096,6 +3103,13 @@ const en = {
             waterMeter: 'Water meter',
             shopNumber: 'Shop number',
             apartmentNumber: 'Apartment number',
+            hostMarketName: 'External market name',
+            externalUnitNumber: 'Shop / office number',
+            externalFloor: 'Floor inside external market',
+            ownershipType: 'Ownership status',
+            operatingMode: 'Current operating mode',
+            businessActivities: 'Business activities',
+            titleDeedNumber: 'Title deed / ownership number',
         },
         languages: { fa: 'Dari', ps: 'Pashto', en: 'English' },
         dariRequired: 'Dari is required and used as the fallback language.',
@@ -3105,11 +3119,44 @@ const en = {
             mall: 'Mall',
             block: 'Residential block',
             house: 'House',
+            commercial_unit: 'Commercial unit / shop–office',
         },
         usage: {
             commercial: 'Commercial',
             residential: 'Residential',
             mixed: 'Mixed use',
+        },
+        ownership: {
+            owned: 'Owned',
+            leased: 'Leased by the company',
+            managed: 'Managed for another owner',
+        },
+        operatingMode: {
+            owner_occupied: 'Owner-operated',
+            vacant: 'Vacant and available for rent',
+            rented: 'Rented to a tenant',
+            maintenance: 'Under maintenance',
+        },
+        businessActivities: {
+            money_exchange: 'Money exchange',
+            jewelry: 'Jewelry',
+            office: 'Office',
+            retail: 'Retail',
+            other: 'Other',
+        },
+        documents: {
+            title: 'Ownership documents',
+            help: 'Store title deeds, purchase contracts, ownership evidence and related private documents.',
+            upload: 'Upload documents',
+            empty: 'No property documents have been uploaded.',
+            delete: 'Delete document',
+            deleteConfirm: 'Delete this property document?',
+            types: {
+                title_deed: 'Title deed',
+                purchase_contract: 'Purchase contract',
+                ownership: 'Ownership evidence',
+                other: 'Other document',
+            },
         },
         selectCountry: 'Select country',
         selectProvince: 'Select province',
