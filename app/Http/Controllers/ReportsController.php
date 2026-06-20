@@ -8,7 +8,9 @@ use App\Models\Employee;
 use App\Models\Expense;
 use App\Models\InventoryItem;
 use App\Models\Property;
+use App\Models\RentPayment;
 use App\Models\User;
+use App\Services\Finance\RentalFinanceService;
 use App\Services\Reports\ReportFileRenderer;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -24,12 +26,14 @@ class ReportsController extends Controller
 {
     public function __construct(
         private readonly ReportFileRenderer $reportFileRenderer,
+        private readonly RentalFinanceService $rentalFinance,
     ) {}
 
     private const MODULES = [
         'inventory',
         'employees',
         'finance',
+        'rentals',
         'properties',
         'users',
     ];
@@ -172,18 +176,26 @@ class ReportsController extends Controller
             ->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))
             ->whereBetween('expense_date', [$startDate->toDateString(), $endDate->toDateString()]);
         $employeeQuery = Employee::query()->when($propertyId, fn ($query) => $query->where('property_id', $propertyId));
+        $rentalSummary = $this->rentalFinance->summary($startDate, $endDate, $propertyId);
+        $rentReceived = (float) RentPayment::query()
+            ->where('status', 'received')
+            ->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))
+            ->whereBetween('payment_date', [$startDate->toDateString(), $endDate->toDateString()])
+            ->sum('amount');
 
         $overview = [
             ['key' => 'inventory', 'title' => __('reports.catalog.inventory.title'), 'primary' => (int) (clone $inventoryQuery)->count(), 'primaryLabel' => __('reports.overview.stock_items'), 'secondary' => (float) (clone $inventoryQuery)->selectRaw('COALESCE(SUM(quantity * unit_price), 0) as total')->value('total'), 'secondaryLabel' => __('reports.overview.stock_value'), 'secondaryFormat' => 'currency'],
             ['key' => 'employees', 'title' => __('reports.catalog.employees.title'), 'primary' => (int) (clone $employeeQuery)->count(), 'primaryLabel' => __('reports.overview.employees'), 'secondary' => (int) (clone $employeeQuery)->where('is_active', true)->count(), 'secondaryLabel' => __('reports.overview.active_employees')],
-            ['key' => 'finance', 'title' => __('reports.catalog.finance.title'), 'primary' => (float) (clone $expenseQuery)->where('approval_status', 'approved')->sum('amount'), 'primaryLabel' => __('reports.overview.approved_expenses'), 'primaryFormat' => 'currency', 'secondary' => (int) (clone $expenseQuery)->where('approval_status', 'submitted')->count(), 'secondaryLabel' => __('reports.overview.pending_approvals')],
+            ['key' => 'finance', 'title' => __('reports.catalog.finance.title'), 'primary' => $rentReceived, 'primaryLabel' => __('reports.overview.rent_received'), 'primaryFormat' => 'currency', 'secondary' => (float) (clone $expenseQuery)->where('approval_status', 'approved')->sum('amount'), 'secondaryLabel' => __('reports.overview.approved_expenses'), 'secondaryFormat' => 'currency'],
+            ['key' => 'rentals', 'title' => __('reports.catalog.rentals.title'), 'primary' => $rentalSummary['activeLeases'], 'primaryLabel' => __('reports.overview.active_leases'), 'secondary' => $rentalSummary['outstanding'], 'secondaryLabel' => __('reports.overview.rent_outstanding'), 'secondaryFormat' => 'currency'],
             ['key' => 'properties', 'title' => __('reports.catalog.properties.title'), 'primary' => Property::query()->count(), 'primaryLabel' => __('reports.overview.properties'), 'secondary' => Property::query()->where('is_active', true)->count(), 'secondaryLabel' => __('reports.overview.active_properties')],
             ['key' => 'users', 'title' => __('reports.catalog.users.title'), 'primary' => User::query()->count(), 'primaryLabel' => __('reports.overview.accounts'), 'secondary' => User::query()->where('is_active', true)->count(), 'secondaryLabel' => __('reports.overview.active_accounts')],
         ];
 
         $activeReport = match ($module) {
             'employees' => $this->marketEmployeesReport($employeeQuery),
-            'finance' => $this->marketFinanceReport($expenseQuery),
+            'finance' => $this->marketFinanceReport($expenseQuery, $startDate, $endDate, $propertyId),
+            'rentals' => $this->marketRentalsReport($startDate, $endDate, $propertyId),
             'properties' => $this->marketPropertiesReport(),
             'users' => $this->marketUsersReport($propertyId),
             default => $this->marketInventoryReport($inventoryQuery),
@@ -245,27 +257,89 @@ class ReportsController extends Controller
         ]);
     }
 
-    private function marketFinanceReport(Builder $query): array
+    private function marketFinanceReport(Builder $query, Carbon $startDate, Carbon $endDate, ?int $propertyId): array
     {
         $expenses = $query->with('property:id,name,name_translations')->latest('expense_date')->get();
+        $payments = RentPayment::query()
+            ->with(['property:id,name,name_translations', 'tenant:id,full_name,business_name'])
+            ->where('status', 'received')
+            ->when($propertyId, fn ($paymentQuery) => $paymentQuery->where('property_id', $propertyId))
+            ->whereBetween('payment_date', [$startDate->toDateString(), $endDate->toDateString()])
+            ->latest('payment_date')
+            ->get();
+        $rows = $expenses->map(fn (Expense $expense) => [
+            'date' => (string) $expense->expense_date,
+            'reference' => __('reports.reference.expense', ['id' => $expense->id]),
+            'source' => __('reports.source.expense'),
+            'property' => $expense->property?->name ?? __('reports.status.unassigned'),
+            'description' => $expense->title,
+            'amount' => -(float) $expense->amount,
+            'status' => $this->localizedReportStatus($expense->approval_status ?? 'draft'),
+        ])->merge($payments->map(fn (RentPayment $payment) => [
+            'date' => (string) $payment->payment_date,
+            'reference' => $payment->receipt_number,
+            'source' => __('reports.source.rent'),
+            'property' => $payment->property?->name ?? __('reports.status.unassigned'),
+            'description' => ($payment->tenant?->business_name ?: $payment->tenant?->full_name) ?? '-',
+            'amount' => (float) $payment->amount,
+            'status' => __('reports.status.received'),
+        ]))->sortByDesc('date')->values();
 
         return $this->marketReport('finance', __('reports.reports.finance.title'), __('reports.reports.finance.description'), [
             ['key' => 'date', 'label' => __('reports.columns.date')],
             ['key' => 'reference', 'label' => __('reports.columns.reference')],
+            ['key' => 'source', 'label' => __('reports.columns.source')],
             ['key' => 'property', 'label' => __('reports.columns.property')],
             ['key' => 'description', 'label' => __('reports.columns.description')],
             ['key' => 'amount', 'label' => __('reports.columns.amount')],
             ['key' => 'status', 'label' => __('reports.columns.status')],
-        ], $expenses->map(fn (Expense $expense) => [
-            'date' => (string) $expense->expense_date,
-            'reference' => __('reports.reference.expense', ['id' => $expense->id]),
-            'property' => $expense->property?->name ?? __('reports.status.unassigned'),
-            'description' => $expense->title,
-            'amount' => (float) $expense->amount,
-            'status' => $this->localizedReportStatus($expense->approval_status ?? 'draft'),
-        ])->all(), ['amount'], [
-            ['label' => __('reports.summary.expenses'), 'value' => $expenses->count(), 'format' => 'number'],
+        ], $rows->all(), ['amount'], [
+            ['label' => __('reports.summary.rent_received'), 'value' => (float) $payments->sum('amount'), 'format' => 'currency'],
             ['label' => __('reports.summary.approved_amount'), 'value' => (float) $expenses->where('approval_status', 'approved')->sum('amount'), 'format' => 'currency'],
+            ['label' => __('reports.summary.net_operating'), 'value' => (float) $payments->sum('amount') - (float) $expenses->where('approval_status', 'approved')->sum('amount'), 'format' => 'currency'],
+        ]);
+    }
+
+    private function marketRentalsReport(Carbon $startDate, Carbon $endDate, ?int $propertyId): array
+    {
+        $rows = $this->rentalFinance->leaseRows($startDate, $endDate, $propertyId);
+
+        return $this->marketReport('rentals', __('reports.reports.rentals.title'), __('reports.reports.rentals.description'), [
+            ['key' => 'tenant', 'label' => __('reports.columns.tenant')],
+            ['key' => 'business', 'label' => __('reports.columns.business')],
+            ['key' => 'property', 'label' => __('reports.columns.property')],
+            ['key' => 'space', 'label' => __('reports.columns.space')],
+            ['key' => 'contract', 'label' => __('reports.columns.contract')],
+            ['key' => 'period', 'label' => __('reports.columns.contract_period')],
+            ['key' => 'expected', 'label' => __('reports.columns.expected_rent')],
+            ['key' => 'received', 'label' => __('reports.columns.received')],
+            ['key' => 'outstanding', 'label' => __('reports.columns.outstanding')],
+            ['key' => 'signed', 'label' => __('reports.columns.signed_contract')],
+        ], $rows->map(function (array $row): array {
+            $lease = $row['lease'];
+            $space = $lease->unit
+                ? $lease->unit->unit_number
+                : ($lease->property?->external_unit_number ?: __('reports.status.whole_property'));
+
+            return [
+                'tenant' => $lease->tenant?->full_name ?? '-',
+                'business' => $lease->tenant?->business_name ?? '-',
+                'property' => $lease->property?->name ?? __('reports.status.unassigned'),
+                'space' => $space,
+                'contract' => $lease->contract_number,
+                'period' => $lease->start_date.' — '.($lease->end_date ?: '∞'),
+                'expected' => $row['expected'],
+                'received' => $row['received'],
+                'outstanding' => $row['outstanding'],
+                'signed' => $lease->contractDocuments->isNotEmpty()
+                    ? __('reports.status.uploaded')
+                    : __('reports.status.missing'),
+            ];
+        })->all(), ['expected', 'received', 'outstanding'], [
+            ['label' => __('reports.summary.active_leases'), 'value' => $rows->where(fn (array $row) => $row['lease']->status === 'active')->count(), 'format' => 'number'],
+            ['label' => __('reports.summary.expected_rent'), 'value' => (float) $rows->sum('expected'), 'format' => 'currency'],
+            ['label' => __('reports.summary.rent_received'), 'value' => (float) $rows->sum('received'), 'format' => 'currency'],
+            ['label' => __('reports.summary.rent_outstanding'), 'value' => (float) $rows->sum('outstanding'), 'format' => 'currency'],
         ]);
     }
 

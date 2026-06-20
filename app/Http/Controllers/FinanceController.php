@@ -8,8 +8,11 @@ use App\Models\Expense;
 use App\Models\ExpenseCategory;
 use App\Models\FinanceAccount;
 use App\Models\InventoryItem;
+use App\Models\Lease;
 use App\Models\Property;
+use App\Models\RentPayment;
 use App\Services\Finance\PayrollExpenseSyncService;
+use App\Services\Finance\RentalFinanceService;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Http\Request;
@@ -23,6 +26,7 @@ class FinanceController extends Controller
 {
     public function __construct(
         private readonly PayrollExpenseSyncService $payrollExpenseSyncService,
+        private readonly RentalFinanceService $rentalFinance,
     ) {}
 
     public function index(Request $request)
@@ -299,6 +303,13 @@ class FinanceController extends Controller
             ->whereBetween('expense_date', [$startDate->toDateString(), $endDate->toDateString()]);
 
         $expensesTotal = (float) (clone $expenseQuery)->sum('amount');
+        $rentalSummary = $this->rentalFinance->summary($startDate, $endDate, $propertyId);
+        $rentPaymentsQuery = RentPayment::query()
+            ->where('status', 'received')
+            ->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))
+            ->when($paymentMethod, fn ($query) => $query->where('payment_method', $paymentMethod))
+            ->whereBetween('payment_date', [$startDate->toDateString(), $endDate->toDateString()]);
+        $rentReceived = (float) (clone $rentPaymentsQuery)->sum('amount');
         $inventoryValue = (float) InventoryItem::query()
             ->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))
             ->selectRaw('COALESCE(SUM(quantity * unit_price), 0) as total')
@@ -312,6 +323,10 @@ class FinanceController extends Controller
             ->where('approval_status', 'approved')
             ->selectRaw("COALESCE(SUM(CASE WHEN direction = 'in' THEN amount ELSE -amount END), 0) as total")
             ->value('total');
+        $cashPosition += (float) RentPayment::query()
+            ->where('status', 'received')
+            ->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))
+            ->sum('amount');
         $unpaidSalaries = Schema::hasTable('payroll_run_items')
             ? (float) DB::table('payroll_run_items')->where('payment_status', '!=', 'paid')->sum('net_salary')
             : 0.0;
@@ -320,14 +335,33 @@ class FinanceController extends Controller
             ->selectRaw('DATE(expense_date) as bucket, COALESCE(SUM(amount), 0) as total')
             ->groupBy('bucket')
             ->pluck('total', 'bucket');
+        $rentTrend = (clone $rentPaymentsQuery)
+            ->selectRaw('DATE(payment_date) as bucket, COALESCE(SUM(amount), 0) as total')
+            ->groupBy('bucket')
+            ->pluck('total', 'bucket');
         $trend = collect(CarbonPeriod::create($startDate->copy()->startOfDay(), $endDate->copy()->startOfDay()))
-            ->map(fn (Carbon $date) => [
-                'date' => $date->toDateString(),
-                'label' => $date->format('M d'),
-                'sales' => 0,
-                'expenses' => (float) ($expenseTrend[$date->toDateString()] ?? 0),
-                'net' => -(float) ($expenseTrend[$date->toDateString()] ?? 0),
-            ])->values();
+            ->map(function (Carbon $date) use ($rentTrend, $expenseTrend): array {
+                $rent = (float) ($rentTrend[$date->toDateString()] ?? 0);
+                $expense = (float) ($expenseTrend[$date->toDateString()] ?? 0);
+
+                return [
+                    'date' => $date->toDateString(),
+                    'label' => $date->format('M d'),
+                    'sales' => $rent,
+                    'expenses' => $expense,
+                    'net' => $rent - $expense,
+                ];
+            })->values();
+
+        $propertyRevenue = RentPayment::query()
+            ->join('properties', 'properties.id', '=', 'rent_payments.property_id')
+            ->where('rent_payments.status', 'received')
+            ->when($propertyId, fn ($query) => $query->where('rent_payments.property_id', $propertyId))
+            ->whereBetween('rent_payments.payment_date', [$startDate->toDateString(), $endDate->toDateString()])
+            ->selectRaw('properties.name as property, COALESCE(SUM(rent_payments.amount), 0) as revenue')
+            ->groupBy('properties.id', 'properties.name')
+            ->orderByDesc('revenue')
+            ->get();
 
         $topExpenseCategories = (clone $expenseQuery)
             ->leftJoin('expense_categories', 'expense_categories.id', '=', 'expenses.expense_category_id')
@@ -364,17 +398,21 @@ class FinanceController extends Controller
             ],
             'dashboard' => [
                 'summary' => [
-                    'sales' => 0,
+                    'sales' => $rentReceived,
+                    'rentExpected' => $rentalSummary['expected'],
+                    'rentReceived' => $rentReceived,
+                    'rentOutstanding' => max(0, $rentalSummary['expected'] - $rentReceived),
+                    'activeLeases' => $rentalSummary['activeLeases'],
                     'expenses' => $expensesTotal,
-                    'grossProfit' => null,
-                    'netProfit' => -$expensesTotal,
+                    'grossProfit' => $rentReceived,
+                    'netProfit' => $rentReceived - $expensesTotal,
                     'cashPosition' => $cashPosition,
                     'unpaidSalaries' => $unpaidSalaries,
                     'inventoryValue' => $inventoryValue,
                     'supplierBalances' => $supplierBalances,
                 ],
                 'trend' => $trend,
-                'propertyRevenue' => [],
+                'propertyRevenue' => $propertyRevenue,
                 'topExpenseCategories' => $topExpenseCategories,
                 'paymentBreakdown' => [],
                 'ledgerStats' => [
@@ -391,11 +429,16 @@ class FinanceController extends Controller
                     ['name' => 'Expenses', 'description' => 'Expense recording and approval workflows.', 'status' => 'Ready'],
                     ['name' => 'Payroll', 'description' => 'Payroll runs and outstanding salary visibility.', 'status' => 'Ready'],
                     ['name' => 'Cash & Bank', 'description' => 'Cash movements, deposits, and withdrawals.', 'status' => 'Ready'],
+                    ['name' => 'Rent & Leases', 'description' => 'Tenant rent receipts, contract periods, and outstanding balances.', 'status' => 'Ready', 'stats' => [
+                        ['label' => 'Active', 'value' => $rentalSummary['activeLeases'], 'format' => 'number'],
+                        ['label' => 'Received', 'value' => $rentReceived, 'format' => 'currency'],
+                        ['label' => 'Outstanding', 'value' => max(0, $rentalSummary['expected'] - $rentReceived), 'format' => 'currency'],
+                    ]],
                     ['name' => 'Inventory Valuation', 'description' => 'Stock valuation and inventory cost movements.', 'status' => 'Ready'],
                 ],
                 'notes' => [
-                    'grossProfit' => 'Revenue recognition will be configured with the market sales workflow.',
-                    'cashPosition' => 'Approved cash inflows minus approved cash outflows.',
+                    'grossProfit' => 'Received rent before operating expenses.',
+                    'cashPosition' => 'Received rent plus approved cash inflows minus approved cash outflows.',
                 ],
             ],
         ]);
@@ -443,7 +486,25 @@ class FinanceController extends Controller
                 'status' => $movement->approval_status ?? 'draft',
             ]);
 
-        $entries = $expenses->merge($movements)->sortByDesc('date')->values();
+        $rentPayments = RentPayment::query()
+            ->with(['property:id,name,name_translations', 'tenant:id,full_name,business_name'])
+            ->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))
+            ->where('status', 'received')
+            ->whereBetween('payment_date', [$startDate->toDateString(), $endDate->toDateString()])
+            ->get()
+            ->map(fn (RentPayment $payment) => [
+                'date' => (string) $payment->payment_date,
+                'reference' => $payment->receipt_number,
+                'type' => 'Rent Payment',
+                'property' => $payment->property?->name ?? 'Unassigned',
+                'account' => 'Rental Income',
+                'description' => ($payment->tenant?->business_name ?: $payment->tenant?->full_name) ?? 'Tenant rent',
+                'debit' => 0,
+                'credit' => (float) $payment->amount,
+                'status' => 'received',
+            ]);
+
+        $entries = $expenses->merge($movements)->merge($rentPayments)->sortByDesc('date')->values();
 
         return $limit === null ? $entries : $entries->take($limit)->values();
     }

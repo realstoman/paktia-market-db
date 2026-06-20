@@ -69,4 +69,9 @@ class Lease extends Model
     {
         return $this->hasMany(LeaseContractDocument::class)->latest();
     }
+
+    public function rentPayments()
+    {
+        return $this->hasMany(RentPayment::class)->latest('payment_date');
+    }
 }
