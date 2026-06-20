@@ -435,6 +435,9 @@ const ps = {
             confirmDeactivate: 'کرایه‌دار غیرفعال کړئ',
             cancel: 'لغوه',
         },
+        pagination: {
+            summary: 'له :total کرایه‌دارانو څخه :from تر :to ښودل کېږي',
+        },
         fields: {
             tenantType: 'د کرایه‌دار ډول',
             fullName: 'بشپړ نوم / مسؤل شخص',

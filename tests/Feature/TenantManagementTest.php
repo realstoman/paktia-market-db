@@ -171,7 +171,30 @@ test('a commercial unit is rented as one complete shop without internal market u
     $this->get(route('tenants.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->where('tenants.0.leases.0.property.external_unit_number', '47'));
+            ->where('tenants.data.0.leases.0.property.external_unit_number', '47'));
+});
+
+test('tenant directory is paginated with fifteen records per page', function () {
+    foreach (range(1, 16) as $number) {
+        Tenant::query()->create([
+            'full_name' => "Tenant {$number}",
+            'phone' => "070000{$number}",
+        ]);
+    }
+
+    $this->get(route('tenants.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('tenants.per_page', 15)
+            ->where('tenants.total', 16)
+            ->where('tenants.last_page', 2)
+            ->has('tenants.data', 15));
+
+    $this->get(route('tenants.index', ['page' => 2]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('tenants.current_page', 2)
+            ->has('tenants.data', 1));
 });
 
 test('tenant edit cell action can open the profile edit dialog directly', function () {

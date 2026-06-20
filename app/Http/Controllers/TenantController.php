@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Currency;
+use App\Models\Lease;
 use App\Models\Property;
 use App\Models\Tenant;
 use App\Models\TenantDocument;
@@ -18,27 +19,77 @@ class TenantController extends Controller
 {
     public function index(Request $request)
     {
+        if ($request->filled('scan')) {
+            $scannedTenant = Tenant::query()
+                ->where('card_code', trim((string) $request->input('scan')))
+                ->first();
+
+            if ($scannedTenant) {
+                return redirect()->route('tenants.show', $scannedTenant);
+            }
+        }
+
         $propertyId = $request->integer('property_id');
         $propertyId = $propertyId && Property::query()->whereKey($propertyId)->exists()
             ? $propertyId
             : null;
 
+        $search = trim((string) $request->input('search', ''));
+        $tenantScope = Tenant::query()
+            ->when($propertyId, fn ($query) => $query->whereHas(
+                'leases',
+                fn ($leases) => $leases->where('property_id', $propertyId),
+            ));
+        $summary = [
+            'total' => (clone $tenantScope)->count(),
+            'assigned' => (clone $tenantScope)->whereHas(
+                'leases',
+                fn ($leases) => $leases
+                    ->where('status', 'active')
+                    ->whereDate('start_date', '<=', today())
+                    ->where(fn ($period) => $period
+                        ->whereNull('end_date')
+                        ->orWhereDate('end_date', '>=', today())),
+            )->count(),
+            'businesses' => (clone $tenantScope)
+                ->whereNotNull('business_name')
+                ->where('business_name', '!=', '')
+                ->count(),
+            'properties' => Lease::query()
+                ->whereIn('tenant_id', (clone $tenantScope)->select('tenants.id'))
+                ->distinct('property_id')
+                ->count('property_id'),
+        ];
+        $tenants = (clone $tenantScope)
+            ->when($search !== '', fn ($query) => $query->where(function ($matches) use ($search): void {
+                $like = "%{$search}%";
+                $matches
+                    ->where('full_name', 'like', $like)
+                    ->orWhere('business_name', 'like', $like)
+                    ->orWhere('phone', 'like', $like)
+                    ->orWhere('card_code', 'like', $like)
+                    ->orWhereHas('leases.property', fn ($properties) => $properties
+                        ->where('name', 'like', $like)
+                        ->orWhere('external_unit_number', 'like', $like))
+                    ->orWhereHas('leases.unit', fn ($units) => $units
+                        ->where('unit_number', 'like', $like));
+            }))
+            ->with([
+                'documents',
+                'leases.property:id,name,name_translations,property_type,external_unit_number',
+                'leases.floor:id,name,level_number',
+                'leases.unit:id,unit_number,unit_type,property_floor_id',
+                'leases.currency:id,code,symbol',
+            ])
+            ->withCount('leases')
+            ->latest()
+            ->paginate(15)
+            ->withQueryString();
+
         return Inertia::render('tenants/index', [
-            'tenants' => Tenant::query()
-                ->when($propertyId, fn ($query) => $query->whereHas(
-                    'leases',
-                    fn ($leases) => $leases->where('property_id', $propertyId),
-                ))
-                ->with([
-                    'documents',
-                    'leases.property:id,name,name_translations,property_type,external_unit_number',
-                    'leases.floor:id,name,level_number',
-                    'leases.unit:id,unit_number,unit_type,property_floor_id',
-                    'leases.currency:id,code,symbol',
-                ])
-                ->withCount('leases')
-                ->latest()
-                ->get(),
+            'tenants' => $tenants,
+            'summary' => $summary,
+            'filters' => ['search' => $search],
             'properties' => $this->propertyOptions(),
             'currencies' => Currency::query()->where('is_active', true)->orderBy('code')->get(['id', 'code', 'symbol']),
             'initialPropertyId' => $propertyId,

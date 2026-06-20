@@ -435,6 +435,9 @@ const en = {
             confirmDeactivate: 'Deactivate tenant',
             cancel: 'Cancel',
         },
+        pagination: {
+            summary: 'Showing :from–:to of :total tenants',
+        },
         fields: {
             tenantType: 'Renter type',
             fullName: 'Full name / responsible person',

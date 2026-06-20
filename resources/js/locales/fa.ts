@@ -433,6 +433,9 @@ const fa = {
             confirmDeactivate: 'غیرفعال‌سازی مستأجر',
             cancel: 'انصراف',
         },
+        pagination: {
+            summary: 'نمایش :from تا :to از :total مستأجر',
+        },
         fields: {
             tenantType: 'نوع مستأجر',
             fullName: 'نام کامل / شخص مسئول',

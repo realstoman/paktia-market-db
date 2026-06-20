@@ -57,6 +57,8 @@ import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import {
     Banknote,
     Building2,
+    ChevronLeft,
+    ChevronRight,
     ContactRound,
     Eye,
     IdCard,
@@ -70,10 +72,27 @@ import {
     Store,
     UserRound,
 } from 'lucide-react';
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, Fragment, useEffect, useMemo, useState } from 'react';
+
+interface TenantPaginator {
+    data: Tenant[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    from: number | null;
+    to: number | null;
+    total: number;
+}
 
 interface Props {
-    tenants: Tenant[];
+    tenants: TenantPaginator;
+    summary: {
+        total: number;
+        assigned: number;
+        businesses: number;
+        properties: number;
+    };
+    filters: { search?: string };
     properties: Property[];
     currencies: Currency[];
     initialPropertyId?: number | null;
@@ -152,8 +171,33 @@ const shopNumber = (lease?: Lease) =>
         ? lease.property.external_unit_number
         : null);
 
+function buildPageNumbers(currentPage: number, lastPage: number) {
+    if (lastPage <= 7) {
+        return Array.from({ length: lastPage }, (_, index) => index + 1);
+    }
+
+    const pages = new Set<number>([1, lastPage]);
+
+    for (let page = currentPage - 1; page <= currentPage + 1; page += 1) {
+        if (page > 1 && page < lastPage) pages.add(page);
+    }
+
+    if (currentPage <= 3) [2, 3, 4].forEach((page) => pages.add(page));
+    if (currentPage >= lastPage - 2) {
+        [lastPage - 1, lastPage - 2, lastPage - 3].forEach((page) =>
+            pages.add(page),
+        );
+    }
+
+    return [...pages]
+        .filter((page) => page >= 1 && page <= lastPage)
+        .sort((left, right) => left - right);
+}
+
 export default function TenantsIndex({
     tenants,
+    summary,
+    filters,
     properties,
     currencies,
     initialPropertyId,
@@ -162,34 +206,65 @@ export default function TenantsIndex({
     const { auth } = usePage<SharedData>().props;
     const canManage =
         auth.is_super_admin || auth.permissions.includes('tenants.manage');
-    const [search, setSearch] = useState('');
+    const [search, setSearch] = useState(filters.search ?? '');
     const [scan, setScan] = useState('');
     const [open, setOpen] = useState(false);
-    const visible = useMemo(() => {
-        const query = search.trim().toLowerCase();
-        if (!query) return tenants;
-        return tenants.filter((tenant) => {
-            const lease = currentLease(tenant);
-            const haystack = `${tenant.full_name} ${tenant.business_name ?? ''} ${tenant.phone} ${tenant.card_code} ${lease?.property?.name ?? ''} ${shopNumber(lease) ?? ''}`;
+    const pageNumbers = useMemo(
+        () => buildPageNumbers(tenants.current_page, tenants.last_page),
+        [tenants.current_page, tenants.last_page],
+    );
 
-            return haystack.toLowerCase().includes(query);
-        });
-    }, [search, tenants]);
-    const activeLeases = tenants.filter((tenant) =>
-        currentLease(tenant),
-    ).length;
-    const propertyCount = new Set(
-        tenants.flatMap((tenant) =>
-            (tenant.leases ?? []).map((lease) => lease.property_id),
-        ),
-    ).size;
+    useEffect(() => {
+        if (search.trim() === (filters.search ?? '')) return;
+
+        const timeout = window.setTimeout(() => {
+            router.get(
+                '/tenants',
+                {
+                    search: search.trim() || undefined,
+                    property_id: initialPropertyId || undefined,
+                },
+                {
+                    preserveState: true,
+                    preserveScroll: true,
+                    replace: true,
+                    only: ['tenants', 'summary', 'filters'],
+                },
+            );
+        }, 350);
+
+        return () => window.clearTimeout(timeout);
+    }, [filters.search, initialPropertyId, search]);
+
+    const goToPage = (page: number) => {
+        router.get(
+            '/tenants',
+            {
+                page,
+                search: search.trim() || undefined,
+                property_id: initialPropertyId || undefined,
+            },
+            {
+                preserveState: true,
+                preserveScroll: true,
+                only: ['tenants', 'summary', 'filters'],
+            },
+        );
+    };
     const openScannedProfile = () => {
-        const match = tenants.find(
+        const match = tenants.data.find(
             (tenant) =>
                 tenant.card_code.toLowerCase() === scan.trim().toLowerCase(),
         );
-        if (match) router.visit(`/tenants/${match.id}`);
-        else setSearch(scan);
+        if (match) {
+            router.visit(`/tenants/${match.id}`);
+            return;
+        }
+
+        router.get('/tenants', {
+            scan: scan.trim(),
+            property_id: initialPropertyId || undefined,
+        });
     };
     const breadcrumbs: BreadcrumbItem[] = [
         { title: t('navigation.dashboard'), href: '/dashboard' },
@@ -249,14 +324,14 @@ export default function TenantsIndex({
 
                 <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                     {[
-                        [ContactRound, t('tenants.total'), tenants.length],
-                        [IdCard, t('tenants.assigned'), activeLeases],
+                        [ContactRound, t('tenants.total'), summary.total],
+                        [IdCard, t('tenants.assigned'), summary.assigned],
+                        [Store, t('tenants.businesses'), summary.businesses],
                         [
-                            Store,
-                            t('tenants.businesses'),
-                            tenants.filter((item) => item.business_name).length,
+                            Building2,
+                            t('tenants.properties'),
+                            summary.properties,
                         ],
-                        [Building2, t('tenants.properties'), propertyCount],
                     ].map(([Icon, label, value], index) => (
                         <Card
                             key={index}
@@ -324,7 +399,7 @@ export default function TenantsIndex({
                     </div>
                 </section>
 
-                {visible.length ? (
+                {tenants.data.length ? (
                     <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
                         <Table>
                             <TableHeader className="bg-[#edf1f4]">
@@ -353,7 +428,7 @@ export default function TenantsIndex({
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {visible.map((tenant) => {
+                                {tenants.data.map((tenant) => {
                                     const lease = currentLease(tenant);
                                     const number = shopNumber(lease);
 
@@ -519,6 +594,91 @@ export default function TenantsIndex({
                                 })}
                             </TableBody>
                         </Table>
+                        <div className="flex flex-col gap-3 border-t bg-[#f8f9fd] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                            <p className="text-sm text-muted-foreground">
+                                {t('tenants.pagination.summary')
+                                    .replace(':from', String(tenants.from ?? 0))
+                                    .replace(':to', String(tenants.to ?? 0))
+                                    .replace(':total', String(tenants.total))}
+                            </p>
+                            {tenants.last_page > 1 && (
+                                <div className="flex flex-wrap items-center gap-1.5">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        disabled={tenants.current_page <= 1}
+                                        onClick={() =>
+                                            goToPage(tenants.current_page - 1)
+                                        }
+                                        aria-label={t('common.previousPage')}
+                                    >
+                                        {isRtl ? (
+                                            <ChevronRight className="size-4" />
+                                        ) : (
+                                            <ChevronLeft className="size-4" />
+                                        )}
+                                    </Button>
+                                    {pageNumbers.map((page, index) => {
+                                        const previous = pageNumbers[index - 1];
+                                        const showGap =
+                                            previous !== undefined &&
+                                            page - previous > 1;
+
+                                        return (
+                                            <Fragment key={page}>
+                                                {showGap && (
+                                                    <span className="px-1 text-muted-foreground">
+                                                        …
+                                                    </span>
+                                                )}
+                                                <Button
+                                                    type="button"
+                                                    variant={
+                                                        page ===
+                                                        tenants.current_page
+                                                            ? 'default'
+                                                            : 'outline'
+                                                    }
+                                                    size="sm"
+                                                    className="min-w-9"
+                                                    onClick={() =>
+                                                        goToPage(page)
+                                                    }
+                                                    aria-current={
+                                                        page ===
+                                                        tenants.current_page
+                                                            ? 'page'
+                                                            : undefined
+                                                    }
+                                                >
+                                                    {page}
+                                                </Button>
+                                            </Fragment>
+                                        );
+                                    })}
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        disabled={
+                                            tenants.current_page >=
+                                            tenants.last_page
+                                        }
+                                        onClick={() =>
+                                            goToPage(tenants.current_page + 1)
+                                        }
+                                        aria-label={t('common.nextPage')}
+                                    >
+                                        {isRtl ? (
+                                            <ChevronLeft className="size-4" />
+                                        ) : (
+                                            <ChevronRight className="size-4" />
+                                        )}
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
                     </section>
                 ) : (
                     <div className="rounded-2xl border border-dashed bg-card py-16 text-center text-muted-foreground">
