@@ -151,11 +151,8 @@ const toolNavConfig: HeaderNavConfig[] = [
     },
 ];
 
-export function AppHeader({
-    breadcrumbs = [],
-}: {
-    breadcrumbs?: BreadcrumbItem[];
-}) {
+export function AppHeader({ breadcrumbs }: { breadcrumbs?: BreadcrumbItem[] }) {
+    void breadcrumbs;
     const page = usePage<SharedData>();
     const { auth } = page.props;
     const { can, canAny, isSuperAdmin } = useAuthorization();
@@ -384,12 +381,6 @@ export function AppHeader({
                     </Sheet>
                 </div>
             </div>
-
-            {breadcrumbs.length > 1 ? (
-                <div className="border-t border-[#e7edef] px-7 py-2 text-xs text-slate-500 dark:border-neutral-800">
-                    {breadcrumbs.map((item) => item.title).join(' / ')}
-                </div>
-            ) : null}
         </header>
     );
 }

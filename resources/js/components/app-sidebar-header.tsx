@@ -1,5 +1,4 @@
 import { HeaderNotifications } from '@/components/header-notifications';
-import { Breadcrumbs } from '@/components/shared/breadcrumbs';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -20,10 +19,11 @@ import LanguageDropdown from './language-dropdown';
 import { Button } from './ui/button';
 
 export function AppSidebarHeader({
-    breadcrumbs = [],
+    breadcrumbs,
 }: {
     breadcrumbs?: BreadcrumbItemType[];
 }) {
+    void breadcrumbs;
     const { auth } = usePage<SharedData>().props;
     const { isRtl, t } = useLocalization();
 
@@ -31,9 +31,6 @@ export function AppSidebarHeader({
         <header className="dark:bg-brand-bg-dark mx-auto flex h-16 w-full items-center justify-between gap-2 rounded-2xl border border-white bg-white px-4 shadow-sm shadow-neutral-950/[0.03] transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 dark:border-neutral-800">
             <div className="flex min-w-0 flex-1 items-center gap-2">
                 <SidebarTrigger className="-ml-1" />
-                <div className="min-w-0 flex-1">
-                    <Breadcrumbs breadcrumbs={breadcrumbs} />
-                </div>
             </div>
             <div className="ml-2 flex shrink-0 items-center gap-2">
                 <AppearanceToggleDropdown />
