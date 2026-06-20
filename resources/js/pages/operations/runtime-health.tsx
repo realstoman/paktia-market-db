@@ -8,6 +8,7 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
+import { useLocalization } from '@/lib/localization';
 import { BreadcrumbItem } from '@/types';
 import { formatNumber } from '@/utils/format';
 import { Head } from '@inertiajs/react';
@@ -20,27 +21,21 @@ import {
     Workflow,
 } from 'lucide-react';
 
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Dashboard',
-        href: '/dashboard',
-    },
-    {
-        title: 'Runtime Health',
-        href: '/operations/runtime-health',
-    },
-];
-
 type HealthStatus = 'healthy' | 'warning' | 'critical' | 'unavailable';
+type Translate = (key: string, fallback?: string) => string;
+
+interface HealthComponent {
+    status: HealthStatus;
+    message: string;
+    messageKey?: string;
+}
 
 interface RuntimeHealthPageProps {
     runtimeHealth: {
         status: HealthStatus;
         message: string;
         components: {
-            projection?: {
-                status: HealthStatus;
-                message: string;
+            projection?: HealthComponent & {
                 latestProjectionAt?: string | null;
                 stalePropertyCount: number;
                 criticalPropertyCount: number;
@@ -53,9 +48,7 @@ interface RuntimeHealthPageProps {
                     latestProjectionAt?: string | null;
                 }>;
             };
-            queue: {
-                status: HealthStatus;
-                message: string;
+            queue: HealthComponent & {
                 connection: string;
                 driver: string;
                 queue: string;
@@ -64,18 +57,14 @@ interface RuntimeHealthPageProps {
                 oldestPendingAt?: string | null;
                 latestFailedAt?: string | null;
             };
-            redis: {
-                status: HealthStatus;
-                message: string;
+            redis: HealthComponent & {
                 cacheStore: string;
                 posCacheStore: string;
                 queueConnection: string;
                 queueDriver: string;
                 latencyMs?: number | null;
             };
-            sync: {
-                status: HealthStatus;
-                message: string;
+            sync: HealthComponent & {
                 activeCredentials: number;
                 recentlyUsedCredentials: number;
                 staleCredentials: number;
@@ -90,9 +79,7 @@ interface RuntimeHealthPageProps {
                     latestUsedAt?: string | null;
                 }>;
             };
-            recentRefresh: {
-                status: HealthStatus;
-                message: string;
+            recentRefresh: HealthComponent & {
                 lastSuccessfulAt?: string | null;
                 ageMinutes?: number | null;
             };
@@ -104,40 +91,55 @@ function statusTone(status: HealthStatus) {
     if (status === 'healthy') {
         return 'border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-200';
     }
-
     if (status === 'warning') {
         return 'border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-200';
     }
-
     if (status === 'critical') {
         return 'border-red-200 bg-red-50 text-red-800 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-200';
     }
-
     return 'border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-500/20 dark:bg-slate-500/10 dark:text-slate-200';
 }
 
-function statusLabel(status: HealthStatus) {
-    return status.charAt(0).toUpperCase() + status.slice(1);
+function statusLabel(t: Translate, status: HealthStatus) {
+    return t(
+        `runtimeHealthPage.status.${status}`,
+        status.charAt(0).toUpperCase() + status.slice(1),
+    );
 }
 
-function formatTimestamp(value?: string | null) {
+function componentMessage(
+    t: Translate,
+    component: string,
+    value: HealthComponent,
+) {
+    const key = value.messageKey ?? `${component}.${value.status}`;
+    return t(`runtimeHealthPage.messages.${key}`, value.message);
+}
+
+function formatTimestamp(
+    value: string | null | undefined,
+    locale: 'en' | 'fa' | 'ps',
+    t: Translate,
+) {
     if (!value) {
-        return 'Not recorded';
+        return t('runtimeHealthPage.notRecorded');
     }
 
-    return new Date(value).toLocaleString('en-US', {
+    const dateLocale =
+        locale === 'fa' ? 'fa-AF' : locale === 'ps' ? 'ps-AF' : 'en-US';
+    return new Intl.DateTimeFormat(dateLocale, {
         year: 'numeric',
         month: 'short',
         day: '2-digit',
         hour: '2-digit',
         minute: '2-digit',
-    });
+    }).format(new Date(value));
 }
 
 function Metric({ label, value }: { label: string; value: string | number }) {
     return (
-        <div className="rounded-xl border border-border/60 bg-background/80 p-3">
-            <p className="text-xs tracking-[0.2em] text-muted-foreground uppercase">
+        <div className="rounded-xl border border-border/60 bg-[#f8f9fd] p-3 dark:bg-neutral-950">
+            <p className="text-xs font-medium text-muted-foreground">
                 {label}
             </p>
             <p className="mt-1 text-lg font-semibold text-foreground">
@@ -150,32 +152,45 @@ function Metric({ label, value }: { label: string; value: string | number }) {
 export default function RuntimeHealthPage({
     runtimeHealth,
 }: RuntimeHealthPageProps) {
+    const { locale, t } = useLocalization();
     const { components } = runtimeHealth;
     const projection = components.projection;
+    const timestamp = (value?: string | null) =>
+        formatTimestamp(value, locale, t);
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('navigation.dashboard'), href: '/dashboard' },
+        {
+            title: t('runtimeHealthPage.title'),
+            href: '/operations/runtime-health',
+        },
+    ];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Runtime Health" />
+            <Head title={t('runtimeHealthPage.title')} />
 
-            <div className="flex flex-col gap-6 p-4 md:p-6">
-                <section className="dark:from-brand-bg-dark dark:via-brand-bg-dark rounded-3xl border border-border/60 bg-gradient-to-br from-white via-slate-50 to-emerald-50 p-6 shadow-sm dark:to-emerald-950/20">
+            <div className="flex flex-col gap-6 p-2 sm:p-4">
+                <section className="rounded-3xl border border-border/60 bg-white p-6 dark:bg-neutral-900">
                     <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                         <div className="max-w-3xl space-y-2">
-                            <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/90 px-3 py-1 text-xs font-medium tracking-[0.2em] text-muted-foreground uppercase">
-                                <Activity className="h-3.5 w-3.5" />
-                                Operations Runtime
+                            <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-[#edf1f4] px-3 py-1 text-xs font-medium text-muted-foreground">
+                                <Activity className="size-3.5" />
+                                {t('runtimeHealthPage.operationsRuntime')}
                             </div>
                             <h1 className="text-3xl font-semibold tracking-tight text-foreground">
-                                Property runtime health
+                                {t('runtimeHealthPage.propertyRuntimeHealth')}
                             </h1>
                             <p className="text-sm text-muted-foreground">
-                                {runtimeHealth.message}
+                                {t(
+                                    `runtimeHealthPage.messages.overall.${runtimeHealth.status}`,
+                                    runtimeHealth.message,
+                                )}
                             </p>
                         </div>
                         <div
                             className={`inline-flex w-fit items-center rounded-full border px-3 py-1 text-sm font-medium ${statusTone(runtimeHealth.status)}`}
                         >
-                            {statusLabel(runtimeHealth.status)}
+                            {statusLabel(t, runtimeHealth.status)}
                         </div>
                     </div>
                 </section>
@@ -185,70 +200,89 @@ export default function RuntimeHealthPage({
                         <Card className="border-border/60">
                             <CardHeader>
                                 <CardTitle className="flex items-center gap-2">
-                                    <DatabaseZap className="h-5 w-5" />
-                                    Projection Health
+                                    <DatabaseZap className="size-5" />
+                                    {t('runtimeHealthPage.projection.title')}
                                 </CardTitle>
                                 <CardDescription>
-                                    Property-day summary freshness and lag against
-                                    recent activity.
+                                    {t(
+                                        'runtimeHealthPage.projection.description',
+                                    )}
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div
                                     className={`rounded-2xl border px-4 py-3 text-sm ${statusTone(projection.status)}`}
                                 >
-                                    {projection.message}
+                                    {componentMessage(
+                                        t,
+                                        'projection',
+                                        projection,
+                                    )}
                                 </div>
                                 <div className="grid gap-3 md:grid-cols-3">
                                     <Metric
-                                        label="Critical Properties"
+                                        label={t(
+                                            'runtimeHealthPage.projection.criticalProperties',
+                                        )}
                                         value={formatNumber(
                                             projection.criticalPropertyCount,
                                         )}
                                     />
                                     <Metric
-                                        label="Warning Properties"
+                                        label={t(
+                                            'runtimeHealthPage.projection.warningProperties',
+                                        )}
                                         value={formatNumber(
                                             projection.warningPropertyCount,
                                         )}
                                     />
                                     <Metric
-                                        label="Latest Projection"
-                                        value={formatTimestamp(
+                                        label={t(
+                                            'runtimeHealthPage.projection.latestProjection',
+                                        )}
+                                        value={timestamp(
                                             projection.latestProjectionAt,
                                         )}
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    {projection.properties.length > 0 ? (
-                                        projection.properties.map((property) => (
-                                            <div
-                                                key={property.propertyId}
-                                                className="rounded-2xl border border-border/60 p-3"
-                                            >
-                                                <div className="flex items-center justify-between gap-3">
-                                                    <div>
-                                                        <p className="font-medium text-foreground">
-                                                            {property.propertyName}
-                                                        </p>
-                                                        <p className="text-sm text-muted-foreground">
-                                                            {property.message}
-                                                        </p>
+                                    {projection.properties.length ? (
+                                        projection.properties.map(
+                                            (property) => (
+                                                <div
+                                                    key={property.propertyId}
+                                                    className="rounded-2xl border border-border/60 p-3"
+                                                >
+                                                    <div className="flex items-center justify-between gap-3">
+                                                        <div>
+                                                            <p className="font-medium text-foreground">
+                                                                {
+                                                                    property.propertyName
+                                                                }
+                                                            </p>
+                                                            <p className="text-sm text-muted-foreground">
+                                                                {
+                                                                    property.message
+                                                                }
+                                                            </p>
+                                                        </div>
+                                                        <span
+                                                            className={`rounded-full border px-2.5 py-1 text-xs font-medium ${statusTone(property.status as HealthStatus)}`}
+                                                        >
+                                                            {statusLabel(
+                                                                t,
+                                                                property.status as HealthStatus,
+                                                            )}
+                                                        </span>
                                                     </div>
-                                                    <span
-                                                        className={`rounded-full border px-2.5 py-1 text-xs font-medium ${statusTone(property.status as HealthStatus)}`}
-                                                    >
-                                                        {statusLabel(
-                                                            property.status as HealthStatus,
-                                                        )}
-                                                    </span>
                                                 </div>
-                                            </div>
-                                        ))
+                                            ),
+                                        )
                                     ) : (
                                         <p className="text-sm text-muted-foreground">
-                                            No property-level projection issues
-                                            are currently surfaced.
+                                            {t(
+                                                'runtimeHealthPage.projection.noIssues',
+                                            )}
                                         </p>
                                     )}
                                 </div>
@@ -259,37 +293,42 @@ export default function RuntimeHealthPage({
                     <Card className="border-border/60">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
-                                <Workflow className="h-5 w-5" />
-                                Queue Health
+                                <Workflow className="size-5" />
+                                {t('runtimeHealthPage.queue.title')}
                             </CardTitle>
                             <CardDescription>
-                                Queue connection, backlog pressure, and
-                                failed-job signal.
+                                {t('runtimeHealthPage.queue.description')}
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div
                                 className={`rounded-2xl border px-4 py-3 text-sm ${statusTone(components.queue.status)}`}
                             >
-                                {components.queue.message}
+                                {componentMessage(t, 'queue', components.queue)}
                             </div>
                             <div className="grid gap-3 md:grid-cols-2">
                                 <Metric
-                                    label="Connection"
+                                    label={t(
+                                        'runtimeHealthPage.queue.connection',
+                                    )}
                                     value={components.queue.connection}
                                 />
                                 <Metric
-                                    label="Driver"
+                                    label={t('runtimeHealthPage.queue.driver')}
                                     value={components.queue.driver}
                                 />
                                 <Metric
-                                    label="Pending Jobs"
+                                    label={t(
+                                        'runtimeHealthPage.queue.pendingJobs',
+                                    )}
                                     value={formatNumber(
                                         components.queue.pendingJobs ?? 0,
                                     )}
                                 />
                                 <Metric
-                                    label="Failed Jobs"
+                                    label={t(
+                                        'runtimeHealthPage.queue.failedJobs',
+                                    )}
                                     value={formatNumber(
                                         components.queue.failedJobs ?? 0,
                                     )}
@@ -297,14 +336,18 @@ export default function RuntimeHealthPage({
                             </div>
                             <div className="grid gap-3 md:grid-cols-2">
                                 <Metric
-                                    label="Oldest Pending"
-                                    value={formatTimestamp(
+                                    label={t(
+                                        'runtimeHealthPage.queue.oldestPending',
+                                    )}
+                                    value={timestamp(
                                         components.queue.oldestPendingAt,
                                     )}
                                 />
                                 <Metric
-                                    label="Latest Failure"
-                                    value={formatTimestamp(
+                                    label={t(
+                                        'runtimeHealthPage.queue.latestFailure',
+                                    )}
+                                    value={timestamp(
                                         components.queue.latestFailedAt,
                                     )}
                                 />
@@ -315,30 +358,37 @@ export default function RuntimeHealthPage({
                     <Card className="border-border/60">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
-                                <RefreshCw className="h-5 w-5" />
-                                Recent Refresh
+                                <RefreshCw className="size-5" />
+                                {t('runtimeHealthPage.refresh.title')}
                             </CardTitle>
                             <CardDescription>
-                                Heartbeat for the scheduled recent-window
-                                projection rebuild.
+                                {t('runtimeHealthPage.refresh.description')}
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div
                                 className={`rounded-2xl border px-4 py-3 text-sm ${statusTone(components.recentRefresh.status)}`}
                             >
-                                {components.recentRefresh.message}
+                                {componentMessage(
+                                    t,
+                                    'refresh',
+                                    components.recentRefresh,
+                                )}
                             </div>
                             <div className="grid gap-3 md:grid-cols-2">
                                 <Metric
-                                    label="Last Successful Refresh"
-                                    value={formatTimestamp(
+                                    label={t(
+                                        'runtimeHealthPage.refresh.lastSuccessful',
+                                    )}
+                                    value={timestamp(
                                         components.recentRefresh
                                             .lastSuccessfulAt,
                                     )}
                                 />
                                 <Metric
-                                    label="Age (Minutes)"
+                                    label={t(
+                                        'runtimeHealthPage.refresh.ageMinutes',
+                                    )}
                                     value={formatNumber(
                                         components.recentRefresh.ageMinutes ??
                                             0,
@@ -351,35 +401,37 @@ export default function RuntimeHealthPage({
                     <Card className="border-border/60">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
-                                <ShieldCheck className="h-5 w-5" />
-                                Property Sync Activity
+                                <ShieldCheck className="size-5" />
+                                {t('runtimeHealthPage.sync.title')}
                             </CardTitle>
                             <CardDescription>
-                                Active property-local sync credentials and recent
-                                usage footprint.
+                                {t('runtimeHealthPage.sync.description')}
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div
                                 className={`rounded-2xl border px-4 py-3 text-sm ${statusTone(components.sync.status)}`}
                             >
-                                {components.sync.message}
+                                {componentMessage(t, 'sync', components.sync)}
                             </div>
                             <div className="grid gap-3 md:grid-cols-3">
                                 <Metric
-                                    label="Active"
+                                    label={t('runtimeHealthPage.sync.active')}
                                     value={formatNumber(
                                         components.sync.activeCredentials,
                                     )}
                                 />
                                 <Metric
-                                    label="Recently Used"
+                                    label={t(
+                                        'runtimeHealthPage.sync.recentlyUsed',
+                                    )}
                                     value={formatNumber(
-                                        components.sync.recentlyUsedCredentials,
+                                        components.sync
+                                            .recentlyUsedCredentials,
                                     )}
                                 />
                                 <Metric
-                                    label="Stale"
+                                    label={t('runtimeHealthPage.sync.stale')}
                                     value={formatNumber(
                                         components.sync.staleCredentials,
                                     )}
@@ -387,59 +439,73 @@ export default function RuntimeHealthPage({
                             </div>
                             <div className="grid gap-3 md:grid-cols-3">
                                 <Metric
-                                    label="Revoked"
+                                    label={t('runtimeHealthPage.sync.revoked')}
                                     value={formatNumber(
                                         components.sync.revokedCredentials,
                                     )}
                                 />
                                 <Metric
-                                    label="Expired"
+                                    label={t('runtimeHealthPage.sync.expired')}
                                     value={formatNumber(
                                         components.sync.expiredCredentials,
                                     )}
                                 />
                                 <Metric
-                                    label="Latest Usage"
-                                    value={formatTimestamp(
+                                    label={t(
+                                        'runtimeHealthPage.sync.latestUsage',
+                                    )}
+                                    value={timestamp(
                                         components.sync.latestUsedAt,
                                     )}
                                 />
                             </div>
                             <div className="space-y-2">
-                                {components.sync.properties.length > 0 ? (
-                                    components.sync.properties.map((property) => (
-                                        <div
-                                            key={property.propertyId}
-                                            className="rounded-2xl border border-border/60 p-3"
-                                        >
-                                            <div className="flex items-center justify-between gap-3">
-                                                <div>
-                                                    <p className="font-medium text-foreground">
-                                                        {property.propertyName}
-                                                    </p>
-                                                    <p className="text-sm text-muted-foreground">
-                                                        {formatNumber(
-                                                            property.recentlyUsedCredentialCount,
-                                                        )}{' '}
-                                                        recently used of{' '}
-                                                        {formatNumber(
-                                                            property.activeCredentialCount,
-                                                        )}{' '}
-                                                        active credentials
-                                                    </p>
+                                {components.sync.properties.length ? (
+                                    components.sync.properties.map(
+                                        (property) => (
+                                            <div
+                                                key={property.propertyId}
+                                                className="rounded-2xl border border-border/60 p-3"
+                                            >
+                                                <div className="flex items-center justify-between gap-3">
+                                                    <div>
+                                                        <p className="font-medium text-foreground">
+                                                            {
+                                                                property.propertyName
+                                                            }
+                                                        </p>
+                                                        <p className="text-sm text-muted-foreground">
+                                                            {t(
+                                                                'runtimeHealthPage.sync.usageSummary',
+                                                            )
+                                                                .replace(
+                                                                    ':recent',
+                                                                    formatNumber(
+                                                                        property.recentlyUsedCredentialCount,
+                                                                    ),
+                                                                )
+                                                                .replace(
+                                                                    ':active',
+                                                                    formatNumber(
+                                                                        property.activeCredentialCount,
+                                                                    ),
+                                                                )}
+                                                        </p>
+                                                    </div>
+                                                    <span className="text-xs text-muted-foreground">
+                                                        {timestamp(
+                                                            property.latestUsedAt,
+                                                        )}
+                                                    </span>
                                                 </div>
-                                                <span className="text-xs text-muted-foreground">
-                                                    {formatTimestamp(
-                                                        property.latestUsedAt,
-                                                    )}
-                                                </span>
                                             </div>
-                                        </div>
-                                    ))
+                                        ),
+                                    )
                                 ) : (
                                     <p className="text-sm text-muted-foreground">
-                                        No property sync credentials are active
-                                        yet.
+                                        {t(
+                                            'runtimeHealthPage.sync.noCredentials',
+                                        )}
                                     </p>
                                 )}
                             </div>
@@ -451,62 +517,56 @@ export default function RuntimeHealthPage({
                     <Card className="border-border/60">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
-                                <Clock3 className="h-5 w-5" />
-                                Runtime Notes
+                                <Clock3 className="size-5" />
+                                {t('runtimeHealthPage.notes.title')}
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-2 text-sm text-muted-foreground">
-                            <p>
-                                Projection health tells us whether summary
-                                widgets are safe to trust for current property
-                                activity.
-                            </p>
-                            <p>
-                                Queue health is the best early signal that
-                                projection jobs, sync tasks, and future
-                                property-local replication can fall behind.
-                            </p>
-                            <p>
-                                Redis availability matters because the
-                                local-first rollout depends on fast cache and
-                                queue services to stay resilient during network
-                                instability.
-                            </p>
+                            <p>{t('runtimeHealthPage.notes.projection')}</p>
+                            <p>{t('runtimeHealthPage.notes.queue')}</p>
+                            <p>{t('runtimeHealthPage.notes.redis')}</p>
                         </CardContent>
                     </Card>
 
                     <Card className="border-border/60">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
-                                <Activity className="h-5 w-5" />
-                                Redis Runtime
+                                <Activity className="size-5" />
+                                {t('runtimeHealthPage.redis.title')}
                             </CardTitle>
                             <CardDescription>
-                                Cache and queue readiness for property-local
-                                deployment.
+                                {t('runtimeHealthPage.redis.description')}
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div
                                 className={`rounded-2xl border px-4 py-3 text-sm ${statusTone(components.redis.status)}`}
                             >
-                                {components.redis.message}
+                                {componentMessage(t, 'redis', components.redis)}
                             </div>
                             <div className="grid gap-3 md:grid-cols-2">
                                 <Metric
-                                    label="Cache Store"
+                                    label={t(
+                                        'runtimeHealthPage.redis.cacheStore',
+                                    )}
                                     value={components.redis.cacheStore}
                                 />
                                 <Metric
-                                    label="POS Cache Store"
+                                    label={t(
+                                        'runtimeHealthPage.redis.posCacheStore',
+                                    )}
                                     value={components.redis.posCacheStore}
                                 />
                                 <Metric
-                                    label="Queue Connection"
+                                    label={t(
+                                        'runtimeHealthPage.redis.queueConnection',
+                                    )}
                                     value={components.redis.queueConnection}
                                 />
                                 <Metric
-                                    label="Latency (ms)"
+                                    label={t(
+                                        'runtimeHealthPage.redis.latency',
+                                    )}
                                     value={formatNumber(
                                         components.redis.latencyMs ?? 0,
                                     )}

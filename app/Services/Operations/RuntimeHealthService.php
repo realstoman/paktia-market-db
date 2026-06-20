@@ -59,12 +59,14 @@ class RuntimeHealthService
         $oldestPendingAt = null;
         $status = 'healthy';
         $message = 'Queue connection is reachable and backlog is within threshold.';
+        $messageKey = 'queue.healthy';
 
         try {
             $pendingJobs = Queue::connection($connectionName)->size($queueName);
         } catch (Throwable $exception) {
             $status = 'critical';
             $message = 'Queue connection is not reachable from the application.';
+            $messageKey = 'queue.unreachable';
         }
 
         if (Schema::hasTable('jobs')) {
@@ -103,18 +105,22 @@ class RuntimeHealthService
             if ($driver === 'sync') {
                 $status = 'warning';
                 $message = 'Queue is running in sync mode, which limits retry and buffering resilience.';
+                $messageKey = 'queue.syncMode';
             } elseif (($failedJobs ?? 0) >= $criticalFailedJobs || ($pendingJobs ?? 0) >= $criticalPendingJobs) {
                 $status = 'critical';
                 $message = 'Queue backlog or failed jobs are above the critical threshold.';
+                $messageKey = 'queue.criticalThreshold';
             } elseif (($failedJobs ?? 0) >= $warningFailedJobs || ($pendingJobs ?? 0) >= $warningPendingJobs) {
                 $status = 'warning';
                 $message = 'Queue backlog or failed jobs are above the warning threshold.';
+                $messageKey = 'queue.warningThreshold';
             }
         }
 
         return [
             'status' => $status,
             'message' => $message,
+            'messageKey' => $messageKey,
             'connection' => $connectionName,
             'driver' => $driver,
             'queue' => $queueName,
@@ -140,6 +146,7 @@ class RuntimeHealthService
             return [
                 'status' => 'warning',
                 'message' => 'Redis is not configured as an active cache or queue dependency yet.',
+                'messageKey' => 'redis.notConfigured',
                 'cacheStore' => $cacheStore,
                 'posCacheStore' => $posCacheStore,
                 'queueConnection' => $queueConnection,
@@ -162,6 +169,7 @@ class RuntimeHealthService
                 'message' => $isHealthy
                     ? 'Redis responded to a health check ping.'
                     : 'Redis did not return a healthy ping response.',
+                'messageKey' => $isHealthy ? 'redis.healthy' : 'redis.unhealthy',
                 'cacheStore' => $cacheStore,
                 'posCacheStore' => $posCacheStore,
                 'queueConnection' => $queueConnection,
@@ -172,6 +180,7 @@ class RuntimeHealthService
             return [
                 'status' => 'critical',
                 'message' => 'Redis is configured but not reachable from the application.',
+                'messageKey' => 'redis.unreachable',
                 'cacheStore' => $cacheStore,
                 'posCacheStore' => $posCacheStore,
                 'queueConnection' => $queueConnection,
@@ -236,21 +245,26 @@ class RuntimeHealthService
 
         $status = 'healthy';
         $message = 'Property sync credentials are active and have recent usage.';
+        $messageKey = 'sync.healthy';
 
         if ($activeCredentials === 0) {
             $status = 'warning';
             $message = 'No active property sync credentials have been issued yet.';
+            $messageKey = 'sync.noActive';
         } elseif ($recentlyUsedCredentials === 0) {
             $status = 'warning';
             $message = 'Active property sync credentials exist but none were used recently.';
+            $messageKey = 'sync.noRecent';
         } elseif ($staleCredentials > 0) {
             $status = 'warning';
             $message = 'Some active property sync credentials have not been used recently.';
+            $messageKey = 'sync.stale';
         }
 
         return [
             'status' => $status,
             'message' => $message,
+            'messageKey' => $messageKey,
             'activeCredentials' => $activeCredentials,
             'recentlyUsedCredentials' => $recentlyUsedCredentials,
             'staleCredentials' => $staleCredentials,
@@ -273,6 +287,7 @@ class RuntimeHealthService
             return [
                 'status' => 'critical',
                 'message' => 'The recent projection refresh heartbeat could not be read from cache.',
+                'messageKey' => 'refresh.cacheUnreadable',
                 'lastSuccessfulAt' => null,
                 'ageMinutes' => null,
             ];
@@ -282,6 +297,7 @@ class RuntimeHealthService
             return [
                 'status' => 'warning',
                 'message' => 'The recent projection refresh heartbeat has not been recorded yet.',
+                'messageKey' => 'refresh.notRecorded',
                 'lastSuccessfulAt' => null,
                 'ageMinutes' => null,
             ];
@@ -292,18 +308,22 @@ class RuntimeHealthService
 
         $status = 'healthy';
         $message = 'The recent projection refresh heartbeat is current.';
+        $messageKey = 'refresh.current';
 
         if ($ageMinutes >= $criticalAfterMinutes) {
             $status = 'critical';
             $message = 'The recent projection refresh heartbeat is critically stale.';
+            $messageKey = 'refresh.criticalStale';
         } elseif ($ageMinutes >= $warningAfterMinutes) {
             $status = 'warning';
             $message = 'The recent projection refresh heartbeat is delayed.';
+            $messageKey = 'refresh.delayed';
         }
 
         return [
             'status' => $status,
             'message' => $message,
+            'messageKey' => $messageKey,
             'lastSuccessfulAt' => $timestamp->toIso8601String(),
             'ageMinutes' => $ageMinutes,
         ];
