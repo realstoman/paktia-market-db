@@ -106,6 +106,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('properties/{property}/floors/{floor}', [PropertyController::class, 'destroyFloor'])->name('properties.floors.destroy');
         Route::post('properties/{property}/floors/{floor}/units', [PropertyController::class, 'storeUnit'])->name('properties.floors.units.store');
         Route::delete('properties/{property}/floors/{floor}/units/{unit}', [PropertyController::class, 'destroyUnit'])->name('properties.floors.units.destroy');
+        Route::post('properties/{property}/documents', [PropertyController::class, 'uploadDocuments'])->name('properties.documents.store');
+        Route::get('properties/{property}/documents/{document}', [PropertyController::class, 'downloadDocument'])->name('properties.documents.download');
+        Route::delete('properties/{property}/documents/{document}', [PropertyController::class, 'destroyDocument'])->name('properties.documents.destroy');
 
         // Activity / Audit Logs
         Route::get('admin/activity-logs', [ActivityLogController::class, 'index'])

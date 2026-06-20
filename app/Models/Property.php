@@ -15,6 +15,14 @@ class Property extends Model
         'name_translations',
         'property_type',
         'usage_type',
+        'host_market_name',
+        'host_market_name_translations',
+        'external_unit_number',
+        'external_floor',
+        'ownership_type',
+        'operating_mode',
+        'business_activities',
+        'title_deed_number',
         'image_path',
         'country_id',
         'province_id',
@@ -45,9 +53,11 @@ class Property extends Model
     {
         return [
             'amenities' => 'array',
+            'business_activities' => 'array',
             'name_translations' => 'array',
             'address_translations' => 'array',
             'description_translations' => 'array',
+            'host_market_name_translations' => 'array',
             'is_active' => 'boolean',
             'display_order' => 'integer',
             'distance_from_city_km' => 'decimal:2',
@@ -83,6 +93,11 @@ class Property extends Model
     public function getDescriptionAttribute(?string $value): ?string
     {
         return $this->translatedValue('description_translations', $value);
+    }
+
+    public function getHostMarketNameAttribute(?string $value): ?string
+    {
+        return $this->translatedValue('host_market_name_translations', $value);
     }
 
     private function translatedValue(string $attribute, ?string $fallback): ?string
@@ -150,5 +165,10 @@ class Property extends Model
     public function leases()
     {
         return $this->hasMany(Lease::class);
+    }
+
+    public function documents()
+    {
+        return $this->hasMany(PropertyDocument::class)->latest();
     }
 }

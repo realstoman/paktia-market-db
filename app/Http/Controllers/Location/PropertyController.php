@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Location;
 use App\Http\Controllers\Controller;
 use App\Models\Country;
 use App\Models\Property;
+use App\Models\PropertyDocument;
 use App\Models\PropertyFloor;
 use App\Models\PropertyUnit;
 use App\Models\Province;
@@ -13,6 +14,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class PropertyController extends Controller
 {
@@ -36,6 +38,7 @@ class PropertyController extends Controller
             'property' => $property->load([
                 'country', 'province', 'parentProperty.country', 'parentProperty.province',
                 'relatedLocations.country', 'relatedLocations.province',
+                'documents',
                 'floors' => fn ($query) => $query->with('units')->orderBy('level_number'),
             ]),
             'countries' => Country::orderBy('name')->get(),
@@ -169,6 +172,46 @@ class PropertyController extends Controller
         return back()->with('success', __('properties.actions.space_deleted'));
     }
 
+    public function uploadDocuments(Request $request, Property $property)
+    {
+        $validated = $request->validate([
+            'document_type' => ['required', Rule::in(['title_deed', 'purchase_contract', 'ownership', 'other'])],
+            'documents' => ['required', 'array', 'min:1', 'max:10'],
+            'documents.*' => ['file', 'mimes:pdf,jpg,jpeg,png,webp,doc,docx', 'max:10240'],
+        ]);
+
+        foreach ($request->file('documents', []) as $file) {
+            $path = $file->store("properties/{$property->id}/documents", 'local');
+            $property->documents()->create([
+                'document_type' => $validated['document_type'],
+                'title' => pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME),
+                'document_number' => $property->title_deed_number,
+                'path' => $path,
+                'original_name' => $file->getClientOriginalName(),
+                'mime_type' => $file->getMimeType(),
+                'size_bytes' => $file->getSize(),
+            ]);
+        }
+
+        return back()->with('success', __('properties.actions.documents_uploaded'));
+    }
+
+    public function downloadDocument(Property $property, PropertyDocument $document): StreamedResponse
+    {
+        abort_unless($document->property_id === $property->id, 404);
+
+        return Storage::disk('local')->download($document->path, $document->original_name);
+    }
+
+    public function destroyDocument(Property $property, PropertyDocument $document)
+    {
+        abort_unless($document->property_id === $property->id, 404);
+        Storage::disk('local')->delete($document->path);
+        $document->delete();
+
+        return back()->with('success', __('properties.actions.document_deleted'));
+    }
+
     private function validateProperty(Request $request): array
     {
         return $request->validate([
@@ -181,8 +224,18 @@ class PropertyController extends Controller
                 'exists:properties,id',
                 Rule::notIn(array_filter([$request->route('property')?->id])),
             ],
-            'property_type' => ['required', Rule::in(['market', 'mall', 'block', 'house'])],
+            'property_type' => ['required', Rule::in(['market', 'mall', 'block', 'house', 'commercial_unit'])],
             'usage_type' => ['required', Rule::in(['commercial', 'residential', 'mixed'])],
+            'host_market_name' => ['nullable', 'required_if:property_type,commercial_unit', 'string', 'max:255'],
+            'host_market_name_ps' => ['nullable', 'string', 'max:255'],
+            'host_market_name_en' => ['nullable', 'string', 'max:255'],
+            'external_unit_number' => ['nullable', 'required_if:property_type,commercial_unit', 'string', 'max:100'],
+            'external_floor' => ['nullable', 'string', 'max:100'],
+            'ownership_type' => ['required', Rule::in(['owned', 'leased', 'managed'])],
+            'operating_mode' => ['required', Rule::in(['owner_occupied', 'vacant', 'rented', 'maintenance'])],
+            'business_activities' => ['nullable', 'array', 'max:10'],
+            'business_activities.*' => ['string', Rule::in(['money_exchange', 'jewelry', 'office', 'retail', 'other'])],
+            'title_deed_number' => ['nullable', 'string', 'max:150'],
             'country_id' => ['required', 'exists:countries,id'],
             'province_id' => [
                 'required',
@@ -228,7 +281,7 @@ class PropertyController extends Controller
 
     private function prepareTranslations(array $validated): array
     {
-        foreach (['name', 'address', 'description'] as $field) {
+        foreach (['name', 'address', 'description', 'host_market_name'] as $field) {
             $validated["{$field}_translations"] = array_filter([
                 'fa' => $validated[$field] ?? null,
                 'ps' => $validated["{$field}_ps"] ?? null,
@@ -236,6 +289,20 @@ class PropertyController extends Controller
             ], fn ($value) => filled($value));
 
             unset($validated["{$field}_ps"], $validated["{$field}_en"]);
+        }
+
+        if (($validated['property_type'] ?? null) === 'commercial_unit') {
+            $validated['usage_type'] = 'commercial';
+            $validated['parent_property_id'] = null;
+            $validated['land_area_sqm'] = null;
+            $validated['declared_units'] = 1;
+        } else {
+            $validated['host_market_name'] = null;
+            $validated['host_market_name_translations'] = [];
+            $validated['external_unit_number'] = null;
+            $validated['external_floor'] = null;
+            $validated['business_activities'] = null;
+            $validated['title_deed_number'] = null;
         }
 
         return $validated;
