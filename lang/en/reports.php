@@ -12,7 +12,15 @@ return [
         ],
         'finance' => [
             'title' => 'Finance',
-            'description' => 'Expenses and cash movement activity.',
+            'description' => 'Rental income, expenses, and operating result.',
+        ],
+        'rentals' => [
+            'title' => 'Rent & Contracts',
+            'description' => 'Tenant leases, rent collection, balances, and signed-contract coverage.',
+        ],
+        'properties' => [
+            'title' => 'Markets & Properties',
+            'description' => 'Property staffing and inventory coverage.',
         ],
         'branches' => [
             'title' => 'Markets & Properties',
@@ -29,6 +37,9 @@ return [
         'employees' => 'Employees',
         'active_employees' => 'Active employees',
         'approved_expenses' => 'Approved expenses',
+        'rent_received' => 'Rent received',
+        'active_leases' => 'Active leases',
+        'rent_outstanding' => 'Outstanding rent',
         'pending_approvals' => 'Pending approvals',
         'branches' => 'Markets',
         'active_branches' => 'Active markets',
@@ -46,7 +57,15 @@ return [
         ],
         'finance' => [
             'title' => 'Finance Report',
-            'description' => 'Expense activity for the selected period.',
+            'description' => 'Rental income and expense activity for the selected period.',
+        ],
+        'rentals' => [
+            'title' => 'Rent & Contracts Report',
+            'description' => 'Lease obligations, receipts, outstanding rent, and signed contracts.',
+        ],
+        'properties' => [
+            'title' => 'Markets & Properties Report',
+            'description' => 'Property staffing and inventory coverage.',
         ],
         'branches' => [
             'title' => 'Markets & Properties Report',
@@ -75,6 +94,17 @@ return [
         'user' => 'User',
         'email' => 'Email',
         'roles' => 'Roles',
+        'property' => 'Property',
+        'source' => 'Source',
+        'tenant' => 'Tenant',
+        'business' => 'Business',
+        'space' => 'Shop / Unit',
+        'contract' => 'Contract',
+        'contract_period' => 'Contract Period',
+        'expected_rent' => 'Contracted Rent',
+        'received' => 'Received',
+        'outstanding' => 'Outstanding',
+        'signed_contract' => 'Signed Contract',
     ],
     'status' => [
         'unassigned' => 'Unassigned',
@@ -87,6 +117,10 @@ return [
         'submitted' => 'Submitted',
         'approved' => 'Approved',
         'rejected' => 'Rejected',
+        'received' => 'Received',
+        'uploaded' => 'Uploaded',
+        'missing' => 'Missing',
+        'whole_property' => 'Whole property',
     ],
     'summary' => [
         'stock_items' => 'Stock Items',
@@ -95,6 +129,11 @@ return [
         'active' => 'Active',
         'expenses' => 'Expenses',
         'approved_amount' => 'Approved Amount',
+        'rent_received' => 'Rent Received',
+        'net_operating' => 'Net Operating Result',
+        'active_leases' => 'Active Leases',
+        'expected_rent' => 'Contracted Rent',
+        'rent_outstanding' => 'Outstanding Rent',
         'branches' => 'Markets',
         'accounts' => 'Accounts',
     ],
@@ -109,4 +148,5 @@ return [
     'reference' => [
         'expense' => 'Expense #:id',
     ],
+    'source' => ['expense' => 'Expense', 'rent' => 'Rent payment'],
 ];

@@ -12,7 +12,15 @@ return [
         ],
         'finance' => [
             'title' => 'مالی',
-            'description' => 'فعالیت مصارف و حرکات نقدی.',
+            'description' => 'عواید کرایه، مصارف و نتیجه عملیاتی.',
+        ],
+        'rentals' => [
+            'title' => 'کرایه و قراردادها',
+            'description' => 'قراردادهای مستأجران، دریافت کرایه، باقیات و اسناد امضاءشده.',
+        ],
+        'properties' => [
+            'title' => 'مارکیت‌ها و جایدادها',
+            'description' => 'پوشش کارمندان و گدام در جایدادها.',
         ],
         'branches' => [
             'title' => 'مارکیت‌ها و جایدادها',
@@ -29,6 +37,9 @@ return [
         'employees' => 'کارمندان',
         'active_employees' => 'کارمندان فعال',
         'approved_expenses' => 'مصارف منظورشده',
+        'rent_received' => 'کرایه دریافت‌شده',
+        'active_leases' => 'قراردادهای فعال',
+        'rent_outstanding' => 'باقیات کرایه',
         'pending_approvals' => 'در انتظار منظوری',
         'branches' => 'مارکیت‌ها',
         'active_branches' => 'مارکیت‌های فعال',
@@ -46,7 +57,15 @@ return [
         ],
         'finance' => [
             'title' => 'گزارش مالی',
-            'description' => 'فعالیت مصارف برای دوره انتخاب‌شده.',
+            'description' => 'عواید کرایه و مصارف دوره انتخاب‌شده.',
+        ],
+        'rentals' => [
+            'title' => 'گزارش کرایه و قراردادها',
+            'description' => 'تعهدات قرارداد، دریافت‌ها، باقیات کرایه و قراردادهای امضاءشده.',
+        ],
+        'properties' => [
+            'title' => 'گزارش مارکیت‌ها و جایدادها',
+            'description' => 'پوشش کارمندان و گدام در جایدادها.',
         ],
         'branches' => [
             'title' => 'گزارش مارکیت‌ها و جایدادها',
@@ -75,6 +94,17 @@ return [
         'user' => 'کاربر',
         'email' => 'ایمیل',
         'roles' => 'صلاحیت‌ها',
+        'property' => 'جایداد',
+        'source' => 'منبع',
+        'tenant' => 'مستأجر',
+        'business' => 'نام تجارت',
+        'space' => 'دکان / محل',
+        'contract' => 'قرارداد',
+        'contract_period' => 'مدت قرارداد',
+        'expected_rent' => 'کرایه قراردادی',
+        'received' => 'دریافت‌شده',
+        'outstanding' => 'باقیات',
+        'signed_contract' => 'قرارداد امضاءشده',
     ],
     'status' => [
         'unassigned' => 'تعیین نشده',
@@ -87,6 +117,10 @@ return [
         'submitted' => 'ثبت‌شده',
         'approved' => 'منظورشده',
         'rejected' => 'ردشده',
+        'received' => 'دریافت‌شده',
+        'uploaded' => 'بارگذاری‌شده',
+        'missing' => 'موجود نیست',
+        'whole_property' => 'تمام جایداد',
     ],
     'summary' => [
         'stock_items' => 'اجناس گدام',
@@ -95,6 +129,11 @@ return [
         'active' => 'فعال',
         'expenses' => 'مصارف',
         'approved_amount' => 'مبلغ منظورشده',
+        'rent_received' => 'کرایه دریافت‌شده',
+        'net_operating' => 'نتیجه خالص عملیاتی',
+        'active_leases' => 'قراردادهای فعال',
+        'expected_rent' => 'کرایه قراردادی',
+        'rent_outstanding' => 'باقیات کرایه',
         'branches' => 'مارکیت‌ها',
         'accounts' => 'حساب‌ها',
     ],
@@ -109,4 +148,5 @@ return [
     'reference' => [
         'expense' => 'مصرف #:id',
     ],
+    'source' => ['expense' => 'مصرف', 'rent' => 'پرداخت کرایه'],
 ];
