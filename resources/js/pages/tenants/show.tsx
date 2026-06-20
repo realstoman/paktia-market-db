@@ -52,6 +52,7 @@ interface Props {
     tenant: Tenant;
     properties: Property[];
     currencies: Currency[];
+    openEdit?: boolean;
 }
 interface LeaseForm {
     property_id: string;
@@ -101,6 +102,7 @@ export default function TenantProfile({
     tenant,
     properties,
     currencies,
+    openEdit = false,
 }: Props) {
     const { t, isRtl } = useLocalization();
     const { auth } = usePage<SharedData>().props;
@@ -108,7 +110,7 @@ export default function TenantProfile({
         auth.is_super_admin || auth.permissions.includes('tenants.manage');
     const lease = currentLease(tenant);
     const [assignmentOpen, setAssignmentOpen] = useState(false);
-    const [editOpen, setEditOpen] = useState(false);
+    const [editOpen, setEditOpen] = useState(openEdit);
     const breadcrumbs: BreadcrumbItem[] = [
         { title: t('navigation.dashboard'), href: '/dashboard' },
         { title: t('tenants.title'), href: '/tenants' },
@@ -117,8 +119,14 @@ export default function TenantProfile({
             href: `/tenants/${tenant.id}`,
         },
     ];
-    const location = (item: Lease) =>
-        `${item.property?.name ?? ''}${item.floor ? ` · ${item.floor.name}` : ''}${item.unit ? ` · ${t(`tenants.lease.${item.unit.unit_type}`)} ${item.unit.unit_number}` : ''}`;
+    const location = (item: Lease) => {
+        const externalUnit =
+            item.property?.property_type === 'commercial_unit'
+                ? item.property.external_unit_number
+                : null;
+
+        return `${item.property?.name ?? ''}${item.floor ? ` · ${item.floor.name}` : ''}${item.unit ? ` · ${t(`tenants.lease.${item.unit.unit_type}`)} ${item.unit.unit_number}` : externalUnit ? ` · ${t('tenants.lease.shop')} ${externalUnit}` : ''}`;
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -249,7 +257,7 @@ export default function TenantProfile({
                 </section>
 
                 <section className="grid gap-6 xl:grid-cols-[1.1fr_1.4fr_0.9fr]">
-                    <Card className="rounded-2xl">
+                    <Card id="tenant-finance" className="scroll-mt-24 rounded-2xl">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2 text-lg">
                                 <UserRound className="h-5 w-5 text-primary" />

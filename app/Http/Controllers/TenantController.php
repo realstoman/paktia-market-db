@@ -31,7 +31,7 @@ class TenantController extends Controller
                 ))
                 ->with([
                     'documents',
-                    'leases.property:id,name,name_translations,property_type',
+                    'leases.property:id,name,name_translations,property_type,external_unit_number',
                     'leases.floor:id,name,level_number',
                     'leases.unit:id,unit_number,unit_type,property_floor_id',
                     'leases.currency:id,code,symbol',
@@ -45,18 +45,19 @@ class TenantController extends Controller
         ]);
     }
 
-    public function show(Tenant $tenant)
+    public function show(Request $request, Tenant $tenant)
     {
         return Inertia::render('tenants/show', [
             'tenant' => $tenant->load([
                 'documents',
-                'leases.property:id,name,name_translations,property_type,address,address_translations',
+                'leases.property:id,name,name_translations,property_type,address,address_translations,external_unit_number',
                 'leases.floor:id,name,level_number',
                 'leases.unit:id,unit_number,unit_type,property_floor_id,area_sqm,rooms_count',
                 'leases.currency:id,code,symbol',
             ]),
             'properties' => $this->propertyOptions(),
             'currencies' => Currency::query()->where('is_active', true)->orderBy('code')->get(['id', 'code', 'symbol']),
+            'openEdit' => $request->boolean('edit'),
         ]);
     }
 
@@ -64,7 +65,7 @@ class TenantController extends Controller
     {
         return Inertia::render('tenants/card', [
             'tenant' => $tenant->load([
-                'leases.property:id,name,name_translations,property_type',
+                'leases.property:id,name,name_translations,property_type,external_unit_number',
                 'leases.floor:id,name,level_number',
                 'leases.unit:id,unit_number,unit_type,property_floor_id',
             ]),
