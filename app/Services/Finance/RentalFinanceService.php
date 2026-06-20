@@ -49,7 +49,12 @@ class RentalFinanceService
         $payments = RentPayment::query()
             ->where('status', 'received')
             ->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))
-            ->whereBetween('payment_date', [$startDate->toDateString(), $endDate->toDateString()]);
+            ->whereDate('period_start', '<=', $endDate->toDateString())
+            ->where(fn ($query) => $query
+                ->whereDate('period_end', '>=', $startDate->toDateString())
+                ->orWhere(fn ($singlePeriod) => $singlePeriod
+                    ->whereNull('period_end')
+                    ->whereDate('period_start', '>=', $startDate->toDateString())));
         $received = (float) (clone $payments)->sum('amount');
 
         return [
@@ -67,7 +72,12 @@ class RentalFinanceService
         $payments = RentPayment::query()
             ->where('status', 'received')
             ->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))
-            ->whereBetween('payment_date', [$startDate->toDateString(), $endDate->toDateString()])
+            ->whereDate('period_start', '<=', $endDate->toDateString())
+            ->where(fn ($query) => $query
+                ->whereDate('period_end', '>=', $startDate->toDateString())
+                ->orWhere(fn ($singlePeriod) => $singlePeriod
+                    ->whereNull('period_end')
+                    ->whereDate('period_start', '>=', $startDate->toDateString())))
             ->selectRaw('lease_id, COALESCE(SUM(amount), 0) as total')
             ->groupBy('lease_id')
             ->pluck('total', 'lease_id');

@@ -11,6 +11,7 @@ use App\Models\Property;
 use App\Models\RentPayment;
 use App\Models\User;
 use App\Services\Finance\RentalFinanceService;
+use App\Services\Finance\ShareholderPnlService;
 use App\Services\Reports\ReportFileRenderer;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
@@ -27,6 +28,7 @@ class ReportsController extends Controller
     public function __construct(
         private readonly ReportFileRenderer $reportFileRenderer,
         private readonly RentalFinanceService $rentalFinance,
+        private readonly ShareholderPnlService $shareholderPnl,
     ) {}
 
     private const MODULES = [
@@ -34,6 +36,7 @@ class ReportsController extends Controller
         'employees',
         'finance',
         'rentals',
+        'shareholders',
         'properties',
         'users',
     ];
@@ -177,6 +180,7 @@ class ReportsController extends Controller
             ->whereBetween('expense_date', [$startDate->toDateString(), $endDate->toDateString()]);
         $employeeQuery = Employee::query()->when($propertyId, fn ($query) => $query->where('property_id', $propertyId));
         $rentalSummary = $this->rentalFinance->summary($startDate, $endDate, $propertyId);
+        $shareholderPnl = $this->shareholderPnl->rows($startDate, $endDate, $propertyId);
         $rentReceived = (float) RentPayment::query()
             ->where('status', 'received')
             ->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))
@@ -188,6 +192,7 @@ class ReportsController extends Controller
             ['key' => 'employees', 'title' => __('reports.catalog.employees.title'), 'primary' => (int) (clone $employeeQuery)->count(), 'primaryLabel' => __('reports.overview.employees'), 'secondary' => (int) (clone $employeeQuery)->where('is_active', true)->count(), 'secondaryLabel' => __('reports.overview.active_employees')],
             ['key' => 'finance', 'title' => __('reports.catalog.finance.title'), 'primary' => $rentReceived, 'primaryLabel' => __('reports.overview.rent_received'), 'primaryFormat' => 'currency', 'secondary' => (float) (clone $expenseQuery)->where('approval_status', 'approved')->sum('amount'), 'secondaryLabel' => __('reports.overview.approved_expenses'), 'secondaryFormat' => 'currency'],
             ['key' => 'rentals', 'title' => __('reports.catalog.rentals.title'), 'primary' => $rentalSummary['activeLeases'], 'primaryLabel' => __('reports.overview.active_leases'), 'secondary' => $rentalSummary['outstanding'], 'secondaryLabel' => __('reports.overview.rent_outstanding'), 'secondaryFormat' => 'currency'],
+            ['key' => 'shareholders', 'title' => __('reports.catalog.shareholders.title'), 'primary' => $shareholderPnl->count(), 'primaryLabel' => __('reports.overview.shareholder_allocations'), 'secondary' => $shareholderPnl->sum('allocated'), 'secondaryLabel' => __('reports.overview.allocated_pnl'), 'secondaryFormat' => 'currency'],
             ['key' => 'properties', 'title' => __('reports.catalog.properties.title'), 'primary' => Property::query()->count(), 'primaryLabel' => __('reports.overview.properties'), 'secondary' => Property::query()->where('is_active', true)->count(), 'secondaryLabel' => __('reports.overview.active_properties')],
             ['key' => 'users', 'title' => __('reports.catalog.users.title'), 'primary' => User::query()->count(), 'primaryLabel' => __('reports.overview.accounts'), 'secondary' => User::query()->where('is_active', true)->count(), 'secondaryLabel' => __('reports.overview.active_accounts')],
         ];
@@ -196,6 +201,7 @@ class ReportsController extends Controller
             'employees' => $this->marketEmployeesReport($employeeQuery),
             'finance' => $this->marketFinanceReport($expenseQuery, $startDate, $endDate, $propertyId),
             'rentals' => $this->marketRentalsReport($startDate, $endDate, $propertyId),
+            'shareholders' => $this->marketShareholderPnlReport($startDate, $endDate, $propertyId),
             'properties' => $this->marketPropertiesReport(),
             'users' => $this->marketUsersReport($propertyId),
             default => $this->marketInventoryReport($inventoryQuery),
@@ -340,6 +346,24 @@ class ReportsController extends Controller
             ['label' => __('reports.summary.expected_rent'), 'value' => (float) $rows->sum('expected'), 'format' => 'currency'],
             ['label' => __('reports.summary.rent_received'), 'value' => (float) $rows->sum('received'), 'format' => 'currency'],
             ['label' => __('reports.summary.rent_outstanding'), 'value' => (float) $rows->sum('outstanding'), 'format' => 'currency'],
+        ]);
+    }
+
+    private function marketShareholderPnlReport(Carbon $startDate, Carbon $endDate, ?int $propertyId): array
+    {
+        $rows = $this->shareholderPnl->rows($startDate, $endDate, $propertyId);
+
+        return $this->marketReport('shareholders', __('reports.reports.shareholders.title'), __('reports.reports.shareholders.description'), [
+            ['key' => 'shareholder', 'label' => __('reports.columns.shareholder')],
+            ['key' => 'property', 'label' => __('reports.columns.property')],
+            ['key' => 'percentage', 'label' => __('reports.columns.share_percentage')],
+            ['key' => 'revenue', 'label' => __('reports.columns.rent_revenue')],
+            ['key' => 'expenses', 'label' => __('reports.columns.expenses')],
+            ['key' => 'net', 'label' => __('reports.columns.net_pnl')],
+            ['key' => 'allocated', 'label' => __('reports.columns.shareholder_pnl')],
+        ], $rows->all(), ['revenue', 'expenses', 'net', 'allocated'], [
+            ['label' => __('reports.summary.property_net_pnl'), 'value' => (float) $rows->unique('property')->sum('net'), 'format' => 'currency'],
+            ['label' => __('reports.summary.shareholder_allocated_pnl'), 'value' => (float) $rows->sum('allocated'), 'format' => 'currency'],
         ]);
     }
 

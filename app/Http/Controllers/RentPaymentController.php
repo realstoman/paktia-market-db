@@ -10,6 +10,7 @@ use App\Services\Finance\RentalFinanceService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class RentPaymentController extends Controller
@@ -82,6 +83,18 @@ class RentPaymentController extends Controller
             'notes' => ['nullable', 'string', 'max:2000'],
         ]);
         $lease = Lease::query()->findOrFail($validated['lease_id']);
+        $periodStart = Carbon::parse($validated['period_start']);
+        $periodEnd = isset($validated['period_end'])
+            ? Carbon::parse($validated['period_end'])
+            : $periodStart;
+        if (
+            $periodStart->lt(Carbon::parse($lease->start_date))
+            || ($lease->end_date && $periodEnd->gt(Carbon::parse($lease->end_date)))
+        ) {
+            throw ValidationException::withMessages([
+                'period_start' => __('rentals.validation.period_outside_contract'),
+            ]);
+        }
 
         RentPayment::query()->create([
             ...$validated,

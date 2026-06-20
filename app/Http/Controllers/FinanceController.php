@@ -12,6 +12,7 @@ use App\Models\Property;
 use App\Models\RentPayment;
 use App\Services\Finance\PayrollExpenseSyncService;
 use App\Services\Finance\RentalFinanceService;
+use App\Services\Finance\ShareholderPnlService;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Http\Request;
@@ -26,6 +27,7 @@ class FinanceController extends Controller
     public function __construct(
         private readonly PayrollExpenseSyncService $payrollExpenseSyncService,
         private readonly RentalFinanceService $rentalFinance,
+        private readonly ShareholderPnlService $shareholderPnl,
     ) {}
 
     public function index(Request $request)
@@ -412,6 +414,7 @@ class FinanceController extends Controller
                 ],
                 'trend' => $trend,
                 'propertyRevenue' => $propertyRevenue,
+                'shareholderPnl' => $this->shareholderPnl->rows($startDate, $endDate, $propertyId),
                 'topExpenseCategories' => $topExpenseCategories,
                 'paymentBreakdown' => [],
                 'ledgerStats' => [
