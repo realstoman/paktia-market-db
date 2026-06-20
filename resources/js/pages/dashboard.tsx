@@ -274,7 +274,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                     <div className="property-tabs-scroll inline-flex w-max max-w-full min-w-0 gap-0.5 overflow-x-auto overscroll-x-contain scroll-smooth rounded-full bg-[#edf1f4] p-1 sm:max-w-250">
                         <button
                             onClick={() => setActiveTab('overall')}
-                            className={`shrink-0 rounded-full border px-4 py-2 text-base font-medium transition-colors ${
+                            className={`shrink-0 cursor-pointer rounded-full border px-4 py-2 text-base font-medium transition-colors ${
                                 activeTab === 'overall'
                                     ? 'border-slate-200/80 bg-white text-brand-primary dark:border-neutral-700 dark:bg-neutral-900 dark:text-white'
                                     : 'border-transparent text-slate-500 hover:text-brand-primary'
@@ -289,7 +289,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                             <button
                                 key={project.id}
                                 onClick={() => setActiveTab(String(project.id))}
-                                className={`shrink-0 rounded-full border px-4 py-2 text-base font-medium transition-colors ${
+                                className={`shrink-0 cursor-pointer rounded-full border px-4 py-2 text-base font-medium transition-colors ${
                                     activeTab === String(project.id)
                                         ? 'border-slate-200/80 bg-white text-brand-primary dark:border-neutral-700 dark:bg-neutral-900 dark:text-white'
                                         : 'border-transparent text-slate-500 hover:text-brand-primary'
