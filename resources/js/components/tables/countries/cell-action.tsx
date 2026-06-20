@@ -44,6 +44,7 @@ import {
     X,
 } from 'lucide-react';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 interface CellActionProps {
     data: Country;
@@ -135,8 +136,17 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
             },
             {
                 preserveScroll: true,
-                onSuccess: () => setIsEditOpen(false),
-                onError: setEditErrors,
+                onSuccess: () => {
+                    toast.success(t('countryManagement.toasts.countryUpdated'));
+                    setIsEditOpen(false);
+                },
+                onError: (errors) => {
+                    setEditErrors(errors);
+                    toast.error(
+                        Object.values(errors)[0] ??
+                            t('countryManagement.toasts.saveFailed'),
+                    );
+                },
                 onFinish: () => setIsSubmitting(false),
             },
         );
@@ -163,8 +173,19 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
             },
             {
                 preserveScroll: true,
-                onSuccess: resetProvinceNames,
-                onError: setProvinceErrors,
+                onSuccess: () => {
+                    toast.success(
+                        t('countryManagement.toasts.provinceCreated'),
+                    );
+                    resetProvinceNames();
+                },
+                onError: (errors) => {
+                    setProvinceErrors(errors);
+                    toast.error(
+                        Object.values(errors)[0] ??
+                            t('countryManagement.toasts.saveFailed'),
+                    );
+                },
                 onFinish: () => setIsSubmitting(false),
             },
         );
@@ -193,11 +214,20 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
             {
                 preserveScroll: true,
                 onSuccess: () => {
+                    toast.success(
+                        t('countryManagement.toasts.provinceUpdated'),
+                    );
                     setIsEditProvinceOpen(false);
                     setSelectedProvince(null);
                     resetProvinceNames();
                 },
-                onError: setProvinceErrors,
+                onError: (errors) => {
+                    setProvinceErrors(errors);
+                    toast.error(
+                        Object.values(errors)[0] ??
+                            t('countryManagement.toasts.saveFailed'),
+                    );
+                },
                 onFinish: () => setIsSubmitting(false),
             },
         );
@@ -208,7 +238,16 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
         setIsSubmitting(true);
         router.post(`/countries/${data.id}/disable`, undefined, {
             preserveScroll: true,
-            onSuccess: () => setIsToggleOpen(false),
+            onSuccess: () => {
+                toast.success(
+                    t(
+                        data.is_active
+                            ? 'countryManagement.toasts.countryDeactivated'
+                            : 'countryManagement.toasts.countryActivated',
+                    ),
+                );
+                setIsToggleOpen(false);
+            },
             onFinish: () => setIsSubmitting(false),
         });
     };
@@ -218,7 +257,10 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
         setIsSubmitting(true);
         router.delete(`/countries/${data.id}`, {
             preserveScroll: true,
-            onSuccess: () => setIsDeleteOpen(false),
+            onSuccess: () => {
+                toast.success(t('countryManagement.toasts.countryDeleted'));
+                setIsDeleteOpen(false);
+            },
             onFinish: () => setIsSubmitting(false),
         });
     };
@@ -228,7 +270,10 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
         setIsSubmitting(true);
         router.delete(`/provinces/${deleteProvinceTarget.id}`, {
             preserveScroll: true,
-            onSuccess: () => setDeleteProvinceTarget(null),
+            onSuccess: () => {
+                toast.success(t('countryManagement.toasts.provinceDeleted'));
+                setDeleteProvinceTarget(null);
+            },
             onFinish: () => setIsSubmitting(false),
         });
     };

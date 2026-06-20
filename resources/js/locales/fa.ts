@@ -2814,6 +2814,17 @@ const fa = {
             activate: 'فعال‌سازی',
             delete: 'حذف',
         },
+        toasts: {
+            countryCreated: 'کشور با موفقیت ایجاد شد.',
+            countryUpdated: 'کشور با موفقیت به‌روزرسانی شد.',
+            countryActivated: 'کشور با موفقیت فعال شد.',
+            countryDeactivated: 'کشور با موفقیت غیرفعال شد.',
+            countryDeleted: 'کشور با موفقیت حذف شد.',
+            provinceCreated: 'ولایت با موفقیت ایجاد شد.',
+            provinceUpdated: 'ولایت با موفقیت به‌روزرسانی شد.',
+            provinceDeleted: 'ولایت با موفقیت حذف شد.',
+            saveFailed: 'تغییرات ذخیره نشد. لطفاً دوباره تلاش کنید.',
+        },
         deactivateTitle: 'غیرفعال‌سازی کشور',
         deactivateHelp:
             'این کشور برای ثبت معلومات جدید قابل انتخاب نخواهد بود.',

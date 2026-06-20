@@ -2827,6 +2827,17 @@ const en = {
             activate: 'Activate',
             delete: 'Delete',
         },
+        toasts: {
+            countryCreated: 'Country created successfully.',
+            countryUpdated: 'Country updated successfully.',
+            countryActivated: 'Country activated successfully.',
+            countryDeactivated: 'Country deactivated successfully.',
+            countryDeleted: 'Country deleted successfully.',
+            provinceCreated: 'Province created successfully.',
+            provinceUpdated: 'Province updated successfully.',
+            provinceDeleted: 'Province deleted successfully.',
+            saveFailed: 'The changes could not be saved.',
+        },
         deactivateTitle: 'Deactivate country',
         deactivateHelp:
             'This country will no longer be available for new records.',

@@ -22,6 +22,7 @@ import { formatNumber } from '@/utils/format';
 import { router } from '@inertiajs/react';
 import { Globe2, MapPinned, Plus, Save, X } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { toast } from 'sonner';
 import { createCountryColumns } from './columns';
 
 interface CountriesClientProps {
@@ -106,10 +107,17 @@ export const CountriesClient: React.FC<CountriesClientProps> = ({
             {
                 preserveScroll: true,
                 onSuccess: () => {
+                    toast.success(t('countryManagement.toasts.countryCreated'));
                     setIsCreateOpen(false);
                     resetCountryForm();
                 },
-                onError: setCreateErrors,
+                onError: (errors) => {
+                    setCreateErrors(errors);
+                    toast.error(
+                        Object.values(errors)[0] ??
+                            t('countryManagement.toasts.saveFailed'),
+                    );
+                },
                 onFinish: () => setIsSubmitting(false),
             },
         );
@@ -137,8 +145,19 @@ export const CountriesClient: React.FC<CountriesClientProps> = ({
             },
             {
                 preserveScroll: true,
-                onSuccess: resetProvinceNames,
-                onError: setProvinceErrors,
+                onSuccess: () => {
+                    toast.success(
+                        t('countryManagement.toasts.provinceCreated'),
+                    );
+                    resetProvinceNames();
+                },
+                onError: (errors) => {
+                    setProvinceErrors(errors);
+                    toast.error(
+                        Object.values(errors)[0] ??
+                            t('countryManagement.toasts.saveFailed'),
+                    );
+                },
                 onFinish: () => setIsSubmitting(false),
             },
         );
