@@ -49,6 +49,10 @@ body {
     background: var(--background);
 }
 
+.login-placeholder-bahij::placeholder {
+    font-family: 'Bahij Nazanin', serif;
+}
+
 @theme {
     --font-sans:
         'App Digits', 'Manrope', ui-sans-serif, system-ui, sans-serif,

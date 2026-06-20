@@ -25,6 +25,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
     const { t, locale, isRtl } = useLocalization();
     const [showPassword, setShowPassword] = useState(false);
     const loginBrandName = t('brand.marketName', LOGIN_BRAND_NAME);
+    const useBahijPlaceholder = locale === 'fa' || locale === 'en';
     const copyrightYear = new Intl.DateTimeFormat(
         locale === 'en' ? 'en-US' : `${locale}-AF-u-ca-persian`,
         { year: 'numeric' },
@@ -52,7 +53,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                             href={LOGIN_BRAND_URL}
                             target="_blank"
                             rel="noreferrer"
-                            className="flex h-26 w-26 items-center justify-center rounded-xl shadow-sm transition-transform hover:scale-[1.03]"
+                            className="flex h-26 w-26 items-center justify-center rounded-xl bg-white/95 p-2 shadow-sm transition-transform hover:scale-[1.03]"
                         >
                             <img
                                 src={LOGIN_BRAND_LOGO}
@@ -136,8 +137,10 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                                     'Email address',
                                                 )}
                                                 className={`h-13.5 rounded-xl border-neutral-200 bg-white px-4 text-[15px] shadow-none placeholder:text-neutral-400 focus-visible:border-brand-primary focus-visible:ring-brand-primary/20 ${
-                                                    isRtl ? 'text-right' : ''
-                                                }`}
+                                                    useBahijPlaceholder
+                                                        ? 'login-placeholder-bahij'
+                                                        : ''
+                                                } ${isRtl ? 'text-right' : ''}`}
                                             />
                                             <InputError
                                                 message={errors.email}
@@ -167,6 +170,10 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                                         'Password',
                                                     )}
                                                     className={`h-13.5 rounded-xl border-neutral-200 bg-white text-[15px] shadow-none placeholder:text-neutral-400 focus-visible:border-brand-primary focus-visible:ring-brand-primary/20 ${
+                                                        useBahijPlaceholder
+                                                            ? 'login-placeholder-bahij'
+                                                            : ''
+                                                    } ${
                                                         isRtl
                                                             ? 'pr-4 pl-12 text-right'
                                                             : 'pr-12 pl-4'
@@ -249,7 +256,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                             tabIndex={5}
                                             disabled={processing}
                                             data-test="login-button"
-                                            className="mt-3 h-13.5 w-full rounded-full bg-brand-primary text-[15px] font-semibold text-white shadow-none transition-all hover:bg-brand-primary/90 hover:shadow-[0_10px_30px_rgba(0,36,82,0.28)] focus-visible:ring-brand-primary/30"
+                                            className="mt-3 h-13.5 w-full rounded-full bg-brand-primary text-[15px] font-semibold text-white shadow-none transition-all hover:bg-brand-primary/90 hover:shadow-[0_3px_5px_rgba(0,36,82,0.28)] focus-visible:ring-brand-primary/30"
                                         >
                                             {processing ? <Spinner /> : null}
                                             {t('auth.login.submit', 'Log in')}
