@@ -1,6 +1,8 @@
 import InputError from '@/components/input-error';
+import { LocalizedNameFields } from '@/components/locations/localized-name-fields';
 import Heading from '@/components/shared/heading';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -14,13 +16,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { DataTable } from '@/components/ui/table/data-table';
+import { useLocalization } from '@/lib/localization';
 import { Country } from '@/types';
 import { formatNumber } from '@/utils/format';
 import { router } from '@inertiajs/react';
-import { Globe, Plus, Save, X } from 'lucide-react';
-import { useState } from 'react';
-import { toast } from 'sonner';
-import { columns } from './columns';
+import { Globe2, MapPinned, Plus, Save, X } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { createCountryColumns } from './columns';
 
 interface CountriesClientProps {
     data: Country[];
@@ -31,13 +33,22 @@ export const CountriesClient: React.FC<CountriesClientProps> = ({
     data,
     isLoading = false,
 }) => {
+    const { locale, t } = useLocalization();
+    const columns = useMemo(
+        () => createCountryColumns(t, locale),
+        [locale, t],
+    );
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [isProvinceOpen, setIsProvinceOpen] = useState(false);
-    const [name, setName] = useState('');
+    const [nameEn, setNameEn] = useState('');
+    const [nameFa, setNameFa] = useState('');
+    const [namePs, setNamePs] = useState('');
     const [code, setCode] = useState('');
     const [currencyCode, setCurrencyCode] = useState('');
     const [currencySymbol, setCurrencySymbol] = useState('');
-    const [provinceName, setProvinceName] = useState('');
+    const [provinceNameEn, setProvinceNameEn] = useState('');
+    const [provinceNameFa, setProvinceNameFa] = useState('');
+    const [provinceNamePs, setProvinceNamePs] = useState('');
     const [provinceCountryId, setProvinceCountryId] = useState('');
     const [createErrors, setCreateErrors] = useState<Record<string, string>>(
         {},
@@ -46,24 +57,37 @@ export const CountriesClient: React.FC<CountriesClientProps> = ({
         Record<string, string>
     >({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const selectedCountry = data.find(
+        (country) => String(country.id) === provinceCountryId,
+    );
 
     const resetCountryForm = () => {
-        setName('');
+        setNameEn('');
+        setNameFa('');
+        setNamePs('');
         setCode('');
         setCurrencyCode('');
         setCurrencySymbol('');
         setCreateErrors({});
     };
 
-    const resetProvinceForm = () => {
-        setProvinceName('');
-        setProvinceCountryId('');
+    const resetProvinceNames = () => {
+        setProvinceNameEn('');
+        setProvinceNameFa('');
+        setProvinceNamePs('');
         setProvinceErrors({});
+    };
+
+    const resetProvinceForm = () => {
+        resetProvinceNames();
+        setProvinceCountryId('');
     };
 
     const handleCreateCountry = () => {
         if (
-            !name.trim() ||
+            !nameEn.trim() ||
+            !nameFa.trim() ||
+            !namePs.trim() ||
             !code.trim() ||
             !currencyCode.trim() ||
             isSubmitting
@@ -72,11 +96,12 @@ export const CountriesClient: React.FC<CountriesClientProps> = ({
         }
 
         setIsSubmitting(true);
-
         router.post(
             '/countries',
             {
-                name: name.trim(),
+                name: nameEn.trim(),
+                name_fa: nameFa.trim(),
+                name_ps: namePs.trim(),
                 code: code.trim().toUpperCase(),
                 currency_code: currencyCode.trim().toUpperCase(),
                 currency_symbol: currencySymbol.trim() || null,
@@ -84,145 +109,156 @@ export const CountriesClient: React.FC<CountriesClientProps> = ({
             {
                 preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('Country created successfully.');
                     setIsCreateOpen(false);
                     resetCountryForm();
                 },
-                onError: (errors) => {
-                    setCreateErrors(errors);
-                },
-                onFinish: () => {
-                    setIsSubmitting(false);
-                },
+                onError: setCreateErrors,
+                onFinish: () => setIsSubmitting(false),
             },
         );
     };
 
     const handleCreateProvince = () => {
-        if (!provinceName.trim() || !provinceCountryId || isSubmitting) {
+        if (
+            !provinceNameEn.trim() ||
+            !provinceNameFa.trim() ||
+            !provinceNamePs.trim() ||
+            !provinceCountryId ||
+            isSubmitting
+        ) {
             return;
         }
 
         setIsSubmitting(true);
-
         router.post(
             '/provinces',
             {
-                name: provinceName.trim(),
+                name: provinceNameEn.trim(),
+                name_fa: provinceNameFa.trim(),
+                name_ps: provinceNamePs.trim(),
                 country_id: Number(provinceCountryId),
             },
             {
                 preserveScroll: true,
-                onSuccess: () => {
-                    toast.success('Province created successfully.');
-                    setIsProvinceOpen(false);
-                    resetProvinceForm();
-                },
-                onError: (errors) => {
-                    setProvinceErrors(errors);
-                },
-                onFinish: () => {
-                    setIsSubmitting(false);
-                },
+                onSuccess: resetProvinceNames,
+                onError: setProvinceErrors,
+                onFinish: () => setIsSubmitting(false),
             },
         );
     };
 
+    const canCreateCountry =
+        nameEn.trim() &&
+        nameFa.trim() &&
+        namePs.trim() &&
+        code.trim() &&
+        currencyCode.trim();
+    const canCreateProvince =
+        provinceCountryId &&
+        provinceNameEn.trim() &&
+        provinceNameFa.trim() &&
+        provinceNamePs.trim();
+
     return (
-        <div className="space-y-4">
-            <div className="flex items-start justify-between">
+        <div className="space-y-5">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <Heading
-                    title={`System Countries: ${formatNumber(data.length)}`}
-                    description="Manage system countries"
+                    title={t('countryManagement.titleWithCount').replace(
+                        ':count',
+                        formatNumber(data.length),
+                    )}
+                    description={t('countryManagement.subtitle')}
                 />
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                     <Button
                         variant="outline"
                         onClick={() => setIsProvinceOpen(true)}
-                        className="gap-2"
                     >
-                        <Plus className="h-4 w-4" />
-                        Add Province
+                        <MapPinned className="me-2 size-4" />
+                        {t('countryManagement.addProvince')}
                     </Button>
-                    <Button
-                        onClick={() => setIsCreateOpen(true)}
-                        className="gap-2"
-                    >
-                        <Plus className="h-4 w-4" />
-                        Add Country
+                    <Button onClick={() => setIsCreateOpen(true)}>
+                        <Plus className="me-2 size-4" />
+                        {t('countryManagement.addCountry')}
                     </Button>
                 </div>
             </div>
             <Separator className="bg-neutral-200/60 dark:bg-neutral-900/50" />
             <DataTable
-                searchKey={['name', 'code']}
+                searchKey={[
+                    'name',
+                    'name_en',
+                    'name_translations.fa',
+                    'name_translations.ps',
+                    'code',
+                ]}
                 columns={columns}
                 data={data}
                 isLoading={isLoading}
-                searchPlaceholder="Search countries by name or country code..."
+                searchPlaceholder={t('countryManagement.searchPlaceholder')}
             />
 
             <Dialog
                 open={isCreateOpen}
                 onOpenChange={(open) => {
                     setIsCreateOpen(open);
-                    if (!open) {
-                        resetCountryForm();
-                    }
+                    if (!open) resetCountryForm();
                 }}
             >
-                <DialogContent className="sm:max-w-2xl">
+                <DialogContent className="sm:max-w-3xl">
                     <DialogHeader>
-                        <DialogTitle className="flex items-center gap-1">
-                            <Globe className="mr-2 h-5 w-5" />
-                            Create Country
+                        <DialogTitle className="flex items-center gap-2">
+                            <Globe2 className="size-5" />
+                            {t('countryManagement.createCountryTitle')}
                         </DialogTitle>
                         <DialogDescription>
-                            Add a new country and currency details.
+                            {t('countryManagement.createCountryHelp')}
                         </DialogDescription>
                     </DialogHeader>
-
-                    <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        <LocalizedNameFields
+                            idPrefix="country-create"
+                            english={nameEn}
+                            dari={nameFa}
+                            pashto={namePs}
+                            onEnglishChange={setNameEn}
+                            onDariChange={setNameFa}
+                            onPashtoChange={setNamePs}
+                            errors={createErrors}
+                        />
                         <div className="grid gap-2">
-                            <Label htmlFor="country-name">Name</Label>
-                            <Input
-                                id="country-name"
-                                value={name}
-                                onChange={(event) =>
-                                    setName(event.target.value)
-                                }
-                            />
-                            <InputError message={createErrors.name} />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="country-code">Code</Label>
+                            <Label htmlFor="country-code">
+                                {t('countryManagement.fields.countryCode')}
+                            </Label>
                             <Input
                                 id="country-code"
+                                dir="ltr"
                                 value={code}
-                                onChange={(event) =>
-                                    setCode(event.target.value)
-                                }
-                                placeholder="US"
+                                onChange={(event) => setCode(event.target.value)}
+                                placeholder="AF"
                                 maxLength={2}
                             />
                             <InputError message={createErrors.code} />
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="currency-code">Currency code</Label>
+                            <Label htmlFor="currency-code">
+                                {t('countryManagement.fields.currencyCode')}
+                            </Label>
                             <Input
                                 id="currency-code"
+                                dir="ltr"
                                 value={currencyCode}
                                 onChange={(event) =>
                                     setCurrencyCode(event.target.value)
                                 }
-                                placeholder="USD"
+                                placeholder="AFN"
                                 maxLength={3}
                             />
                             <InputError message={createErrors.currency_code} />
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="currency-symbol">
-                                Currency symbol
+                                {t('countryManagement.fields.currencySymbol')}
                             </Label>
                             <Input
                                 id="currency-symbol"
@@ -230,34 +266,28 @@ export const CountriesClient: React.FC<CountriesClientProps> = ({
                                 onChange={(event) =>
                                     setCurrencySymbol(event.target.value)
                                 }
-                                placeholder="$"
+                                placeholder="؋"
                             />
                             <InputError
                                 message={createErrors.currency_symbol}
                             />
                         </div>
                     </div>
-
                     <DialogFooter>
                         <Button
                             variant="outline"
                             onClick={() => setIsCreateOpen(false)}
                             disabled={isSubmitting}
                         >
-                            <X className="mr-2 h-5 w-5" />
-                            Cancel
+                            <X className="me-2 size-4" />
+                            {t('common.cancel')}
                         </Button>
                         <Button
                             onClick={handleCreateCountry}
-                            disabled={
-                                !name.trim() ||
-                                !code.trim() ||
-                                !currencyCode.trim() ||
-                                isSubmitting
-                            }
+                            disabled={!canCreateCountry || isSubmitting}
                         >
-                            <Save className="mr-2 h-5 w-5" />
-                            Create Country
+                            <Save className="me-2 size-4" />
+                            {t('countryManagement.createCountry')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -267,25 +297,22 @@ export const CountriesClient: React.FC<CountriesClientProps> = ({
                 open={isProvinceOpen}
                 onOpenChange={(open) => {
                     setIsProvinceOpen(open);
-                    if (!open) {
-                        resetProvinceForm();
-                    }
+                    if (!open) resetProvinceForm();
                 }}
             >
-                <DialogContent className="sm:max-w-xl">
+                <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
                     <DialogHeader>
-                        <DialogTitle className="flex items-center gap-1">
-                            <Globe className="mr-2 h-5 w-5" />
-                            Create Province
+                        <DialogTitle className="flex items-center gap-2">
+                            <MapPinned className="size-5" />
+                            {t('countryManagement.createProvinceTitle')}
                         </DialogTitle>
                         <DialogDescription>
-                            Add a province and assign it to a country.
+                            {t('countryManagement.createProvinceHelp')}
                         </DialogDescription>
                     </DialogHeader>
-
-                    <div className="grid gap-4">
-                        <div className="grid gap-2">
-                            <Label>Country</Label>
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        <div className="grid gap-2 sm:col-span-2 lg:col-span-3">
+                            <Label>{t('countryManagement.fields.country')}</Label>
                             <SearchableDropdown
                                 value={provinceCountryId}
                                 onValueChange={setProvinceCountryId}
@@ -293,42 +320,69 @@ export const CountriesClient: React.FC<CountriesClientProps> = ({
                                     value: String(country.id),
                                     label: country.name,
                                 }))}
-                                placeholder="Select country"
+                                placeholder={t(
+                                    'countryManagement.selectCountry',
+                                )}
+                                searchPlaceholder={t(
+                                    'countryManagement.searchCountries',
+                                )}
+                                emptyText={t(
+                                    'countryManagement.noCountriesFound',
+                                )}
                             />
                             <InputError message={provinceErrors.country_id} />
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="province-name">Name</Label>
-                            <Input
-                                id="province-name"
-                                value={provinceName}
-                                onChange={(event) =>
-                                    setProvinceName(event.target.value)
-                                }
-                            />
-                            <InputError message={provinceErrors.name} />
-                        </div>
+                        <LocalizedNameFields
+                            idPrefix="province-create"
+                            english={provinceNameEn}
+                            dari={provinceNameFa}
+                            pashto={provinceNamePs}
+                            onEnglishChange={setProvinceNameEn}
+                            onDariChange={setProvinceNameFa}
+                            onPashtoChange={setProvinceNamePs}
+                            errors={provinceErrors}
+                        />
                     </div>
-
+                    <div className="rounded-xl border bg-[#f8f9fd] p-4">
+                        <h3 className="text-sm font-semibold">
+                            {t('countryManagement.existingProvinces')}
+                        </h3>
+                        {!selectedCountry ? (
+                            <p className="mt-2 text-sm text-muted-foreground">
+                                {t('countryManagement.selectCountryFirst')}
+                            </p>
+                        ) : selectedCountry.provinces?.length ? (
+                            <div className="mt-3 flex flex-wrap gap-2">
+                                {selectedCountry.provinces.map((province) => (
+                                    <Badge
+                                        key={province.id}
+                                        variant="secondary"
+                                    >
+                                        {province.name}
+                                    </Badge>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="mt-2 text-sm text-muted-foreground">
+                                {t('countryManagement.noProvinces')}
+                            </p>
+                        )}
+                    </div>
                     <DialogFooter>
                         <Button
                             variant="outline"
                             onClick={() => setIsProvinceOpen(false)}
                             disabled={isSubmitting}
                         >
-                            <X className="mr-2 h-5 w-5" />
-                            Cancel
+                            <X className="me-2 size-4" />
+                            {t('common.close')}
                         </Button>
                         <Button
                             onClick={handleCreateProvince}
-                            disabled={
-                                !provinceName.trim() ||
-                                !provinceCountryId ||
-                                isSubmitting
-                            }
+                            disabled={!canCreateProvince || isSubmitting}
                         >
-                            <Save className="mr-2 h-5 w-5" />
-                            Create Province
+                            <Save className="me-2 size-4" />
+                            {t('countryManagement.createProvince')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
