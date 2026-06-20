@@ -1783,8 +1783,13 @@ const en = {
         },
         shareholderPnl: {
             title: 'Shareholder Profit & Loss',
-            description: 'Property results allocated by effective ownership percentages for the selected period.',
-            shareholder: 'Shareholder', property: 'Property', share: 'Share', net: 'Property P&L', allocated: 'Allocated P&L',
+            description:
+                'Property results allocated by effective ownership percentages for the selected period.',
+            shareholder: 'Shareholder',
+            property: 'Property',
+            share: 'Share',
+            net: 'Property P&L',
+            allocated: 'Allocated P&L',
             empty: 'No effective shareholder assignments were found for this period.',
         },
         generalLedger: {
