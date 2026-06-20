@@ -33,6 +33,7 @@ import {
     Building2,
     CalendarDays,
     Download,
+    FileSignature,
     FileText,
     IdCard,
     Mail,
@@ -252,6 +253,19 @@ export default function TenantProfile({
                                     {t('tenants.profile.printCard')}
                                 </Link>
                             </Button>
+                            {lease && (
+                                <Button
+                                    asChild
+                                    className="bg-[#d3a450] text-[#002452] hover:bg-[#d3a450]/90"
+                                >
+                                    <Link
+                                        href={`/tenants/${tenant.id}/leases/${lease.id}/contract`}
+                                    >
+                                        <FileSignature className="me-2 h-4 w-4" />
+                                        {t('leaseContract.tableAction')}
+                                    </Link>
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </section>
@@ -421,6 +435,20 @@ export default function TenantProfile({
                                             </p>
                                         </div>
                                         <div className="flex items-center gap-3">
+                                            <Button
+                                                asChild
+                                                variant="ghost"
+                                                size="sm"
+                                            >
+                                                <Link
+                                                    href={`/tenants/${tenant.id}/leases/${item.id}/contract`}
+                                                >
+                                                    <FileSignature className="me-2 size-4" />
+                                                    {t(
+                                                        'leaseContract.tableAction',
+                                                    )}
+                                                </Link>
+                                            </Button>
                                             <span className="font-medium">
                                                 {item.rent_amount
                                                     ? formatNumber(

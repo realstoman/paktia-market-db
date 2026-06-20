@@ -114,7 +114,10 @@ const propertySpace = (lease: Lease) => {
     return labels[lease.leased_space_type] ?? 'جایداد';
 };
 
-const replacePlaceholders = (text: string | null | undefined, values: Record<string, string>) => {
+const replacePlaceholders = (
+    text: string | null | undefined,
+    values: Record<string, string>,
+) => {
     let output = text ?? '';
     Object.entries(values).forEach(([key, value]) => {
         output = output.split(key).join(value || '—');
@@ -134,11 +137,17 @@ export default function LeaseContractPage({
     const canManage =
         auth.is_super_admin || auth.permissions.includes('tenants.manage');
     const space = propertySpace(lease);
+    const dariPropertyName =
+        lease.property?.name_translations?.fa || lease.property?.name || '—';
+    const dariPropertyAddress =
+        lease.property?.address_translations?.fa ||
+        lease.property?.address ||
+        '—';
     const currency = lease.currency?.code ?? lease.currency?.symbol ?? '';
     const values: Record<string, string> = {
         ':tenant_name': tenant.full_name,
         ':business_name': tenant.business_name ?? tenant.full_name,
-        ':property_name': lease.property?.name ?? '—',
+        ':property_name': dariPropertyName,
         ':space': space,
         ':start_date': formatDate(lease.start_date),
         ':end_date': formatDate(lease.end_date),
@@ -164,7 +173,7 @@ export default function LeaseContractPage({
     const uploadSigned = (event: FormEvent) => {
         event.preventDefault();
         uploadForm.post(
-            `/tenants/${tenant.id}/leases/${lease.id}/contract/signed`,
+            `/tenants/${tenant.id}/leases/${lease.id}/contract-documents`,
             {
                 forceFormData: true,
                 preserveScroll: true,
@@ -178,7 +187,9 @@ export default function LeaseContractPage({
             className="min-h-screen bg-[#f8f9fd] px-4 py-6 sm:px-8"
             dir={isRtl ? 'rtl' : 'ltr'}
         >
-            <Head title={`${t('leaseContract.pageTitle')} · ${lease.contract_number}`} />
+            <Head
+                title={`${t('leaseContract.pageTitle')} · ${lease.contract_number}`}
+            />
             <style>{`
                 @page { size: A4; margin: 11mm 13mm; }
                 @media print {
@@ -192,7 +203,11 @@ export default function LeaseContractPage({
 
             <div className="contract-screen-controls mx-auto mb-6 max-w-[1500px] space-y-4">
                 <div className="flex flex-col justify-between gap-3 lg:flex-row lg:items-center">
-                    <Button asChild variant="outline" className="w-fit bg-white">
+                    <Button
+                        asChild
+                        variant="outline"
+                        className="w-fit bg-white"
+                    >
                         <Link href={`/tenants/${tenant.id}`}>
                             <ArrowLeft className="me-2 size-4" />
                             {t('leaseContract.back')}
@@ -249,41 +264,89 @@ export default function LeaseContractPage({
                     </header>
 
                     <section className="contract-facts mt-5 grid grid-cols-2 overflow-hidden rounded-lg border text-xs sm:grid-cols-4">
-                        <ContractFact label="شماره قرارداد" value={lease.contract_number} />
-                        <ContractFact label="تاریخ ترتیب" value={formatDate(localToday())} />
-                        <ContractFact label="تاریخ آغاز" value={formatDate(lease.start_date)} />
-                        <ContractFact label="تاریخ ختم" value={formatDate(lease.end_date)} />
+                        <ContractFact
+                            label="شماره قرارداد"
+                            value={lease.contract_number}
+                        />
+                        <ContractFact
+                            label="تاریخ ترتیب"
+                            value={formatDate(localToday())}
+                        />
+                        <ContractFact
+                            label="تاریخ آغاز"
+                            value={formatDate(lease.start_date)}
+                        />
+                        <ContractFact
+                            label="تاریخ ختم"
+                            value={formatDate(lease.end_date)}
+                        />
                     </section>
 
                     <section className="mt-5 space-y-3">
-                        <h2 className="font-bold text-[#002452]">مشخصات طرفین قرارداد</h2>
+                        <h2 className="font-bold text-[#002452]">
+                            مشخصات طرفین قرارداد
+                        </h2>
                         <div className="grid grid-cols-2 gap-x-5 gap-y-2 rounded-lg border bg-slate-50 p-4 text-xs">
-                            <Detail label="جانب اول (مالک)" value={template.landlord_organization} />
-                            <Detail label="نماینده" value={template.representative_name} />
-                            <Detail label="سمت" value={template.representative_position} />
-                            <Detail label="شماره تماس" value={template.representative_contact} />
-                            <Detail label="جانب دوم (مستأجر)" value={tenant.full_name} />
-                            <Detail label="نام پدر" value={tenant.father_name} />
-                            <Detail label="نام تجارت" value={tenant.business_name} />
+                            <Detail
+                                label="جانب اول (مالک)"
+                                value={template.landlord_organization}
+                            />
+                            <Detail
+                                label="نماینده"
+                                value={template.representative_name}
+                            />
+                            <Detail
+                                label="سمت"
+                                value={template.representative_position}
+                            />
+                            <Detail
+                                label="شماره تماس"
+                                value={template.representative_contact}
+                            />
+                            <Detail
+                                label="جانب دوم (مستأجر)"
+                                value={tenant.full_name}
+                            />
+                            <Detail
+                                label="نام پدر"
+                                value={tenant.father_name}
+                            />
+                            <Detail
+                                label="نام تجارت"
+                                value={tenant.business_name}
+                            />
                             <Detail label="شماره تماس" value={tenant.phone} />
-                            <Detail label="شماره تذکره" value={tenant.nid_number} />
-                            <Detail label="شماره جواز" value={tenant.license_number} />
+                            <Detail
+                                label="شماره تذکره"
+                                value={tenant.nid_number}
+                            />
+                            <Detail
+                                label="شماره جواز"
+                                value={tenant.license_number}
+                            />
                         </div>
                     </section>
 
                     <section className="mt-5">
-                        <h2 className="font-bold text-[#002452]">مشخصات جایداد و کرایه</h2>
+                        <h2 className="font-bold text-[#002452]">
+                            مشخصات جایداد و کرایه
+                        </h2>
                         <div className="mt-2 grid grid-cols-2 gap-x-5 gap-y-2 rounded-lg border p-4 text-xs">
-                            <Detail label="مارکیت / جایداد" value={lease.property?.name} />
+                            <Detail
+                                label="مارکیت / جایداد"
+                                value={dariPropertyName}
+                            />
                             <Detail label="محل واگذارشده" value={space} />
-                            <Detail label="آدرس" value={lease.property?.address} />
+                            <Detail label="آدرس" value={dariPropertyAddress} />
                             <Detail
                                 label="مبلغ کرایه"
                                 value={`${values[':rent_amount']} ${currency}`}
                             />
                             <Detail
                                 label="شیوه پرداخت"
-                                value={paymentFrequency(lease.payment_frequency)}
+                                value={paymentFrequency(
+                                    lease.payment_frequency,
+                                )}
                             />
                             <Detail
                                 label="تضمین"
@@ -308,7 +371,7 @@ export default function LeaseContractPage({
                                 <h2 className="font-bold text-[#002452]">
                                     {article.article_number}: {article.title}
                                 </h2>
-                                <p className="mt-1 whitespace-pre-line text-justify leading-8">
+                                <p className="mt-1 text-justify leading-8 whitespace-pre-line">
                                     {replacePlaceholders(article.body, values)}
                                 </p>
                             </div>
@@ -317,8 +380,10 @@ export default function LeaseContractPage({
 
                     {lease.terms && (
                         <section className="contract-article mt-5">
-                            <h2 className="font-bold text-[#002452]">شرایط اختصاصی قرارداد</h2>
-                            <p className="mt-1 whitespace-pre-line text-justify leading-8">
+                            <h2 className="font-bold text-[#002452]">
+                                شرایط اختصاصی قرارداد
+                            </h2>
+                            <p className="mt-1 text-justify leading-8 whitespace-pre-line">
                                 {lease.terms}
                             </p>
                         </section>
@@ -364,7 +429,9 @@ export default function LeaseContractPage({
                                     className="space-y-4 rounded-xl border bg-[#f8f9fd] p-4"
                                 >
                                     <div className="space-y-1.5">
-                                        <Label>{t('leaseContract.signedAt')}</Label>
+                                        <Label>
+                                            {t('leaseContract.signedAt')}
+                                        </Label>
                                         <Input
                                             type="date"
                                             value={uploadForm.data.signed_at}
@@ -378,11 +445,14 @@ export default function LeaseContractPage({
                                         />
                                     </div>
                                     <div className="space-y-1.5">
-                                        <Label>{t('leaseContract.document')}</Label>
+                                        <Label>
+                                            {t('leaseContract.document')}
+                                        </Label>
                                         <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed bg-white p-4 hover:border-primary/50">
                                             <FileUp className="size-5 shrink-0 text-primary" />
                                             <span className="min-w-0 flex-1 truncate text-sm">
-                                                {uploadForm.data.document?.name ??
+                                                {uploadForm.data.document
+                                                    ?.name ??
                                                     t('leaseContract.document')}
                                             </span>
                                             <Input
@@ -392,12 +462,15 @@ export default function LeaseContractPage({
                                                 onChange={(event) =>
                                                     uploadForm.setData(
                                                         'document',
-                                                        event.target.files?.[0] ?? null,
+                                                        event.target
+                                                            .files?.[0] ?? null,
                                                     )
                                                 }
                                             />
                                         </label>
-                                        <InputError message={uploadForm.errors.document} />
+                                        <InputError
+                                            message={uploadForm.errors.document}
+                                        />
                                     </div>
                                     <Button
                                         type="submit"
@@ -428,16 +501,24 @@ export default function LeaseContractPage({
                                                     {document.original_name}
                                                 </p>
                                                 <p className="text-xs text-muted-foreground">
-                                                    {formatDate(document.signed_at)}
+                                                    {formatDate(
+                                                        document.signed_at,
+                                                    )}
                                                     {document.template
                                                         ? ` · ${document.template.name}`
                                                         : ''}
                                                 </p>
                                             </div>
-                                            <Button asChild variant="ghost" size="icon-sm">
+                                            <Button
+                                                asChild
+                                                variant="ghost"
+                                                size="icon-sm"
+                                            >
                                                 <a
-                                                    href={`/tenants/${tenant.id}/leases/${lease.id}/contract/signed/${document.id}`}
-                                                    aria-label={t('leaseContract.download')}
+                                                    href={`/tenants/${tenant.id}/leases/${lease.id}/contract-documents/${document.id}`}
+                                                    aria-label={t(
+                                                        'leaseContract.download',
+                                                    )}
                                                 >
                                                     <Download className="size-4" />
                                                 </a>
@@ -448,7 +529,9 @@ export default function LeaseContractPage({
                                                     variant="ghost"
                                                     size="icon-sm"
                                                     className="text-destructive hover:text-destructive"
-                                                    aria-label={t('leaseContract.delete')}
+                                                    aria-label={t(
+                                                        'leaseContract.delete',
+                                                    )}
                                                     onClick={() => {
                                                         if (
                                                             window.confirm(
@@ -458,8 +541,10 @@ export default function LeaseContractPage({
                                                             )
                                                         ) {
                                                             router.delete(
-                                                                `/tenants/${tenant.id}/leases/${lease.id}/contract/signed/${document.id}`,
-                                                                { preserveScroll: true },
+                                                                `/tenants/${tenant.id}/leases/${lease.id}/contract-documents/${document.id}`,
+                                                                {
+                                                                    preserveScroll: true,
+                                                                },
                                                             );
                                                         }
                                                     }}
@@ -484,7 +569,7 @@ export default function LeaseContractPage({
                             <Building2 className="size-5 text-primary" />
                             <div className="min-w-0">
                                 <p className="truncate font-medium">
-                                    {lease.property?.name}
+                                    {dariPropertyName}
                                 </p>
                                 <p className="text-xs text-muted-foreground">
                                     {space} · {lease.contract_number}
@@ -502,7 +587,13 @@ export default function LeaseContractPage({
     );
 }
 
-function ContractFact({ label, value }: { label: string; value?: string | null }) {
+function ContractFact({
+    label,
+    value,
+}: {
+    label: string;
+    value?: string | null;
+}) {
     return (
         <div className="border-e p-2.5 text-center last:border-e-0">
             <p className="text-slate-500">{label}</p>

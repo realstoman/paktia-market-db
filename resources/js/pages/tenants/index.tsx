@@ -61,6 +61,7 @@ import {
     ChevronRight,
     ContactRound,
     Eye,
+    FileSignature,
     IdCard,
     MoreHorizontal,
     Pencil,
@@ -586,6 +587,7 @@ export default function TenantsIndex({
                                             >
                                                 <TenantRowActions
                                                     tenant={tenant}
+                                                    lease={lease}
                                                     canManage={canManage}
                                                 />
                                             </TableCell>
@@ -693,9 +695,11 @@ export default function TenantsIndex({
 
 function TenantRowActions({
     tenant,
+    lease,
     canManage,
 }: {
     tenant: Tenant;
+    lease?: Lease;
     canManage: boolean;
 }) {
     const { t, isRtl } = useLocalization();
@@ -761,6 +765,16 @@ function TenantRowActions({
                             {t('tenants.actions.printCard')}
                         </Link>
                     </DropdownMenuItem>
+                    {lease && (
+                        <DropdownMenuItem asChild>
+                            <Link
+                                href={`/tenants/${tenant.id}/leases/${lease.id}/contract`}
+                            >
+                                <FileSignature />
+                                {t('leaseContract.tableAction')}
+                            </Link>
+                        </DropdownMenuItem>
+                    )}
                     {canManage && (
                         <>
                             <DropdownMenuSeparator />

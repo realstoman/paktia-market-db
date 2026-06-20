@@ -131,7 +131,10 @@ const propertyName = (property: Property, locale: string) =>
         locale as keyof NonNullable<Property['name_translations']>
     ] || property.name;
 
-export default function ContractTemplatesPage({ templates, properties }: Props) {
+export default function ContractTemplatesPage({
+    templates,
+    properties,
+}: Props) {
     const { t, isRtl, locale } = useLocalization();
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editing, setEditing] = useState<ContractTemplate | null>(null);
@@ -167,7 +170,10 @@ export default function ContractTemplatesPage({ templates, properties }: Props) 
                                 {t('contractTemplates.subtitle')}
                             </p>
                         </div>
-                        <Button onClick={openCreate} className="h-11 rounded-xl px-5">
+                        <Button
+                            onClick={openCreate}
+                            className="h-11 rounded-xl px-5"
+                        >
                             <Plus className="me-2 size-4" />
                             {t('contractTemplates.create')}
                         </Button>
@@ -197,12 +203,20 @@ export default function ContractTemplatesPage({ templates, properties }: Props) 
                                         <div className="min-w-0 flex-1">
                                             <div className="flex flex-wrap gap-1.5">
                                                 {template.is_default && (
-                                                    <Badge>{t('contractTemplates.default')}</Badge>
+                                                    <Badge>
+                                                        {t(
+                                                            'contractTemplates.default',
+                                                        )}
+                                                    </Badge>
                                                 )}
                                                 <Badge variant="outline">
                                                     {template.is_active
-                                                        ? t('contractTemplates.active')
-                                                        : t('contractTemplates.inactive')}
+                                                        ? t(
+                                                              'contractTemplates.active',
+                                                          )
+                                                        : t(
+                                                              'contractTemplates.inactive',
+                                                          )}
                                                 </Badge>
                                             </div>
                                             <h2 className="mt-3 truncate text-lg font-semibold">
@@ -217,7 +231,10 @@ export default function ContractTemplatesPage({ templates, properties }: Props) 
                                         <p className="flex items-center gap-2 font-medium">
                                             <Building2 className="size-4 text-muted-foreground" />
                                             {template.property
-                                                ? propertyName(template.property, locale)
+                                                ? propertyName(
+                                                      template.property,
+                                                      locale,
+                                                  )
                                                 : t('contractTemplates.global')}
                                         </p>
                                         <p className="mt-1 text-xs text-muted-foreground">
@@ -238,8 +255,12 @@ export default function ContractTemplatesPage({ templates, properties }: Props) 
                                             variant="ghost"
                                             size="icon-sm"
                                             className="text-destructive hover:text-destructive"
-                                            onClick={() => setDeleting(template)}
-                                            aria-label={t('contractTemplates.actions.delete')}
+                                            onClick={() =>
+                                                setDeleting(template)
+                                            }
+                                            aria-label={t(
+                                                'contractTemplates.actions.delete',
+                                            )}
                                         >
                                             <Trash2 className="size-4" />
                                         </Button>
@@ -286,7 +307,9 @@ export default function ContractTemplatesPage({ templates, properties }: Props) 
                 onOpenChange={(open) => !open && setDeleting(null)}
             >
                 <AlertDialogContent dir={isRtl ? 'rtl' : 'ltr'}>
-                    <AlertDialogHeader className={isRtl ? 'text-right sm:text-right' : ''}>
+                    <AlertDialogHeader
+                        className={isRtl ? 'text-right sm:text-right' : ''}
+                    >
                         <AlertDialogTitle>
                             {t('contractTemplates.actions.delete')}
                         </AlertDialogTitle>
@@ -295,15 +318,20 @@ export default function ContractTemplatesPage({ templates, properties }: Props) 
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                        <AlertDialogCancel>{t('contractTemplates.actions.cancel')}</AlertDialogCancel>
+                        <AlertDialogCancel>
+                            {t('contractTemplates.actions.cancel')}
+                        </AlertDialogCancel>
                         <AlertDialogAction
                             variant="destructive"
                             onClick={() => {
                                 if (deleting) {
-                                    router.delete(`/contract-templates/${deleting.id}`, {
-                                        preserveScroll: true,
-                                        onFinish: () => setDeleting(null),
-                                    });
+                                    router.delete(
+                                        `/contract-templates/${deleting.id}`,
+                                        {
+                                            preserveScroll: true,
+                                            onFinish: () => setDeleting(null),
+                                        },
+                                    );
                                 }
                             }}
                         >
@@ -436,7 +464,10 @@ function TemplateForm({
                 </h3>
                 <div className="grid gap-4 md:grid-cols-2">
                     {field('name', t('contractTemplates.fields.name'))}
-                    {field('contract_title', t('contractTemplates.fields.title'))}
+                    {field(
+                        'contract_title',
+                        t('contractTemplates.fields.title'),
+                    )}
                     <div className="space-y-1.5">
                         <Label>{t('contractTemplates.fields.property')}</Label>
                         <SearchableDropdown
@@ -551,7 +582,8 @@ function TemplateForm({
                                         variant="ghost"
                                         size="icon-sm"
                                         disabled={
-                                            index === form.data.articles.length - 1
+                                            index ===
+                                            form.data.articles.length - 1
                                         }
                                         onClick={() => moveArticle(index, 1)}
                                         aria-label={t(
@@ -564,7 +596,9 @@ function TemplateForm({
                                         type="button"
                                         variant="ghost"
                                         size="icon-sm"
-                                        disabled={form.data.articles.length === 1}
+                                        disabled={
+                                            form.data.articles.length === 1
+                                        }
                                         className="text-destructive hover:text-destructive"
                                         onClick={() =>
                                             form.setData(
@@ -586,7 +620,9 @@ function TemplateForm({
                             <div className="grid gap-4 md:grid-cols-[170px_1fr]">
                                 <div className="space-y-1.5">
                                     <Label>
-                                        {t('contractTemplates.fields.articleNumber')}
+                                        {t(
+                                            'contractTemplates.fields.articleNumber',
+                                        )}
                                     </Label>
                                     <Input
                                         value={article.article_number}
@@ -602,7 +638,9 @@ function TemplateForm({
                                 </div>
                                 <div className="space-y-1.5">
                                     <Label>
-                                        {t('contractTemplates.fields.articleTitle')}
+                                        {t(
+                                            'contractTemplates.fields.articleTitle',
+                                        )}
                                     </Label>
                                     <Input
                                         value={article.title}
@@ -618,7 +656,9 @@ function TemplateForm({
                                 </div>
                                 <div className="space-y-1.5 md:col-span-2">
                                     <Label>
-                                        {t('contractTemplates.fields.articleBody')}
+                                        {t(
+                                            'contractTemplates.fields.articleBody',
+                                        )}
                                     </Label>
                                     <Textarea
                                         rows={4}
