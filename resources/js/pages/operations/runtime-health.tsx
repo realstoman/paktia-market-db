@@ -1,5 +1,6 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import {
     Card,
     CardContent,
@@ -11,7 +12,7 @@ import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
 import { BreadcrumbItem } from '@/types';
 import { formatNumber } from '@/utils/format';
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import {
     Activity,
     Clock3,
@@ -20,6 +21,8 @@ import {
     ShieldCheck,
     Workflow,
 } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 type HealthStatus = 'healthy' | 'warning' | 'critical' | 'unavailable';
 type Translate = (key: string, fallback?: string) => string;
@@ -151,6 +154,7 @@ export default function RuntimeHealthPage({
     runtimeHealth,
 }: RuntimeHealthPageProps) {
     const { locale, t } = useLocalization();
+    const [isRunningChecks, setIsRunningChecks] = useState(false);
     const { components } = runtimeHealth;
     const projection = components.projection;
     const timestamp = (value?: string | null) =>
@@ -162,6 +166,21 @@ export default function RuntimeHealthPage({
             href: '/operations/runtime-health',
         },
     ];
+    const runHealthChecks = () => {
+        router.post(
+            '/operations/runtime-health/run',
+            {},
+            {
+                preserveScroll: true,
+                onStart: () => setIsRunningChecks(true),
+                onSuccess: () =>
+                    toast.success(t('runtimeHealthPage.actions.runSuccess')),
+                onError: () =>
+                    toast.error(t('runtimeHealthPage.actions.runFailed')),
+                onFinish: () => setIsRunningChecks(false),
+            },
+        );
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -185,10 +204,25 @@ export default function RuntimeHealthPage({
                                 )}
                             </p>
                         </div>
-                        <div
-                            className={`inline-flex w-fit items-center rounded-full border px-3 py-1 text-sm font-medium ${statusTone(runtimeHealth.status)}`}
-                        >
-                            {statusLabel(t, runtimeHealth.status)}
+                        <div className="flex flex-wrap items-center gap-3">
+                            <Button
+                                type="button"
+                                onClick={runHealthChecks}
+                                disabled={isRunningChecks}
+                                className="gap-2"
+                            >
+                                <RefreshCw
+                                    className={`size-4 ${isRunningChecks ? 'animate-spin' : ''}`}
+                                />
+                                {isRunningChecks
+                                    ? t('runtimeHealthPage.actions.running')
+                                    : t('runtimeHealthPage.actions.runChecks')}
+                            </Button>
+                            <div
+                                className={`inline-flex w-fit items-center rounded-full border px-3 py-1 text-sm font-medium ${statusTone(runtimeHealth.status)}`}
+                            >
+                                {statusLabel(t, runtimeHealth.status)}
+                            </div>
                         </div>
                     </div>
                 </section>

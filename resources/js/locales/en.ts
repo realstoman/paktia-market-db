@@ -119,6 +119,12 @@ const en = {
         operationsRuntime: 'Operations Runtime',
         propertyRuntimeHealth: 'Property Runtime Health',
         notRecorded: 'Not recorded',
+        actions: {
+            runChecks: 'Run checks now',
+            running: 'Running checks…',
+            runSuccess: 'Runtime health checks completed successfully.',
+            runFailed: 'Runtime health checks could not be completed.',
+        },
         status: {
             healthy: 'Healthy',
             warning: 'Warning',
@@ -146,10 +152,10 @@ const en = {
             latestFailure: 'Latest failure',
         },
         refresh: {
-            title: 'Recent Refresh',
+            title: 'Recent System Check',
             description:
-                'Shows the latest successful projection refresh heartbeat.',
-            lastSuccessful: 'Last successful refresh',
+                'Shows the latest successful database and cache health check.',
+            lastSuccessful: 'Last successful check',
             ageMinutes: 'Age in minutes',
         },
         sync: {
@@ -206,6 +212,8 @@ const en = {
             redis: {
                 notConfigured:
                     'Redis is not configured as an active cache or queue dependency yet.',
+                notRequired:
+                    'Redis is not required by the current cache and queue configuration.',
                 healthy: 'Redis responded to a health check ping.',
                 unhealthy: 'Redis did not return a healthy ping response.',
                 unreachable:
@@ -215,6 +223,8 @@ const en = {
                 unavailable: 'Redis runtime information is unavailable.',
             },
             sync: {
+                notEnabled:
+                    'Property sync is not enabled for this installation, so no credentials are required.',
                 healthy:
                     'Property sync credentials are active and have recent usage.',
                 noActive:
@@ -229,16 +239,16 @@ const en = {
             },
             refresh: {
                 cacheUnreadable:
-                    'The recent projection refresh heartbeat could not be read from cache.',
+                    'The recent system-check heartbeat could not be read from cache.',
                 notRecorded:
-                    'The recent projection refresh heartbeat has not been recorded yet.',
-                current: 'The recent projection refresh heartbeat is current.',
+                    'No successful system check has been recorded yet. Run the checks now.',
+                current: 'The recent system-check heartbeat is current.',
                 criticalStale:
-                    'The recent projection refresh heartbeat is critically stale.',
-                delayed: 'The recent projection refresh heartbeat is delayed.',
-                warning: 'The recent refresh needs attention.',
-                critical: 'The recent refresh is critical.',
-                unavailable: 'Recent refresh information is unavailable.',
+                    'The recent system-check heartbeat is critically stale.',
+                delayed: 'The recent system-check heartbeat is delayed.',
+                warning: 'The recent system check needs attention.',
+                critical: 'The recent system check is critical.',
+                unavailable: 'Recent system-check information is unavailable.',
             },
             projection: {
                 healthy: 'Property projections are current.',

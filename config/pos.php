@@ -11,6 +11,7 @@ return [
     ],
 
     'sync' => [
+        'enabled' => (bool) env('POS_SYNC_ENABLED', false),
         'credential_ttl_hours' => (int) env('POS_SYNC_CREDENTIAL_TTL_HOURS', 720),
         'remote_base_url' => env('POS_SYNC_REMOTE_BASE_URL'),
         'remote_property_id' => env('POS_SYNC_REMOTE_PROPERTY_ID'),

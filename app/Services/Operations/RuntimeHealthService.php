@@ -9,11 +9,13 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
+use RuntimeException;
 use Throwable;
 
 class RuntimeHealthService
 {
-    public const RECENT_REFRESH_CACHE_KEY = 'operations:runtime-health:recent-refresh:last-successful-at';
+    public const RECENT_CHECK_CACHE_KEY = 'operations:runtime-health:recent-refresh:last-successful-at';
 
     public function snapshot(): array
     {
@@ -36,12 +38,39 @@ class RuntimeHealthService
         ];
     }
 
-    public static function markRecentRefreshSuccess(?Carbon $timestamp = null): void
+    /**
+     * Run the checks managed by this application and record a successful
+     * heartbeat only after both the database and configured cache store pass.
+     */
+    public function runChecks(): array
+    {
+        $storeName = (string) config('pos.cache.store', config('cache.default'));
+        $store = Cache::store($storeName);
+        $probeKey = 'operations:runtime-health:probe:'.Str::uuid();
+
+        DB::select('select 1');
+
+        try {
+            $store->put($probeKey, 'healthy', now()->addMinute());
+
+            if ($store->get($probeKey) !== 'healthy') {
+                throw new RuntimeException('The configured cache store failed its read/write probe.');
+            }
+        } finally {
+            $store->forget($probeKey);
+        }
+
+        self::markRecentCheckSuccess();
+
+        return $this->snapshot();
+    }
+
+    public static function markRecentCheckSuccess(?Carbon $timestamp = null): void
     {
         $store = (string) config('pos.cache.store', config('cache.default'));
 
         Cache::store($store)->forever(
-            self::RECENT_REFRESH_CACHE_KEY,
+            self::RECENT_CHECK_CACHE_KEY,
             ($timestamp ?? now())->toIso8601String(),
         );
     }
@@ -144,9 +173,9 @@ class RuntimeHealthService
 
         if (! $redisExpected) {
             return [
-                'status' => 'warning',
-                'message' => 'Redis is not configured as an active cache or queue dependency yet.',
-                'messageKey' => 'redis.notConfigured',
+                'status' => 'healthy',
+                'message' => 'Redis is not required by the current cache and queue configuration.',
+                'messageKey' => 'redis.notRequired',
                 'cacheStore' => $cacheStore,
                 'posCacheStore' => $posCacheStore,
                 'queueConnection' => $queueConnection,
@@ -192,6 +221,25 @@ class RuntimeHealthService
 
     private function propertySyncSnapshot(): array
     {
+        $syncEnabled = (bool) config('pos.sync.enabled', false)
+            || filled(config('pos.sync.remote_base_url'))
+            || PropertySyncCredential::query()->exists();
+
+        if (! $syncEnabled) {
+            return [
+                'status' => 'healthy',
+                'message' => 'Property sync is not enabled for this installation, so no credentials are required.',
+                'messageKey' => 'sync.notEnabled',
+                'activeCredentials' => 0,
+                'recentlyUsedCredentials' => 0,
+                'staleCredentials' => 0,
+                'revokedCredentials' => 0,
+                'expiredCredentials' => 0,
+                'latestUsedAt' => null,
+                'properties' => [],
+            ];
+        }
+
         $staleAfterHours = (int) config('pos.runtime_health.sync.stale_after_hours', 72);
         $recentCutoff = now()->subHours($staleAfterHours);
 
@@ -282,11 +330,11 @@ class RuntimeHealthService
         $criticalAfterMinutes = (int) config('pos.runtime_health.recent_refresh.critical_after_minutes', 180);
 
         try {
-            $rawTimestamp = Cache::store($store)->get(self::RECENT_REFRESH_CACHE_KEY);
+            $rawTimestamp = Cache::store($store)->get(self::RECENT_CHECK_CACHE_KEY);
         } catch (Throwable $exception) {
             return [
                 'status' => 'critical',
-                'message' => 'The recent projection refresh heartbeat could not be read from cache.',
+                'message' => 'The recent system-check heartbeat could not be read from cache.',
                 'messageKey' => 'refresh.cacheUnreadable',
                 'lastSuccessfulAt' => null,
                 'ageMinutes' => null,
@@ -296,7 +344,7 @@ class RuntimeHealthService
         if (! $rawTimestamp) {
             return [
                 'status' => 'warning',
-                'message' => 'The recent projection refresh heartbeat has not been recorded yet.',
+                'message' => 'No successful system check has been recorded yet.',
                 'messageKey' => 'refresh.notRecorded',
                 'lastSuccessfulAt' => null,
                 'ageMinutes' => null,
@@ -307,16 +355,16 @@ class RuntimeHealthService
         $ageMinutes = $timestamp->diffInMinutes(now());
 
         $status = 'healthy';
-        $message = 'The recent projection refresh heartbeat is current.';
+        $message = 'The recent system-check heartbeat is current.';
         $messageKey = 'refresh.current';
 
         if ($ageMinutes >= $criticalAfterMinutes) {
             $status = 'critical';
-            $message = 'The recent projection refresh heartbeat is critically stale.';
+            $message = 'The recent system-check heartbeat is critically stale.';
             $messageKey = 'refresh.criticalStale';
         } elseif ($ageMinutes >= $warningAfterMinutes) {
             $status = 'warning';
-            $message = 'The recent projection refresh heartbeat is delayed.';
+            $message = 'The recent system-check heartbeat is delayed.';
             $messageKey = 'refresh.delayed';
         }
 

@@ -56,6 +56,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('tools.reference-data');
     Route::get('operations/runtime-health', OperationsRuntimeHealthController::class)
         ->name('operations.runtime-health');
+    Route::post('operations/runtime-health/run', [OperationsRuntimeHealthController::class, 'run'])
+        ->middleware('throttle:10,1')
+        ->name('operations.runtime-health.run');
     // Dashboard
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
