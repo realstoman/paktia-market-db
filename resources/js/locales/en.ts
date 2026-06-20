@@ -338,7 +338,7 @@ const en = {
     },
     dashboardPage: {
         title: 'Dashboard',
-        welcome: 'Welcome to Paktiawal Group',
+        welcome: 'Welcome to Paktiawal Group management system!',
         subtitle: 'A complete view of market operations and finances.',
         search: 'Search',
         searchPlaceholder: 'Search properties, inventory and finance...',

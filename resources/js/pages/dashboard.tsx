@@ -271,7 +271,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                 </div>
 
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="property-tabs-scroll inline-flex w-max max-w-full min-w-0 gap-0.5 overflow-x-auto overscroll-x-contain scroll-smooth rounded-full bg-[#edf1f4] p-1 sm:max-w-[700px]">
+                    <div className="property-tabs-scroll inline-flex w-max max-w-full min-w-0 gap-0.5 overflow-x-auto overscroll-x-contain scroll-smooth rounded-full bg-[#edf1f4] p-1 sm:max-w-175">
                         <button
                             onClick={() => setActiveTab('overall')}
                             className={`shrink-0 rounded-full border px-4 py-2 text-base font-medium transition-colors ${
@@ -512,7 +512,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                 {t('propertyDashboard.projects', 'Properties')}
                             </h2>
                             <div className="mt-4 overflow-x-auto">
-                                <table className="w-full min-w-[760px] text-sm">
+                                <table className="w-full min-w-190 text-sm">
                                     <thead className="text-slate-400">
                                         <tr className="border-b border-[#edf1f2] text-start dark:border-neutral-800">
                                             <th className="px-3 py-3 text-start font-medium">
@@ -841,7 +841,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                 <ReceiptText className="size-5 text-[#002452]" />
                             </div>
                             <div className="mt-4 overflow-x-auto">
-                                <table className="w-full min-w-[680px] text-sm">
+                                <table className="w-full min-w-170 text-sm">
                                     <thead>
                                         <tr className="border-b border-[#edf1f2] text-slate-400 dark:border-neutral-800">
                                             <th className="px-3 py-3 text-start font-medium">

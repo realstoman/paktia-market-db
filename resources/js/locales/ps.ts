@@ -62,7 +62,7 @@ const ps = {
             submit: 'سیستم ته ننوتل',
             showPassword: 'پسورډ ښکاره کړئ',
             hidePassword: 'پسورډ پټ کړئ',
-            welcomeToast: 'پکتیاوال ګروپ ته ښه راغلاست',
+            welcomeToast: 'د پکتیاوال ګروپ مدیریت سیستم ته ښه راغلاست!',
         },
         forgotPassword: {
             title: 'پسورډ مو هیر شوی',
