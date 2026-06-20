@@ -1,4 +1,5 @@
 import InputError from '@/components/input-error';
+import { LocalizedNameFields } from '@/components/locations/localized-name-fields';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -27,7 +28,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Country } from '@/types';
+import { useLocalization } from '@/lib/localization';
+import { Country, Province } from '@/types';
 import { router } from '@inertiajs/react';
 import {
     Edit,
@@ -36,25 +38,38 @@ import {
     MapPinned,
     MapPinOff,
     MoreHorizontal,
+    Plus,
     Save,
-    Trash,
     Trash2,
     X,
 } from 'lucide-react';
 import { useState } from 'react';
-import { toast } from 'sonner';
 
 interface CellActionProps {
     data: Country;
 }
 
+function translatedName(
+    item: Country | Province,
+    locale: 'fa' | 'ps',
+): string {
+    return item.name_translations?.[locale] ?? '';
+}
+
 export const CellAction: React.FC<CellActionProps> = ({ data }) => {
+    const { isRtl, t } = useLocalization();
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isToggleOpen, setIsToggleOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
     const [isProvinceOpen, setIsProvinceOpen] = useState(false);
     const [isEditProvinceOpen, setIsEditProvinceOpen] = useState(false);
-    const [editName, setEditName] = useState(data.name);
+    const [editNameEn, setEditNameEn] = useState(data.name_en ?? data.name);
+    const [editNameFa, setEditNameFa] = useState(
+        translatedName(data, 'fa'),
+    );
+    const [editNamePs, setEditNamePs] = useState(
+        translatedName(data, 'ps'),
+    );
     const [editCode, setEditCode] = useState(data.code);
     const [editCurrencyCode, setEditCurrencyCode] = useState(
         data.currency_code,
@@ -63,181 +78,197 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
         data.currency_symbol ?? '',
     );
     const [editErrors, setEditErrors] = useState<Record<string, string>>({});
-    const [provinceName, setProvinceName] = useState('');
+    const [provinceNameEn, setProvinceNameEn] = useState('');
+    const [provinceNameFa, setProvinceNameFa] = useState('');
+    const [provinceNamePs, setProvinceNamePs] = useState('');
     const [provinceErrors, setProvinceErrors] = useState<
         Record<string, string>
     >({});
-    const [selectedProvinceId, setSelectedProvinceId] = useState<number | null>(
+    const [selectedProvince, setSelectedProvince] = useState<Province | null>(
         null,
     );
-    const [deleteProvinceTarget, setDeleteProvinceTarget] = useState<{
-        id: number;
-        name: string;
-    } | null>(null);
+    const [deleteProvinceTarget, setDeleteProvinceTarget] =
+        useState<Province | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const onView = () => {
-        router.visit(`/countries/${data.id}`);
-    };
-
     const resetEdit = () => {
-        setEditName(data.name);
+        setEditNameEn(data.name_en ?? data.name);
+        setEditNameFa(translatedName(data, 'fa'));
+        setEditNamePs(translatedName(data, 'ps'));
         setEditCode(data.code);
         setEditCurrencyCode(data.currency_code);
         setEditCurrencySymbol(data.currency_symbol ?? '');
         setEditErrors({});
     };
 
-    const openEditProvince = (provinceId: number, name: string) => {
-        setSelectedProvinceId(provinceId);
-        setProvinceName(name);
+    const resetProvinceNames = () => {
+        setProvinceNameEn('');
+        setProvinceNameFa('');
+        setProvinceNamePs('');
+        setProvinceErrors({});
+    };
+
+    const openEditProvince = (province: Province) => {
+        setSelectedProvince(province);
+        setProvinceNameEn(province.name_en ?? province.name);
+        setProvinceNameFa(translatedName(province, 'fa'));
+        setProvinceNamePs(translatedName(province, 'ps'));
         setProvinceErrors({});
         setIsEditProvinceOpen(true);
     };
 
     const handleEditCountry = () => {
-        if (!editName.trim() || !editCode.trim() || !editCurrencyCode.trim()) {
+        if (
+            !editNameEn.trim() ||
+            !editNameFa.trim() ||
+            !editNamePs.trim() ||
+            !editCode.trim() ||
+            !editCurrencyCode.trim() ||
+            isSubmitting
+        ) {
             return;
         }
 
         setIsSubmitting(true);
-
         router.put(
             `/countries/${data.id}`,
             {
-                name: editName.trim(),
+                name: editNameEn.trim(),
+                name_fa: editNameFa.trim(),
+                name_ps: editNamePs.trim(),
                 code: editCode.trim().toUpperCase(),
                 currency_code: editCurrencyCode.trim().toUpperCase(),
                 currency_symbol: editCurrencySymbol.trim() || null,
             },
             {
                 preserveScroll: true,
+                onSuccess: () => setIsEditOpen(false),
+                onError: setEditErrors,
+                onFinish: () => setIsSubmitting(false),
+            },
+        );
+    };
+
+    const handleCreateProvince = () => {
+        if (
+            !provinceNameEn.trim() ||
+            !provinceNameFa.trim() ||
+            !provinceNamePs.trim() ||
+            isSubmitting
+        ) {
+            return;
+        }
+
+        setIsSubmitting(true);
+        router.post(
+            '/provinces',
+            {
+                country_id: data.id,
+                name: provinceNameEn.trim(),
+                name_fa: provinceNameFa.trim(),
+                name_ps: provinceNamePs.trim(),
+            },
+            {
+                preserveScroll: true,
+                onSuccess: resetProvinceNames,
+                onError: setProvinceErrors,
+                onFinish: () => setIsSubmitting(false),
+            },
+        );
+    };
+
+    const handleEditProvince = () => {
+        if (
+            !selectedProvince ||
+            !provinceNameEn.trim() ||
+            !provinceNameFa.trim() ||
+            !provinceNamePs.trim() ||
+            isSubmitting
+        ) {
+            return;
+        }
+
+        setIsSubmitting(true);
+        router.put(
+            `/provinces/${selectedProvince.id}`,
+            {
+                country_id: data.id,
+                name: provinceNameEn.trim(),
+                name_fa: provinceNameFa.trim(),
+                name_ps: provinceNamePs.trim(),
+            },
+            {
+                preserveScroll: true,
                 onSuccess: () => {
-                    toast.success('Country updated successfully.');
-                    setIsEditOpen(false);
+                    setIsEditProvinceOpen(false);
+                    setSelectedProvince(null);
+                    resetProvinceNames();
                 },
-                onError: (errors) => {
-                    setEditErrors(errors);
-                },
-                onFinish: () => {
-                    setIsSubmitting(false);
-                },
+                onError: setProvinceErrors,
+                onFinish: () => setIsSubmitting(false),
             },
         );
     };
 
     const handleToggle = () => {
-        if (isSubmitting) {
-            return;
-        }
-
+        if (isSubmitting) return;
         setIsSubmitting(true);
-
         router.post(`/countries/${data.id}/disable`, undefined, {
             preserveScroll: true,
-            onSuccess: () => {
-                toast.success(
-                    data.is_active
-                        ? 'Country deactivated successfully.'
-                        : 'Country activated successfully.',
-                );
-                setIsToggleOpen(false);
-            },
-            onFinish: () => {
-                setIsSubmitting(false);
-            },
+            onSuccess: () => setIsToggleOpen(false),
+            onFinish: () => setIsSubmitting(false),
         });
     };
 
     const handleDelete = () => {
-        if (isSubmitting) {
-            return;
-        }
-
+        if (isSubmitting) return;
         setIsSubmitting(true);
-
         router.delete(`/countries/${data.id}`, {
             preserveScroll: true,
-            onSuccess: () => {
-                toast.success('Country deleted successfully.');
-                setIsDeleteOpen(false);
-            },
-            onFinish: () => {
-                setIsSubmitting(false);
-            },
+            onSuccess: () => setIsDeleteOpen(false),
+            onFinish: () => setIsSubmitting(false),
         });
-    };
-
-    const handleEditProvince = () => {
-        if (!selectedProvinceId || !provinceName.trim()) {
-            return;
-        }
-
-        setIsSubmitting(true);
-
-        router.put(
-            `/provinces/${selectedProvinceId}`,
-            {
-                name: provinceName.trim(),
-                country_id: data.id,
-            },
-            {
-                preserveScroll: true,
-                onSuccess: () => {
-                    toast.success('Province updated successfully.');
-                    setIsEditProvinceOpen(false);
-                },
-                onError: (errors) => {
-                    setProvinceErrors(errors);
-                },
-                onFinish: () => {
-                    setIsSubmitting(false);
-                },
-            },
-        );
-    };
-
-    const handleDeleteProvince = (provinceId: number, provinceName: string) => {
-        if (isSubmitting) {
-            return;
-        }
-
-        setDeleteProvinceTarget({ id: provinceId, name: provinceName });
     };
 
     const confirmDeleteProvince = () => {
-        if (!deleteProvinceTarget || isSubmitting) {
-            return;
-        }
-
+        if (!deleteProvinceTarget || isSubmitting) return;
         setIsSubmitting(true);
-
         router.delete(`/provinces/${deleteProvinceTarget.id}`, {
             preserveScroll: true,
-            onSuccess: () => {
-                toast.success('Province deleted successfully.');
-                setDeleteProvinceTarget(null);
-            },
-            onFinish: () => {
-                setIsSubmitting(false);
-            },
+            onSuccess: () => setDeleteProvinceTarget(null),
+            onFinish: () => setIsSubmitting(false),
         });
     };
+
+    const canSaveProvince =
+        provinceNameEn.trim() &&
+        provinceNameFa.trim() &&
+        provinceNamePs.trim();
 
     return (
         <>
             <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Open menu</span>
-                        <MoreHorizontal className="h-4 w-4" />
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label={t('countryManagement.actions.openMenu')}
+                    >
+                        <MoreHorizontal className="size-4" />
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem onClick={onView}>
-                        <Eye className="mr-2 h-4 w-4" />
-                        View
+                <DropdownMenuContent
+                    align={isRtl ? 'start' : 'end'}
+                    className={isRtl ? 'text-right' : ''}
+                >
+                    <DropdownMenuLabel>
+                        {t('countryManagement.actions.title')}
+                    </DropdownMenuLabel>
+                    <DropdownMenuItem
+                        onClick={() => router.visit(`/countries/${data.id}`)}
+                    >
+                        <Eye className="me-2 size-4" />
+                        {t('countryManagement.actions.view')}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                         onClick={() => {
@@ -245,57 +276,61 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                             setIsEditOpen(true);
                         }}
                     >
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit
+                        <Edit className="me-2 size-4" />
+                        {t('countryManagement.actions.edit')}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setIsProvinceOpen(true)}>
-                        <MapPinned className="mr-2 h-4 w-4" />
-                        Manage Provinces
+                        <MapPinned className="me-2 size-4" />
+                        {t('countryManagement.actions.manageProvinces')}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setIsToggleOpen(true)}>
                         {data.is_active ? (
-                            <MapPinOff className="mr-2 h-4 w-4" />
+                            <MapPinOff className="me-2 size-4" />
                         ) : (
-                            <MapPin className="mr-2 h-4 w-4" />
+                            <MapPin className="me-2 size-4" />
                         )}
-                        {data.is_active ? 'Deactivate' : 'Activate'}
+                        {data.is_active
+                            ? t('countryManagement.actions.deactivate')
+                            : t('countryManagement.actions.activate')}
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setIsDeleteOpen(true)}>
-                        <Trash className="mr-2 h-4 w-4 text-red-600" />
-                        Delete
+                    <DropdownMenuItem
+                        variant="destructive"
+                        onClick={() => setIsDeleteOpen(true)}
+                    >
+                        <Trash2 className="me-2 size-4" />
+                        {t('countryManagement.actions.delete')}
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
 
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-                <DialogContent className="sm:max-w-2xl">
+                <DialogContent className="sm:max-w-3xl">
                     <DialogHeader>
-                        <DialogTitle>Edit Country</DialogTitle>
+                        <DialogTitle>
+                            {t('countryManagement.editCountryTitle')}
+                        </DialogTitle>
                         <DialogDescription>
-                            Update the country information.
+                            {t('countryManagement.editCountryHelp')}
                         </DialogDescription>
                     </DialogHeader>
-
-                    <div className="grid gap-4 sm:grid-cols-2">
-                        <div className="grid gap-2">
-                            <Label htmlFor={`country-name-${data.id}`}>
-                                Name
-                            </Label>
-                            <Input
-                                id={`country-name-${data.id}`}
-                                value={editName}
-                                onChange={(event) =>
-                                    setEditName(event.target.value)
-                                }
-                            />
-                            <InputError message={editErrors.name} />
-                        </div>
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        <LocalizedNameFields
+                            idPrefix={`country-${data.id}`}
+                            english={editNameEn}
+                            dari={editNameFa}
+                            pashto={editNamePs}
+                            onEnglishChange={setEditNameEn}
+                            onDariChange={setEditNameFa}
+                            onPashtoChange={setEditNamePs}
+                            errors={editErrors}
+                        />
                         <div className="grid gap-2">
                             <Label htmlFor={`country-code-${data.id}`}>
-                                Code
+                                {t('countryManagement.fields.countryCode')}
                             </Label>
                             <Input
                                 id={`country-code-${data.id}`}
+                                dir="ltr"
                                 value={editCode}
                                 onChange={(event) =>
                                     setEditCode(event.target.value)
@@ -306,10 +341,11 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor={`currency-code-${data.id}`}>
-                                Currency code
+                                {t('countryManagement.fields.currencyCode')}
                             </Label>
                             <Input
                                 id={`currency-code-${data.id}`}
+                                dir="ltr"
                                 value={editCurrencyCode}
                                 onChange={(event) =>
                                     setEditCurrencyCode(event.target.value)
@@ -320,7 +356,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor={`currency-symbol-${data.id}`}>
-                                Currency symbol
+                                {t('countryManagement.fields.currencySymbol')}
                             </Label>
                             <Input
                                 id={`currency-symbol-${data.id}`}
@@ -329,87 +365,126 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                                     setEditCurrencySymbol(event.target.value)
                                 }
                             />
-                            <InputError message={editErrors.currency_symbol} />
+                            <InputError
+                                message={editErrors.currency_symbol}
+                            />
                         </div>
                     </div>
-
                     <DialogFooter>
                         <Button
                             variant="outline"
                             onClick={() => setIsEditOpen(false)}
                             disabled={isSubmitting}
                         >
-                            <X className="mr-2 h-5 w-5" />
-                            Cancel
+                            <X className="me-2 size-4" />
+                            {t('common.cancel')}
                         </Button>
                         <Button
                             onClick={handleEditCountry}
                             disabled={
-                                !editName.trim() ||
+                                !editNameEn.trim() ||
+                                !editNameFa.trim() ||
+                                !editNamePs.trim() ||
                                 !editCode.trim() ||
                                 !editCurrencyCode.trim() ||
                                 isSubmitting
                             }
                         >
-                            <Save className="mr-2 h-5 w-5" />
-                            Save Changes
+                            <Save className="me-2 size-4" />
+                            {t('common.save')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
 
-            <Dialog open={isProvinceOpen} onOpenChange={setIsProvinceOpen}>
-                <DialogContent className="sm:max-w-lg">
+            <Dialog
+                open={isProvinceOpen}
+                onOpenChange={(open) => {
+                    setIsProvinceOpen(open);
+                    if (!open) resetProvinceNames();
+                }}
+            >
+                <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
                     <DialogHeader>
-                        <DialogTitle>Manage Provinces</DialogTitle>
+                        <DialogTitle>
+                            {t('countryManagement.manageProvincesTitle')}
+                        </DialogTitle>
                         <DialogDescription>
-                            Edit or remove provinces for {data.name}.
+                            {t('countryManagement.manageProvincesHelp').replace(
+                                ':country',
+                                data.name,
+                            )}
                         </DialogDescription>
                     </DialogHeader>
-
-                    <div className="space-y-3">
-                        {(data.provinces ?? []).length === 0 ? (
-                            <p className="text-sm text-muted-foreground">
-                                No provinces available.
-                            </p>
-                        ) : (
-                            <div className="space-y-2">
-                                {(data.provinces ?? []).map((province) => (
-                                    <div
-                                        key={province.id}
-                                        className="flex items-center justify-between rounded-md border px-3 py-2 text-sm"
-                                    >
-                                        <span>{province.name}</span>
-                                        <div className="flex gap-2">
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                onClick={() =>
-                                                    openEditProvince(
-                                                        province.id,
-                                                        province.name,
-                                                    )
-                                                }
-                                            >
-                                                Edit
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                variant="destructive"
-                                                onClick={() =>
-                                                    handleDeleteProvince(
-                                                        province.id,
-                                                        province.name,
-                                                    )
-                                                }
-                                                disabled={isSubmitting}
-                                            >
-                                                Delete
-                                            </Button>
-                                        </div>
+                    <div className="grid gap-4 rounded-xl border bg-[#f8f9fd] p-4 sm:grid-cols-3">
+                        <LocalizedNameFields
+                            idPrefix={`province-create-${data.id}`}
+                            english={provinceNameEn}
+                            dari={provinceNameFa}
+                            pashto={provinceNamePs}
+                            onEnglishChange={setProvinceNameEn}
+                            onDariChange={setProvinceNameFa}
+                            onPashtoChange={setProvinceNamePs}
+                            errors={provinceErrors}
+                        />
+                        <Button
+                            className="sm:col-span-3"
+                            onClick={handleCreateProvince}
+                            disabled={!canSaveProvince || isSubmitting}
+                        >
+                            <Plus className="me-2 size-4" />
+                            {t('countryManagement.createProvince')}
+                        </Button>
+                    </div>
+                    <div className="space-y-2">
+                        <h3 className="text-sm font-semibold">
+                            {t('countryManagement.existingProvinces')}
+                        </h3>
+                        {data.provinces?.length ? (
+                            data.provinces.map((province) => (
+                                <div
+                                    key={province.id}
+                                    className="flex items-center justify-between gap-3 rounded-xl border bg-white p-3"
+                                >
+                                    <div className="min-w-0 text-start">
+                                        <p className="truncate font-medium">
+                                            {province.name}
+                                        </p>
+                                        <p className="truncate text-xs text-muted-foreground">
+                                            {province.name_en}
+                                        </p>
                                     </div>
-                                ))}
-                            </div>
+                                    <div className="flex gap-1">
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            onClick={() =>
+                                                openEditProvince(province)
+                                            }
+                                        >
+                                            <Edit className="me-1 size-3.5" />
+                                            {t('common.edit')}
+                                        </Button>
+                                        <Button
+                                            size="sm"
+                                            variant="destructive"
+                                            onClick={() =>
+                                                setDeleteProvinceTarget(
+                                                    province,
+                                                )
+                                            }
+                                            disabled={isSubmitting}
+                                        >
+                                            <Trash2 className="me-1 size-3.5" />
+                                            {t('common.delete')}
+                                        </Button>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="rounded-xl border border-dashed py-8 text-center text-sm text-muted-foreground">
+                                {t('countryManagement.noProvinces')}
+                            </p>
                         )}
                     </div>
                 </DialogContent>
@@ -417,43 +492,48 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
 
             <Dialog
                 open={isEditProvinceOpen}
-                onOpenChange={setIsEditProvinceOpen}
+                onOpenChange={(open) => {
+                    setIsEditProvinceOpen(open);
+                    if (!open) {
+                        setSelectedProvince(null);
+                        resetProvinceNames();
+                    }
+                }}
             >
-                <DialogContent className="sm:max-w-md">
+                <DialogContent className="sm:max-w-2xl">
                     <DialogHeader>
-                        <DialogTitle>Edit Province</DialogTitle>
+                        <DialogTitle>
+                            {t('countryManagement.editProvinceTitle')}
+                        </DialogTitle>
                         <DialogDescription>
-                            Update the province name.
+                            {t('countryManagement.editProvinceHelp')}
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="grid gap-2">
-                        <Label htmlFor={`province-name-${data.id}`}>
-                            Province name
-                        </Label>
-                        <Input
-                            id={`province-name-${data.id}`}
-                            value={provinceName}
-                            onChange={(event) =>
-                                setProvinceName(event.target.value)
-                            }
+                    <div className="grid gap-4 sm:grid-cols-3">
+                        <LocalizedNameFields
+                            idPrefix={`province-edit-${selectedProvince?.id ?? data.id}`}
+                            english={provinceNameEn}
+                            dari={provinceNameFa}
+                            pashto={provinceNamePs}
+                            onEnglishChange={setProvinceNameEn}
+                            onDariChange={setProvinceNameFa}
+                            onPashtoChange={setProvinceNamePs}
+                            errors={provinceErrors}
                         />
-                        <InputError message={provinceErrors.name} />
                     </div>
                     <DialogFooter>
                         <Button
                             variant="outline"
                             onClick={() => setIsEditProvinceOpen(false)}
-                            disabled={isSubmitting}
                         >
-                            <X className="mr-2 h-5 w-5" />
-                            Cancel
+                            {t('common.cancel')}
                         </Button>
                         <Button
                             onClick={handleEditProvince}
-                            disabled={!provinceName.trim() || isSubmitting}
+                            disabled={!canSaveProvince || isSubmitting}
                         >
-                            <Save className="mr-2 h-5 w-5" />
-                            Save Province
+                            <Save className="me-2 size-4" />
+                            {t('common.save')}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
@@ -464,27 +544,27 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                     <AlertDialogHeader>
                         <AlertDialogTitle>
                             {data.is_active
-                                ? 'Deactivate country'
-                                : 'Activate country'}
+                                ? t('countryManagement.deactivateTitle')
+                                : t('countryManagement.activateTitle')}
                         </AlertDialogTitle>
                         <AlertDialogDescription>
                             {data.is_active
-                                ? 'This will mark the country as inactive.'
-                                : 'This will mark the country as active.'}
+                                ? t('countryManagement.deactivateHelp')
+                                : t('countryManagement.activateHelp')}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel disabled={isSubmitting}>
-                            <X className="mr-2 h-5 w-5" />
-                            Cancel
+                            {t('common.cancel')}
                         </AlertDialogCancel>
                         <AlertDialogAction
                             variant={data.is_active ? 'destructive' : 'default'}
                             onClick={handleToggle}
                             disabled={isSubmitting}
                         >
-                            <MapPinOff className="mr-2 h-5 w-5" />
-                            {data.is_active ? 'Deactivate' : 'Activate'}
+                            {data.is_active
+                                ? t('countryManagement.actions.deactivate')
+                                : t('countryManagement.actions.activate')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
@@ -493,55 +573,56 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
             <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Delete country</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            {t('countryManagement.deleteCountryTitle')}
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
-                            This will permanently remove the country and its
-                            related data.
+                            {t('countryManagement.deleteCountryHelp')}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel disabled={isSubmitting}>
-                            <X className="mr-2 h-5 w-5" />
-                            Cancel
+                            {t('common.cancel')}
                         </AlertDialogCancel>
                         <AlertDialogAction
                             variant="destructive"
                             onClick={handleDelete}
                             disabled={isSubmitting}
                         >
-                            <Trash2 className="mr-2 h-5 w-5" />
-                            Delete
+                            {t('common.delete')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
             <AlertDialog
                 open={deleteProvinceTarget !== null}
                 onOpenChange={(open) => {
-                    if (!open) {
-                        setDeleteProvinceTarget(null);
-                    }
+                    if (!open) setDeleteProvinceTarget(null);
                 }}
             >
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Delete province</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            {t('countryManagement.deleteProvinceTitle')}
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
-                            {deleteProvinceTarget
-                                ? `This will permanently delete ${deleteProvinceTarget.name}.`
-                                : 'This will permanently delete the selected province.'}
+                            {t('countryManagement.deleteProvinceHelp').replace(
+                                ':province',
+                                deleteProvinceTarget?.name ?? '',
+                            )}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel disabled={isSubmitting}>
-                            Cancel
+                            {t('common.cancel')}
                         </AlertDialogCancel>
                         <AlertDialogAction
                             variant="destructive"
                             onClick={confirmDeleteProvince}
                             disabled={isSubmitting}
                         >
-                            Delete
+                            {t('common.delete')}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
