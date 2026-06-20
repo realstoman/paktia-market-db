@@ -2815,7 +2815,8 @@ const fa = {
             delete: 'حذف',
         },
         deactivateTitle: 'غیرفعال‌سازی کشور',
-        deactivateHelp: 'این کشور برای ثبت معلومات جدید قابل انتخاب نخواهد بود.',
+        deactivateHelp:
+            'این کشور برای ثبت معلومات جدید قابل انتخاب نخواهد بود.',
         activateTitle: 'فعال‌سازی کشور',
         activateHelp: 'این کشور برای ثبت معلومات جدید قابل انتخاب خواهد شد.',
         deleteCountryTitle: 'حذف کشور',

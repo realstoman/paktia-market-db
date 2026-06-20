@@ -42,12 +42,14 @@ class CountryService
     public function update(Country $country, array $data): Country
     {
         $country->update($data);
+
         return $country;
     }
 
     public function toggleActive(Country $country): Country
     {
         $country->update(['is_active' => ! $country->is_active]);
+
         return $country;
     }
 

@@ -2781,7 +2781,8 @@ const en = {
             'Choose a country and provide the province name in all supported languages.',
         createProvince: 'Create province',
         editProvinceTitle: 'Edit province',
-        editProvinceHelp: 'Update the province names in all supported languages.',
+        editProvinceHelp:
+            'Update the province names in all supported languages.',
         manageProvincesTitle: 'Manage provinces',
         manageProvincesHelp: 'Add, edit or remove provinces for :country.',
         existingProvinces: 'Previously added provinces',
@@ -2827,7 +2828,8 @@ const en = {
             delete: 'Delete',
         },
         deactivateTitle: 'Deactivate country',
-        deactivateHelp: 'This country will no longer be available for new records.',
+        deactivateHelp:
+            'This country will no longer be available for new records.',
         activateTitle: 'Activate country',
         activateHelp: 'This country will become available for new records.',
         deleteCountryTitle: 'Delete country',

@@ -12,7 +12,9 @@ interface CountriesPageProps {
     countries: Country[];
 }
 
-export default function CountriesPage({ countries: items }: CountriesPageProps) {
+export default function CountriesPage({
+    countries: items,
+}: CountriesPageProps) {
     const { t } = useLocalization();
     const breadcrumbs: BreadcrumbItem[] = [
         {

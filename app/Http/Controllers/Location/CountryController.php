@@ -71,7 +71,7 @@ class CountryController extends Controller
             'name' => 'required|string|max:255',
             'name_fa' => 'required|string|max:255',
             'name_ps' => 'required|string|max:255',
-            'code' => 'required|string|size:2|unique:countries,code,' . $country->id,
+            'code' => 'required|string|size:2|unique:countries,code,'.$country->id,
             'currency_code' => 'required|string|size:3',
             'currency_symbol' => 'nullable|string|max:10',
         ]);

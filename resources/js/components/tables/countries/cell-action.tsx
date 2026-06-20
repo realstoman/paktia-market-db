@@ -49,10 +49,7 @@ interface CellActionProps {
     data: Country;
 }
 
-function translatedName(
-    item: Country | Province,
-    locale: 'fa' | 'ps',
-): string {
+function translatedName(item: Country | Province, locale: 'fa' | 'ps'): string {
     return item.name_translations?.[locale] ?? '';
 }
 
@@ -64,12 +61,8 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
     const [isProvinceOpen, setIsProvinceOpen] = useState(false);
     const [isEditProvinceOpen, setIsEditProvinceOpen] = useState(false);
     const [editNameEn, setEditNameEn] = useState(data.name_en ?? data.name);
-    const [editNameFa, setEditNameFa] = useState(
-        translatedName(data, 'fa'),
-    );
-    const [editNamePs, setEditNamePs] = useState(
-        translatedName(data, 'ps'),
-    );
+    const [editNameFa, setEditNameFa] = useState(translatedName(data, 'fa'));
+    const [editNamePs, setEditNamePs] = useState(translatedName(data, 'ps'));
     const [editCode, setEditCode] = useState(data.code);
     const [editCurrencyCode, setEditCurrencyCode] = useState(
         data.currency_code,
@@ -241,9 +234,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
     };
 
     const canSaveProvince =
-        provinceNameEn.trim() &&
-        provinceNameFa.trim() &&
-        provinceNamePs.trim();
+        provinceNameEn.trim() && provinceNameFa.trim() && provinceNamePs.trim();
 
     return (
         <>
@@ -365,9 +356,7 @@ export const CellAction: React.FC<CellActionProps> = ({ data }) => {
                                     setEditCurrencySymbol(event.target.value)
                                 }
                             />
-                            <InputError
-                                message={editErrors.currency_symbol}
-                            />
+                            <InputError message={editErrors.currency_symbol} />
                         </div>
                     </div>
                     <DialogFooter>

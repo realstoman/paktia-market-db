@@ -642,7 +642,7 @@ export interface Country {
     name_translations?: Partial<Record<'fa' | 'ps' | 'en', string>> | null;
     code: string;
     currency_code: string;
-    currency_symbol: string;
+    currency_symbol: string | null;
     is_active?: boolean;
     provinces?: Province[];
     properties?: Property[];

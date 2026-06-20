@@ -29,7 +29,9 @@ function RelatedBadges({
     const hidden = items.slice(MAX_VISIBLE_ITEMS);
 
     if (items.length === 0) {
-        return <span className="text-xs text-muted-foreground">{emptyText}</span>;
+        return (
+            <span className="text-xs text-muted-foreground">{emptyText}</span>
+        );
     }
 
     return (
@@ -70,7 +72,8 @@ export function createCountryColumns(
     t: Translate,
     locale: 'en' | 'fa' | 'ps',
 ): ColumnDef<Country>[] {
-    const dateLocale = locale === 'fa' ? 'fa-AF' : locale === 'ps' ? 'ps-AF' : 'en-US';
+    const dateLocale =
+        locale === 'fa' ? 'fa-AF' : locale === 'ps' ? 'ps-AF' : 'en-US';
 
     return [
         {

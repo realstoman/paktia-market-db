@@ -34,10 +34,7 @@ export const CountriesClient: React.FC<CountriesClientProps> = ({
     isLoading = false,
 }) => {
     const { locale, t } = useLocalization();
-    const columns = useMemo(
-        () => createCountryColumns(t, locale),
-        [locale, t],
-    );
+    const columns = useMemo(() => createCountryColumns(t, locale), [locale, t]);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [isProvinceOpen, setIsProvinceOpen] = useState(false);
     const [nameEn, setNameEn] = useState('');
@@ -234,7 +231,9 @@ export const CountriesClient: React.FC<CountriesClientProps> = ({
                                 id="country-code"
                                 dir="ltr"
                                 value={code}
-                                onChange={(event) => setCode(event.target.value)}
+                                onChange={(event) =>
+                                    setCode(event.target.value)
+                                }
                                 placeholder="AF"
                                 maxLength={2}
                             />
@@ -312,7 +311,9 @@ export const CountriesClient: React.FC<CountriesClientProps> = ({
                     </DialogHeader>
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         <div className="grid gap-2 sm:col-span-2 lg:col-span-3">
-                            <Label>{t('countryManagement.fields.country')}</Label>
+                            <Label>
+                                {t('countryManagement.fields.country')}
+                            </Label>
                             <SearchableDropdown
                                 value={provinceCountryId}
                                 onValueChange={setProvinceCountryId}

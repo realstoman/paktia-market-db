@@ -66,9 +66,7 @@ export default function CountryShow({ country }: CountryShowProps) {
                             value={country.currency_code}
                         />
                         <DetailRow
-                            label={t(
-                                'countryManagement.fields.currencySymbol',
-                            )}
+                            label={t('countryManagement.fields.currencySymbol')}
                             value={country.currency_symbol || '—'}
                         />
                         <DetailRow
