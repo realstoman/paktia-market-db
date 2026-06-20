@@ -39,7 +39,7 @@ interface ExpenseRow {
 interface PortfolioProject {
     id: number;
     name: string;
-    type: 'market' | 'mall' | 'block' | 'house';
+    type: 'market' | 'mall' | 'block' | 'house' | 'commercial_unit';
     address?: string | null;
     isActive: boolean;
     floors: number;

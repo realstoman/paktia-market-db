@@ -418,7 +418,9 @@ function TenantForm({
         (item) => String(item.id) === data.property_id,
     );
     const unitOptions =
-        property?.property_type === 'house'
+        ['house', 'commercial_unit'].includes(
+            property?.property_type ?? '',
+        )
             ? [{ value: '', label: t('tenants.lease.wholeProperty') }]
             : [
                   ...(property?.property_type === 'block'

@@ -618,7 +618,9 @@ function AssignmentForm({
         (item) => String(item.id) === form.data.property_id,
     );
     const units =
-        property?.property_type === 'house'
+        ['house', 'commercial_unit'].includes(
+            property?.property_type ?? '',
+        )
             ? [{ value: '', label: t('tenants.lease.wholeProperty') }]
             : [
                   ...(property?.property_type === 'block'

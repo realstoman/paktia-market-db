@@ -5,6 +5,7 @@ import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
     Dialog,
     DialogContent,
@@ -31,6 +32,7 @@ import {
     ArrowDown,
     ArrowUp,
     Building2,
+    BriefcaseBusiness,
     CheckCircle2,
     DoorOpen,
     Home,
@@ -58,6 +60,15 @@ interface PropertyForm {
     parent_property_id: string;
     property_type: string;
     usage_type: string;
+    host_market_name: string;
+    host_market_name_ps: string;
+    host_market_name_en: string;
+    external_unit_number: string;
+    external_floor: string;
+    ownership_type: string;
+    operating_mode: string;
+    business_activities: string[];
+    title_deed_number: string;
     country_id: string;
     province_id: string;
     address: string;
@@ -98,6 +109,7 @@ const typeIcons = {
     mall: Building2,
     block: Layers3,
     house: Home,
+    commercial_unit: BriefcaseBusiness,
 } as const;
 
 const emptyForm: PropertyForm = {
@@ -107,6 +119,15 @@ const emptyForm: PropertyForm = {
     parent_property_id: '',
     property_type: 'market',
     usage_type: 'commercial',
+    host_market_name: '',
+    host_market_name_ps: '',
+    host_market_name_en: '',
+    external_unit_number: '',
+    external_floor: '',
+    ownership_type: 'owned',
+    operating_mode: 'owner_occupied',
+    business_activities: [],
+    title_deed_number: '',
     country_id: '',
     province_id: '',
     address: '',
@@ -151,7 +172,7 @@ export default function PropertiesPage({
         () =>
             properties.filter((property) => {
                 const haystack =
-                    `${property.name} ${property.address ?? ''} ${resolveLocationName(property.province) ?? ''}`.toLowerCase();
+                    `${property.name} ${property.address ?? ''} ${property.host_market_name ?? ''} ${property.external_unit_number ?? ''} ${resolveLocationName(property.province) ?? ''}`.toLowerCase();
                 return (
                     (type === 'all' || property.property_type === type) &&
                     haystack.includes(search.toLowerCase())
@@ -223,12 +244,24 @@ export default function PropertiesPage({
                                     >
                                         <SearchableDropdown
                                             value={form.data.property_type}
-                                            onValueChange={(value) =>
+                                            onValueChange={(value) => {
                                                 form.setData(
                                                     'property_type',
                                                     value,
-                                                )
-                                            }
+                                                );
+                                                if (
+                                                    value === 'commercial_unit'
+                                                ) {
+                                                    form.setData(
+                                                        'usage_type',
+                                                        'commercial',
+                                                    );
+                                                    form.setData(
+                                                        'parent_property_id',
+                                                        '',
+                                                    );
+                                                }
+                                            }}
                                             options={Object.keys(typeIcons).map(
                                                 (value) => ({
                                                     value,
@@ -246,7 +279,8 @@ export default function PropertiesPage({
                                             )}
                                         />
                                     </Field>
-                                    <Field
+                                    {form.data.property_type !==
+                                        'commercial_unit' && <Field
                                         label={t(
                                             'propertyWorkspace.fields.usage',
                                         )}
@@ -279,7 +313,7 @@ export default function PropertiesPage({
                                                 'propertyWorkspace.noOptions',
                                             )}
                                         />
-                                    </Field>
+                                    </Field>}
                                     <Field
                                         label={t(
                                             'propertyWorkspace.fields.country',
