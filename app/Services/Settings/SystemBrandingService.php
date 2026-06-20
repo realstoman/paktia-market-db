@@ -111,7 +111,7 @@ class SystemBrandingService
             'logo_full_path' => '',
             'primary_color' => '#002452',
             'secondary_color' => '#D3A450',
-            'tertiary_color' => '#F8FAFD',
+            'tertiary_color' => '#F8F9FD',
         ];
     }
 

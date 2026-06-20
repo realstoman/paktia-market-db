@@ -115,7 +115,11 @@ body {
 :root {
     --brand-primary: #002452;
     --brand-secondary: #d3a450;
-    --brand-tertiary: #f8fafd;
+    --brand-tertiary: #f8f9fd;
+    --app-header-surface: #f1f5f9;
+    --app-page-surface: #f8f9fd;
+    --app-tabs-surface: #edf1f4;
+    --app-content-surface: #ffffff;
     --app-form-font:
         'Manrope', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
         'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
@@ -127,21 +131,21 @@ body {
         'App Digits', 'Manrope', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
-    --background: #f8fafd;
+    --background: var(--app-page-surface);
     /* --background: #f2f2f2; */
     /* --background: oklch(1 0 0); */
     --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
+    --card: var(--app-content-surface);
     --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
+    --popover: var(--app-content-surface);
     --popover-foreground: oklch(0.145 0 0);
     --primary: oklch(0.205 0 0);
     --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
+    --secondary: var(--app-tabs-surface);
     --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
+    --muted: var(--app-tabs-surface);
     --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
+    --accent: var(--app-tabs-surface);
     --accent-foreground: oklch(0.205 0 0);
     --destructive: oklch(0.577 0.245 27.325);
     --destructive-foreground: oklch(0.577 0.245 27.325);
@@ -189,7 +193,7 @@ body {
     --chart-5: oklch(0.645 0.246 16.439);
     --chart-6: rgb(204 146 75);
     --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
+    --sidebar: var(--app-header-surface);
     --sidebar-foreground: oklch(0.145 0 0);
     --sidebar-primary: oklch(0.205 0 0);
     --sidebar-primary-foreground: oklch(0.985 0 0);

@@ -268,7 +268,7 @@ export function HeaderNotifications() {
                 align={isRtl ? 'start' : 'end'}
                 sideOffset={10}
                 className={cn(
-                    'w-100 overflow-hidden rounded-4xl border border-[#dfe7e9] bg-[#f8fbfb] p-0 shadow-2xl shadow-slate-950/12 dark:border-neutral-800 dark:bg-neutral-950',
+                    'w-100 overflow-hidden rounded-4xl border border-[#dfe7e9] bg-white p-0 shadow-lg shadow-slate-950/8 dark:border-neutral-800 dark:bg-neutral-950',
                     isRtl ? 'text-right' : 'text-left',
                 )}
             >

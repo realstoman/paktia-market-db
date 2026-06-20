@@ -57,12 +57,12 @@ export default function AppHeaderLayout({
     return (
         <AppShell>
             <AppHeader breadcrumbs={breadcrumbs} />
-            <AppContent className="relative flex min-h-[calc(100vh-5rem)] flex-col bg-[#eef3f4] p-3 sm:p-5 dark:bg-neutral-950">
+            <AppContent className="relative flex min-h-[calc(100vh-5rem)] flex-col bg-[#f8f9fd] p-3 sm:p-5 dark:bg-neutral-950">
                 {children}
                 <div className="-mx-3 mt-auto -mb-3 pt-8 sm:-mx-5 sm:-mb-5">
                     <footer
                         dir="ltr"
-                        className="flex flex-col gap-3 bg-[#f8fbfb]/95 px-4 py-4 text-xs text-slate-500 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between sm:px-7 dark:bg-neutral-950/95 dark:text-neutral-400"
+                        className="flex flex-col gap-3 border-t border-slate-200/70 bg-[#f1f5f9] px-4 py-4 text-xs text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:px-7 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-400"
                     >
                         <div className="text-center text-sm sm:text-left">
                             <a

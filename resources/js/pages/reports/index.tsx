@@ -752,7 +752,7 @@ export default function ReportsPage({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={t('reportPage.title', 'Reports')} />
             <div className={cn('space-y-5 py-2', isRtl && 'text-right')}>
-                <section className="overflow-hidden rounded-[2rem] border border-[#d8e5e8] bg-[radial-gradient(circle_at_top_right,rgba(211,164,80,0.20),transparent_32%),linear-gradient(135deg,#eef2f7_0%,#f8fbfb_52%,#fff7e8_100%)] p-5 shadow-sm shadow-slate-950/[0.03] dark:border-neutral-800 dark:bg-neutral-950 dark:bg-none">
+                <section className="overflow-hidden rounded-[2rem] border border-[#d8e5e8] bg-[radial-gradient(circle_at_top_right,rgba(211,164,80,0.20),transparent_32%),linear-gradient(135deg,#edf1f4_0%,#f8f9fd_52%,#fff7e8_100%)] p-5 shadow-sm shadow-slate-950/[0.03] dark:border-neutral-800 dark:bg-neutral-950 dark:bg-none">
                     <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
                         <div className="space-y-4">
                             <div className="inline-flex items-center gap-2 rounded-full border border-[#cfe2dc] bg-white/80 px-3 py-1 text-sm text-[#20464b]">
@@ -820,7 +820,7 @@ export default function ReportsPage({
                                 </CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-3 text-sm text-muted-foreground">
-                                <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#dfe7e9] bg-[#f8fbfb] px-3 py-2">
+                                <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#dfe7e9] bg-[#f8f9fd] px-3 py-2">
                                     <span>
                                         {t(
                                             'reportPage.status.analysisMode',
@@ -834,7 +834,7 @@ export default function ReportsPage({
                                         )}
                                     </span>
                                 </div>
-                                <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#dfe7e9] bg-[#f8fbfb] px-3 py-2">
+                                <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#dfe7e9] bg-[#f8f9fd] px-3 py-2">
                                     <span>
                                         {t(
                                             'reportPage.status.activeReport',
@@ -845,7 +845,7 @@ export default function ReportsPage({
                                         {activeReport.title}
                                     </span>
                                 </div>
-                                <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#dfe7e9] bg-[#f8fbfb] px-3 py-2">
+                                <div className="flex items-center justify-between gap-3 rounded-2xl border border-[#dfe7e9] bg-[#f8f9fd] px-3 py-2">
                                     <span>
                                         {t(
                                             'reportPage.status.period',

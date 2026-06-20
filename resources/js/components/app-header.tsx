@@ -204,8 +204,8 @@ export function AppHeader({
     ].join(' ');
     const navItemStateClass = (active: boolean) =>
         active
-            ? 'bg-brand-primary/8 text-brand-primary'
-            : 'text-slate-500 hover:bg-brand-primary/5 hover:text-brand-primary';
+            ? 'bg-white text-brand-primary'
+            : 'text-slate-500 hover:bg-white/70 hover:text-brand-primary';
 
     const navLink = (
         item: HeaderNavConfig,
@@ -262,7 +262,7 @@ export function AppHeader({
     });
 
     return (
-        <header className="sticky top-0 z-30 border-b border-[#dfe7e9] bg-[#f8fbfb]/95 backdrop-blur-xl dark:border-neutral-800 dark:bg-neutral-950/95">
+        <header className="sticky top-0 z-30 border-b border-slate-200/70 bg-[#f1f5f9] dark:border-neutral-800 dark:bg-neutral-950">
             <div className="mx-auto flex h-20 w-full flex-nowrap items-center gap-2 px-4 lg:px-7">
                 <Link
                     href={dashboard()}
@@ -362,7 +362,7 @@ export function AppHeader({
                         </SheetTrigger>
                         <SheetContent
                             side={isRtl ? 'right' : 'left'}
-                            className="w-72 bg-[#f8fbfb] p-5 dark:bg-neutral-950"
+                            className="w-72 bg-[#f1f5f9] p-5 dark:bg-neutral-950"
                         >
                             <SheetHeader>
                                 <SheetTitle className="sr-only">

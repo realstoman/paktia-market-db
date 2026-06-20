@@ -32,7 +32,7 @@ export const brand = {
     logoFull: runtimeBranding?.logoFullUrl ?? '/brand/pg-logo-landscape.png',
     primaryColor: runtimeBranding?.primaryColor ?? '#002452',
     secondaryColor: runtimeBranding?.secondaryColor ?? '#D3A450',
-    tertiaryColor: runtimeBranding?.tertiaryColor ?? '#F8FAFD',
+    tertiaryColor: runtimeBranding?.tertiaryColor ?? '#F8F9FD',
 };
 
 function normalizeHexColor(value?: string, fallback = '#002452'): string {

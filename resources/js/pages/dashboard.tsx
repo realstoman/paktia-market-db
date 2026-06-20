@@ -85,7 +85,7 @@ const COLORS = {
     green: '#d3a450',
     coral: '#ef786f',
     blue: '#5d91c9',
-    mist: '#eef2f7',
+    mist: '#edf1f4',
 };
 
 function StatCard({
@@ -100,7 +100,7 @@ function StatCard({
     accent?: 'teal' | 'green' | 'coral' | 'blue';
 }) {
     const tones = {
-        teal: 'bg-[#eef2f7] text-[#002452]',
+        teal: 'bg-[#edf1f4] text-[#002452]',
         green: 'bg-[#f8f1e5] text-[#a4772d]',
         coral: 'bg-rose-50 text-[#ef786f]',
         blue: 'bg-blue-50 text-[#5d91c9]',
@@ -145,7 +145,7 @@ function MoneyCard({
                         {formatPrice(collected)} {currency}
                     </p>
                 </div>
-                <div className="flex size-11 items-center justify-center rounded-xl bg-[#eef2f7] text-[#002452]">
+                <div className="flex size-11 items-center justify-center rounded-xl bg-[#edf1f4] text-[#002452]">
                     <Banknote className="size-5" />
                 </div>
             </div>
@@ -163,7 +163,7 @@ function MoneyCard({
 
 function EmptyChart({ label }: { label: string }) {
     return (
-        <div className="flex h-full items-center justify-center rounded-xl bg-[#f8fbfb] text-sm text-slate-400 dark:bg-neutral-950">
+        <div className="flex h-full items-center justify-center rounded-xl bg-[#edf1f4] text-sm text-slate-400 dark:bg-neutral-950">
             {label}
         </div>
     );
@@ -245,7 +245,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
         <AppLayout>
             <Head title={t('propertyDashboard.title', 'Property dashboard')} />
 
-            <div className="mx-auto w-full max-w-[1680px] rounded-[26px] border border-[#dfe7e9] bg-[#f8fbfb] p-4 sm:p-6 dark:border-neutral-800 dark:bg-neutral-950">
+            <div className="mx-auto w-full max-w-[1680px] bg-transparent dark:bg-neutral-950">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
                     <div>
                         <p className="text-xs font-semibold tracking-[0.2em] text-[#d3a450] uppercase">
@@ -267,12 +267,12 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                             )}
                         </p>
                     </div>
-                    <button className="h-11 rounded-xl bg-[#002452] px-5 text-sm font-semibold text-white hover:bg-[#001a3d]">
+                    <button className="h-11 rounded-xl bg-brand-primary px-5 text-sm font-semibold text-white hover:bg-brand-primary/90">
                         + {t('propertyDashboard.newRecord', 'New record')}
                     </button>
                 </div>
 
-                <div className="mt-6 flex gap-2 overflow-x-auto rounded-2xl bg-[#eef2f7] p-1.5">
+                <div className="mt-6 flex gap-2 overflow-x-auto rounded-2xl bg-[#edf1f4] p-1.5">
                     <button
                         onClick={() => setActiveTab('overall')}
                         className={`shrink-0 rounded-xl px-5 py-2.5 text-sm font-semibold transition ${
@@ -381,7 +381,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                             >
                                                 <CartesianGrid
                                                     vertical={false}
-                                                    stroke="#eef2f7"
+                                                    stroke="#edf1f4"
                                                 />
                                                 <XAxis
                                                     dataKey="name"
@@ -702,7 +702,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                             <BarChart data={projectRentChart}>
                                                 <CartesianGrid
                                                     vertical={false}
-                                                    stroke="#eef2f7"
+                                                    stroke="#edf1f4"
                                                 />
                                                 <XAxis
                                                     dataKey="name"
@@ -882,7 +882,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                                             ؋
                                                         </td>
                                                         <td className="px-3 py-4">
-                                                            <span className="rounded-full bg-[#eef2f7] px-3 py-1 text-xs font-semibold text-[#002452]">
+                                                            <span className="rounded-full bg-[#edf1f4] px-3 py-1 text-xs font-semibold text-[#002452]">
                                                                 {expense.status}
                                                             </span>
                                                         </td>
