@@ -15,6 +15,7 @@ import {
     Banknote,
     Building2,
     CircleDollarSign,
+    FileSignature,
     Globe2,
     Handshake,
     MapPinned,
@@ -34,6 +35,13 @@ interface ToolConfig {
 }
 
 const tools: ToolConfig[] = [
+    {
+        href: '/contract-templates',
+        labelKey: 'navigation.toolContracts',
+        fallbackLabel: 'Contract Templates',
+        icon: FileSignature,
+        superAdminOnly: true,
+    },
     {
         href: '/inventory',
         labelKey: 'navigation.toolInventory',

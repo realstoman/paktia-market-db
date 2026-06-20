@@ -9,6 +9,7 @@ use App\Http\Controllers\BannerController;
 use App\Http\Controllers\CashBankController;
 use App\Http\Controllers\CashMovementTypeController;
 use App\Http\Controllers\ChartOfAccountController;
+use App\Http\Controllers\ContractTemplateController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmployeeAdvanceController;
 use App\Http\Controllers\EmployeeController;
@@ -16,6 +17,7 @@ use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\LeaseContractController;
 use App\Http\Controllers\Location\CountryController;
 use App\Http\Controllers\Location\PropertyController;
 use App\Http\Controllers\Location\ProvinceController;
@@ -110,6 +112,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('properties/{property}/documents/{document}', [PropertyController::class, 'downloadDocument'])->name('properties.documents.download');
         Route::delete('properties/{property}/documents/{document}', [PropertyController::class, 'destroyDocument'])->name('properties.documents.destroy');
 
+        Route::get('contract-templates', [ContractTemplateController::class, 'index'])->name('contract-templates.index');
+        Route::post('contract-templates', [ContractTemplateController::class, 'store'])->name('contract-templates.store');
+        Route::put('contract-templates/{contractTemplate}', [ContractTemplateController::class, 'update'])->name('contract-templates.update');
+        Route::delete('contract-templates/{contractTemplate}', [ContractTemplateController::class, 'destroy'])->name('contract-templates.destroy');
+
         // Activity / Audit Logs
         Route::get('admin/activity-logs', [ActivityLogController::class, 'index'])
             ->name('admin.activity-logs.index');
@@ -151,6 +158,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('tenants/{tenant}/card', [TenantController::class, 'card'])->name('tenants.card');
         Route::get('tenants/{tenant}/documents/{document}', [TenantController::class, 'downloadDocument'])
             ->name('tenants.documents.download');
+        Route::get('tenants/{tenant}/leases/{lease}/contract', [LeaseContractController::class, 'show'])
+            ->name('tenants.leases.contract.show');
+        Route::get('tenants/{tenant}/leases/{lease}/contract-documents/{document}', [LeaseContractController::class, 'downloadSigned'])
+            ->name('tenants.leases.contract-documents.download');
     });
     Route::middleware('can:'.PermissionEnum::TENANTS_MANAGE->value)->group(function () {
         Route::post('tenants', [TenantController::class, 'store'])->name('tenants.store');
@@ -160,6 +171,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('tenants/{tenant}/documents', [TenantController::class, 'uploadDocuments'])->name('tenants.documents.store');
         Route::delete('tenants/{tenant}/documents/{document}', [TenantController::class, 'destroyDocument'])
             ->name('tenants.documents.destroy');
+        Route::post('tenants/{tenant}/leases/{lease}/contract-documents', [LeaseContractController::class, 'storeSigned'])
+            ->name('tenants.leases.contract-documents.store');
+        Route::delete('tenants/{tenant}/leases/{lease}/contract-documents/{document}', [LeaseContractController::class, 'destroySigned'])
+            ->name('tenants.leases.contract-documents.destroy');
     });
 
     // Inventory
