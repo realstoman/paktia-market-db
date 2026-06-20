@@ -132,15 +132,17 @@ class DashboardService
                         'address' => $property->address,
                         'isActive' => (bool) $property->is_active,
                         'floors' => (int) $property->floors_count,
-                        'shops' => $property->property_type === 'house'
-                            ? (int) ($property->rooms_count ?? 0)
-                            : (int) $property->units_count,
-                        'occupiedShops' => (int) $property->units()
-                            ->where('occupancy_status', 'occupied')
-                            ->count(),
-                        'availableShops' => (int) $property->units()
-                            ->where('occupancy_status', 'vacant')
-                            ->count(),
+                        'shops' => match ($property->property_type) {
+                            'house' => (int) ($property->rooms_count ?? 0),
+                            'commercial_unit' => 1,
+                            default => (int) $property->units_count,
+                        },
+                        'occupiedShops' => $property->property_type === 'commercial_unit'
+                            ? (int) in_array($property->operating_mode, ['owner_occupied', 'rented'], true)
+                            : (int) $property->units()->where('occupancy_status', 'occupied')->count(),
+                        'availableShops' => $property->property_type === 'commercial_unit'
+                            ? (int) ($property->operating_mode === 'vacant')
+                            : (int) $property->units()->where('occupancy_status', 'vacant')->count(),
                         'registeredTenants' => 0,
                         'inventoryItems' => (int) $property->inventory_items_count,
                         'employees' => (int) $property->employees_count,

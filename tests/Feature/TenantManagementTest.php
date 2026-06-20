@@ -34,7 +34,7 @@ function tenantProperty(string $type = 'market', string $name = 'Central Market'
     return Property::query()->create([
         'name' => $name,
         'property_type' => $type,
-        'usage_type' => in_array($type, ['market', 'mall'], true) ? 'commercial' : 'residential',
+        'usage_type' => in_array($type, ['market', 'mall', 'commercial_unit'], true) ? 'commercial' : 'residential',
         'country_id' => $country->id,
         'province_id' => $province->id,
         'address' => 'Gardez',
@@ -141,6 +141,102 @@ test('a residential block supports either an apartment or complete block assignm
     expect($lease->leased_space_type)->toBe('apartment')
         ->and($lease->property_floor_id)->toBe($apartment->property_floor_id);
 });
+
+test('a commercial unit is rented as one complete shop without internal market units', function () {
+    $property = tenantProperty('commercial_unit', 'Kabul Exchange Office');
+    $property->update([
+        'host_market_name' => 'Kabul Money Exchange Market',
+        'external_unit_number' => '47',
+        'operating_mode' => 'vacant',
+    ]);
+    $tenant = Tenant::query()->create([
+        'full_name' => 'Exchange Tenant',
+        'phone' => '0700000099',
+    ]);
+
+    $this->post(route('tenants.leases.store', $tenant), [
+        'property_id' => $property->id,
+        'property_unit_id' => null,
+        'start_date' => '2026-07-01',
+        'rent_amount' => 50000,
+        'payment_frequency' => 'monthly',
+        'status' => 'active',
+    ])->assertSessionHasNoErrors();
+
+    $lease = $tenant->leases()->firstOrFail();
+    expect($lease->leased_space_type)->toBe('shop')
+        ->and($lease->property_unit_id)->toBeNull()
+        ->and($property->fresh()->operating_mode)->toBe('rented');
+
+    $this->get(route('tenants.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('tenants.data.0.leases.0.property.external_unit_number', '47'));
+});
+
+test('tenant directory is paginated with fifteen records per page', function () {
+    foreach (range(1, 16) as $number) {
+        Tenant::query()->create([
+            'full_name' => "Tenant {$number}",
+            'phone' => "070000{$number}",
+        ]);
+    }
+
+    $this->get(route('tenants.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('tenants.per_page', 15)
+            ->where('tenants.total', 16)
+            ->where('tenants.last_page', 2)
+            ->has('tenants.data', 15));
+
+    $this->get(route('tenants.index', ['page' => 2]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('tenants.current_page', 2)
+            ->has('tenants.data', 1));
+});
+
+test('tenant edit cell action can open the profile edit dialog directly', function () {
+    $tenant = Tenant::query()->create([
+        'full_name' => 'Editable Tenant',
+        'phone' => '0700000100',
+    ]);
+
+    $this->get(route('tenants.show', ['tenant' => $tenant, 'edit' => 1]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('openEdit', true));
+});
+
+test('tenant status messages follow the selected locale', function (
+    string $locale,
+    bool $initialStatus,
+    string $expectedMessage,
+) {
+    $tenant = Tenant::query()->create([
+        'full_name' => 'احمد خان',
+        'business_name' => 'تجارت احمد',
+        'phone' => '0700000101',
+        'is_active' => $initialStatus,
+    ]);
+
+    $this->withUnencryptedCookie('locale', $locale)
+        ->post(route('tenants.toggle', $tenant))
+        ->assertRedirect()
+        ->assertSessionHas('success', $expectedMessage);
+})->with([
+    'Dari deactivation' => [
+        'fa',
+        true,
+        'تجارت احمد با موفقیت غیرفعال شد.',
+    ],
+    'Pashto activation' => [
+        'ps',
+        false,
+        'تجارت احمد په بریالیتوب سره فعال شو.',
+    ],
+]);
 
 test('finance users can view tenant profiles and cards but cannot manage tenants', function () {
     $tenant = Tenant::query()->create(['full_name' => 'View Only Tenant', 'phone' => '4']);

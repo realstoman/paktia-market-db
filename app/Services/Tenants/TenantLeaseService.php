@@ -26,6 +26,7 @@ class TenantLeaseService
             $data['property_unit_id'] = $unit?->id;
             $data['leased_space_type'] = match ($property->property_type) {
                 'market', 'mall' => 'shop',
+                'commercial_unit' => 'shop',
                 'house' => 'house',
                 'block' => $unit ? 'apartment' : 'block',
                 default => $unit?->unit_type ?? 'property',
@@ -35,6 +36,10 @@ class TenantLeaseService
 
             if ($unit && $lease->status === 'active') {
                 $unit->update(['occupancy_status' => 'occupied']);
+            }
+
+            if ($property->property_type === 'commercial_unit' && $lease->status === 'active') {
+                $property->update(['operating_mode' => 'rented']);
             }
 
             return $lease;
@@ -62,6 +67,12 @@ class TenantLeaseService
         if ($property->property_type === 'house' && $unit) {
             throw ValidationException::withMessages([
                 'property_unit_id' => 'A house is assigned as a complete property.',
+            ]);
+        }
+
+        if ($property->property_type === 'commercial_unit' && $unit) {
+            throw ValidationException::withMessages([
+                'property_unit_id' => 'A commercial unit is assigned as one complete shop or office.',
             ]);
         }
 

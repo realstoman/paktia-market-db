@@ -102,6 +102,7 @@ const ps = {
         tools: 'نورې برخې',
         managementTools: 'د مدیریت توکي',
         toolInventory: 'ګدام',
+        toolContracts: 'د قرارداد قالبونه',
         toolEmployees: 'کارکوونکي',
         toolShareholders: 'شریکان',
         toolCountries: 'هیوادونه',
@@ -171,6 +172,9 @@ const ps = {
             noCredentials: 'د جایداد د همغږۍ کومه اعتبارپاڼه نشته.',
         },
         notes: {
+            rentGrossProfit: 'تر عملیاتي لګښتونو مخکې ترلاسه شوې کرایه.',
+            rentCashPosition:
+                'ترلاسه شوې کرایه جمع منظور شوي نغدي داخلې منفي منظور شوي نغدي وتلې.',
             title: 'د اجرا یادښتونه (Runtime Notes)',
             projection:
                 'د لنډیز محاسبې روغتیا د جایداد په مالي محاسبو کې ځنډ څرګندوي.',
@@ -408,6 +412,36 @@ const ps = {
         viewProfile: 'پروفایل کتل',
         editProfile: 'پروفایل سمول',
         statusAction: 'حالت بدلول',
+        table: {
+            owner: 'مالک / مسؤل شخص',
+            business: 'د سوداګرۍ نوم',
+            shop: 'دوکان / دفتر',
+            property: 'جایداد',
+            finance: 'د قرارداد مالي حالت',
+            status: 'حالت',
+            actions: 'عملیات',
+            noBusiness: 'د سوداګرۍ نوم نشته',
+            unassigned: 'نه دی سپارل شوی',
+        },
+        actions: {
+            view: 'جزیات کتل',
+            edit: 'کرایه‌دار سمول',
+            financialStatus: 'مالي حالت',
+            printCard: 'د پېژند کارت چاپ',
+        },
+        statusConfirm: {
+            title: 'د کرایه‌دار د حالت بدلون تایید',
+            activateDescription:
+                'ایا :name فعال شي؟ د کرایه‌دار پروفایل به بیا د روانو چارو لپاره د کارولو وړ وي.',
+            deactivateDescription:
+                'ایا :name غیرفعال شي؟ پروفایل او مخینه به یې خوندي پاتې شي، خو کرایه‌دار به غیرفعال وښودل شي.',
+            confirmActivate: 'کرایه‌دار فعال کړئ',
+            confirmDeactivate: 'کرایه‌دار غیرفعال کړئ',
+            cancel: 'لغوه',
+        },
+        pagination: {
+            summary: 'له :total کرایه‌دارانو څخه :from تر :to ښودل کېږي',
+        },
         fields: {
             tenantType: 'د کرایه‌دار ډول',
             fullName: 'بشپړ نوم / مسؤل شخص',
@@ -479,6 +513,73 @@ const ps = {
             back: 'پروفایل ته ستنېدل',
             scanHelp: 'د پروفایل خلاصولو لپاره سکین کړئ',
         },
+    },
+    contractTemplates: {
+        title: 'د دري قرارداد قالبونه',
+        subtitle:
+            'د کرایې قراردادونه، مادې، استازی، لاسلیکونه او نښه د بیا کارولو لپاره تنظیم کړئ.',
+        create: 'د قرارداد قالب جوړول',
+        edit: 'قالب سمول',
+        empty: 'د قرارداد کوم قالب نشته.',
+        global: 'ټول جایدادونه',
+        propertySpecific: 'د ځانګړي جایداد قالب',
+        default: 'اصلي قالب',
+        active: 'فعال',
+        inactive: 'غیرفعال',
+        branding: 'د قرارداد هویت',
+        representative: 'د مالک استازی',
+        articles: 'د قرارداد مادې',
+        signatures: 'د لاسلیک برخه',
+        placeholders: 'خپلکار فیلډونه',
+        placeholdersHelp:
+            'په سریزه یا مادو کې دا فیلډونه وکاروئ: :tenant_name، :business_name، :property_name، :space، :start_date، :end_date، :rent_amount، :currency، :payment_frequency، :contract_number، :landlord_name، :landlord_position، :landlord_organization.',
+        fields: {
+            name: 'د قالب نوم',
+            title: 'په دري د قرارداد سرلیک',
+            intro: 'د قرارداد سریزه',
+            property: 'د جایداد ساحه',
+            logo: 'د قرارداد لوګو',
+            organization: 'د مالک ادارې نوم',
+            representativeName: 'د اجرائیه رئیس / استازي نوم',
+            representativePosition: 'دنده',
+            representativeContact: 'د اړیکې شمېره',
+            landlordSignature: 'د مالک د لاسلیک عنوان',
+            tenantSignature: 'د کرایه‌دار د لاسلیک عنوان',
+            witnessSignature: 'د شاهد د لاسلیک عنوان',
+            footer: 'وروستی متن',
+            articleNumber: 'د مادې شمېره',
+            articleTitle: 'د مادې سرلیک',
+            articleBody: 'د مادې متن',
+            isDefault: 'د اصلي قالب په توګه وکارول شي',
+            isActive: 'قالب فعال وي',
+        },
+        actions: {
+            addArticle: 'ماده زیاتول',
+            removeArticle: 'ماده حذف کول',
+            moveUp: 'پورته کول',
+            moveDown: 'ښکته کول',
+            save: 'قالب خوندي کول',
+            cancel: 'لغوه',
+            delete: 'قالب حذف کول',
+            deleteConfirm: 'د قرارداد دا قالب حذف شي؟',
+        },
+    },
+    leaseContract: {
+        pageTitle: 'د کرایې قرارداد',
+        back: 'کرایه‌دار ته ستنېدل',
+        print: 'قرارداد چاپول',
+        chooseTemplate: 'د قرارداد قالب',
+        signedDocuments: 'لاسلیک شوي قراردادونه',
+        signedHelp:
+            'له چاپ، لاسلیک او مهر وروسته د قرارداد اسکن شوې نسخه پورته کړئ.',
+        signedAt: 'د لاسلیک نېټه',
+        document: 'لاسلیک شوی PDF یا اسکن',
+        upload: 'لاسلیک شوی قرارداد پورته کول',
+        download: 'لاسلیک شوی قرارداد ښکته کول',
+        delete: 'لاسلیک شوی قرارداد حذف کول',
+        deleteConfirm: 'د لاسلیک شوي قرارداد دا فایل حذف شي؟',
+        emptySigned: 'تر اوسه لاسلیک شوی قرارداد نه دی پورته شوی.',
+        tableAction: 'قرارداد چاپول',
     },
     dashboardPage: {
         title: 'ډشبورډ',
@@ -1106,7 +1207,7 @@ const ps = {
         heroDescription:
             'د مارکېټ، جایداد، ګدام، مالي، کارکوونکو او لاسرسي راپورونه په یوه منظم ځای کې وګورئ.',
         badges: {
-            liveFamilies: '۵ فعال راپور کورنۍ',
+            liveFamilies: '۷ فعال راپور کورنۍ',
             pdf: 'اصلي PDF خروجی',
             excel: 'Excel .xlsx خروجی',
             presets: 'خوندي شوې بڼې',
@@ -1192,6 +1293,9 @@ const ps = {
             roleMixDescription: 'د ټاکل شویو صلاحیتونو له مخې د کارنانو وېش.',
             unknown: 'نامعلوم',
             unassigned: 'نه دی ټاکل شوی',
+            rentalBalances: 'پاتې کرایه',
+            rentalBalancesDescription:
+                'په ټاکلې موده کې د هر کرایه‌دار قرارداد پاتې کرایه.',
         },
         insights: {
             empty: 'د دې راپور مودې لپاره تحلیلي مورد نشته.',
@@ -1446,6 +1550,59 @@ const ps = {
             shiftDeleted: 'شیفټ ړنګ شو.',
         },
     },
+    rentals: {
+        pageTitle: 'د کرایې او قراردادونو مالي برخه',
+        subtitle:
+            'د کرایه‌دارانو تادیات ثبت کړئ او د هرې جایداد قراردادي عاید او پاتې کرایه له یوه دفتره مدیریت کړئ.',
+        back: 'مالي برخې ته ستنېدل',
+        recordPayment: 'د کرایې تادیه ثبت کړئ',
+        recordHelp:
+            'د کرایه‌دار قرارداد وټاکئ او د کرایې موده او د تادیې معلومات ثبت کړئ.',
+        allProperties: 'ټولې جایدادونه',
+        apply: 'فلټرونه عملي کړئ',
+        paymentHistory: 'د کرایې تادیاتو تاریخچه',
+        empty: 'په دې موده کې د کرایې تادیه ونه موندل شوه.',
+        selectLease: 'د کرایه‌دار قرارداد وټاکئ',
+        save: 'تادیه خوندي کړئ',
+        void: 'باطلول',
+        voidTitle: 'د کرایې تادیه باطله کړئ',
+        voidHelp:
+            'ریکارډ د پلټنې لپاره پاتې کېږي، خو له مالي حسابونو څخه ایستل کېږي.',
+        voidReason: 'د باطلولو دلیل',
+        confirmVoid: 'تادیه باطله کړئ',
+        summary: {
+            expected: 'قراردادي کرایه',
+            received: 'ترلاسه شوې کرایه',
+            outstanding: 'پاتې کرایه',
+            activeLeases: 'فعال قراردادونه',
+            contractCoverage: ':signed لاسلیک شوي · :unsigned بې اسکنه',
+        },
+        fields: {
+            property: 'جایداد',
+            startDate: 'د پیل نېټه',
+            endDate: 'د پای نېټه',
+            lease: 'د کرایه‌دار قرارداد',
+            periodStart: 'د کرایې مودې پیل',
+            periodEnd: 'د کرایې مودې پای',
+            paymentDate: 'د تادیې نېټه',
+            amount: 'ترلاسه شوی مبلغ',
+            method: 'د تادیې طریقه',
+            reference: 'مرجع',
+            notes: 'یادښتونه',
+        },
+        table: {
+            receipt: 'رسید',
+            date: 'د تادیې نېټه',
+            tenant: 'کرایه‌دار / قرارداد',
+            property: 'جایداد',
+            period: 'د کرایې موده',
+            method: 'طریقه',
+            amount: 'مبلغ',
+            status: 'حالت',
+            actions: 'عملیات',
+        },
+        status: { received: 'ترلاسه شوې', void: 'باطله شوې' },
+    },
     financeDashboard: {
         pageTitle: 'مالي ډشبورډ',
         eyebrow: 'مالي ډشبورډ',
@@ -1495,8 +1652,17 @@ const ps = {
             },
         },
         summary: {
-            sales: 'پلور',
-            salesSubtitle: 'په ټاکلې موده کې د بشپړو شویو امرونو عاید',
+            sales: 'ترلاسه شوې کرایه',
+            salesSubtitle: 'په ټاکلې موده کې ترلاسه شوې د کرایه‌دارانو کرایه',
+            rentExpected: 'قراردادي کرایه',
+            rentExpectedSubtitle:
+                'په دې موده کې د فعالو قراردادونو د ورکړې کرایه',
+            rentOutstanding: 'پاتې کرایه',
+            rentOutstandingSubtitle:
+                'هغه قراردادي کرایه چې لا نه ده ترلاسه شوې',
+            activeLeases: 'فعال قراردادونه',
+            activeLeasesSubtitle:
+                'د کرایه‌دارانو او جایدادونو اوسني قراردادونه',
             expenses: 'لګښتونه',
             expensesSubtitle: 'ثبت شوي عملیاتي لګښتونه',
             grossProfit: 'ناخالصه ګټه',
@@ -1567,6 +1733,7 @@ const ps = {
                 employeeAdvances: 'د کارکوونکو مخکېني ورکړې',
                 cashBank: 'نغدې او بانک',
                 inventoryValuation: 'د موجودۍ ارزښت ټاکنه',
+                rentLeases: 'کرایه او قراردادونه',
             },
             descriptions: {
                 chartOfAccounts:
@@ -1583,6 +1750,8 @@ const ps = {
                     'کیش درازونه، سپارښتې، د مالک تمویل او لاسي داخلې یا وتلې وڅارئ.',
                 inventoryValuation:
                     'د وزن‌دار اوسط لګښت، د موجودۍ ارزښت او د پلور لګښت چمتووالی تعقیب کړئ.',
+                rentLeases:
+                    'د کرایه‌دارانو تادیات، قراردادي مکلفیتونه او پاتې کرایه مدیریت کړئ.',
             },
             status: {
                 ready: 'چمتو',
@@ -1601,7 +1770,20 @@ const ps = {
                 balance: 'مانده',
                 skus: 'توکي',
                 value: 'ارزښت',
+                received: 'ترلاسه شوې',
+                outstanding: 'پاتې',
             },
+        },
+        shareholderPnl: {
+            title: 'د شریکانو ګټه او زیان',
+            description:
+                'د ټاکلې مودې د جایداد مالي پایله د اغېزمنې ونډې فیصدۍ له مخې وېشل کېږي.',
+            shareholder: 'شریک',
+            property: 'جایداد',
+            share: 'د ونډې فیصدۍ',
+            net: 'د جایداد ګټه او زیان',
+            allocated: 'د شریک ګټه او زیان',
+            empty: 'په دې موده کې کوم اغېزمن شریک نه دی ټاکل شوی.',
         },
         generalLedger: {
             title: 'د عمومي لیجر مخکتنه',
@@ -2966,7 +3148,8 @@ const ps = {
 
     propertyWorkspace: {
         title: 'مارکېټونه او جایدادونه',
-        subtitle: 'د ټولو مارکېټونو، مالونو، بلاکونو او کورونو روښانه کتنه.',
+        subtitle:
+            'د ټولو مارکېټونو، مالونو، سوداګریزو واحدونو، بلاکونو او کورونو روښانه کتنه.',
         register: 'جایداد ثبت کړئ',
         registerTitle: 'مارکېټ یا جایداد ثبت کړئ',
         registerHelp:
@@ -2984,6 +3167,7 @@ const ps = {
         markets: 'مارکېټونه او مالونه',
         homes: 'کورونه او بلاکونه',
         spaces: 'ثبت شوي ځایونه',
+        commercialUnit: 'سوداګریز واحد',
         search: 'د نوم، پتې یا ولایت له مخې لټون…',
         searchOptions: 'غوراوي ولټوئ…',
         noOptions: 'سمون لرونکی غوراوی ونه موندل شو.',
@@ -3029,6 +3213,11 @@ const ps = {
         deleteSpace: 'دا ځای حذف شي؟',
         houseHelp:
             'د کور معلومات د جایداد په کچه اداره کېږي او وروسته ټول کور یوه کرایي قرارداد ته سپارل کېږي.',
+        commercialUnitHelp:
+            'دا په هغه بهرني مارکېټ کې یو ملکیت شوی دوکان یا دفتر دی چې نور یې اداره کوي. د هغه مارکېټ نور واحدونه نه ثبتېږي.',
+        commercialUnitManagement: 'د سوداګریز واحد مدیریت',
+        commercialUnitRentalHelp:
+            'د مالک د کارونې پر مهال کارکوونکي او لګښتونه همدې واحد ته وتړئ؛ د کرایې پر مهال ټول واحد یوه کرایه‌دار ته وسپارئ.',
         uploadPhoto: 'د جایداد انځور پورته کړئ',
         uploadPhotoHelp: 'PNG، JPG یا WebP تر ۵ مېګابایټه پورې.',
         choosePhoto: 'انځور وټاکئ',
@@ -3064,6 +3253,13 @@ const ps = {
             waterMeter: 'د اوبو میتر',
             shopNumber: 'د دوکان نمبر',
             apartmentNumber: 'د اپارتمان نمبر',
+            hostMarketName: 'د بهرني مارکېټ نوم',
+            externalUnitNumber: 'د دوکان / دفتر نمبر',
+            externalFloor: 'په بهرني مارکېټ کې منزل',
+            ownershipType: 'د مالکیت حالت',
+            operatingMode: 'د اوسني استعمال حالت',
+            businessActivities: 'سوداګریز فعالیتونه',
+            titleDeedNumber: 'د قبالې / مالکیت سند نمبر',
         },
         languages: { fa: 'دري', ps: 'پښتو', en: 'انګلیسي' },
         dariRequired: 'دري اړینه ده او د نورو ژباړو د نشتون پر مهال ښودل کېږي.',
@@ -3073,8 +3269,41 @@ const ps = {
             mall: 'مال',
             block: 'استوګنیز بلاک',
             house: 'کور',
+            commercial_unit: 'سوداګریز واحد / دوکان–دفتر',
         },
         usage: { commercial: 'سوداګریز', residential: 'استوګنیز', mixed: 'ګډ' },
+        ownership: {
+            owned: 'د شرکت ملکیت',
+            leased: 'د شرکت له خوا په کرایه اخیستل شوی',
+            managed: 'د بل مالک لپاره اداره کېږي',
+        },
+        operatingMode: {
+            owner_occupied: 'د مالک له خوا کارول کېږي',
+            vacant: 'خالي او کرایې ته چمتو',
+            rented: 'کرایه ورکړل شوی',
+            maintenance: 'تر ترمیم لاندې',
+        },
+        businessActivities: {
+            money_exchange: 'صرافي',
+            jewelry: 'زرګري او ګاڼې',
+            office: 'دفتر',
+            retail: 'پرچون پلور',
+            other: 'نور',
+        },
+        documents: {
+            title: 'د مالکیت اسناد',
+            help: 'قباله، د پېر قرارداد، د مالکیت ثبوت او نور شخصي اسناد خوندي کړئ.',
+            upload: 'اسناد پورته کړئ',
+            empty: 'تر اوسه د دې جایداد کوم سند نه دی پورته شوی.',
+            delete: 'سند حذف کړئ',
+            deleteConfirm: 'د جایداد دا سند حذف شي؟',
+            types: {
+                title_deed: 'د مالکیت قباله',
+                purchase_contract: 'د پېر قرارداد',
+                ownership: 'د مالکیت ثبوت',
+                other: 'بل سند',
+            },
+        },
         selectCountry: 'هېواد وټاکئ',
         selectProvince: 'ولایت وټاکئ',
         cancel: 'لغوه',

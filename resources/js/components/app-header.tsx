@@ -34,6 +34,7 @@ import {
     ChevronDown,
     ClipboardList,
     ContactRound,
+    FileSignature,
     Globe2,
     Handshake,
     LayoutGrid,
@@ -100,6 +101,13 @@ const primaryNavConfig: HeaderNavConfig[] = [
 ];
 
 const toolNavConfig: HeaderNavConfig[] = [
+    {
+        titleKey: 'navigation.toolContracts',
+        fallbackTitle: 'Contract Templates',
+        href: '/contract-templates',
+        icon: FileSignature,
+        superAdminOnly: true,
+    },
     {
         titleKey: 'navigation.toolInventory',
         fallbackTitle: 'Inventory',

@@ -12,7 +12,16 @@ return [
         ],
         'finance' => [
             'title' => 'مالي',
-            'description' => 'د لګښتونو او نغدي حرکتونو فعالیت.',
+            'description' => 'د کرایې عاید، لګښتونه او عملیاتي پایله.',
+        ],
+        'rentals' => [
+            'title' => 'کرایه او قراردادونه',
+            'description' => 'د کرایه‌دارانو قراردادونه، د کرایې راټولول، پاتې پیسې او لاسلیک شوي اسناد.',
+        ],
+        'shareholders' => ['title' => 'د شریکانو ګټه او زیان', 'description' => 'د هرې جایداد د ونډې فیصدۍ له مخې د ګټې او زیان وېش.'],
+        'properties' => [
+            'title' => 'مارکېټونه او جایدادونه',
+            'description' => 'په جایدادونو کې د کارکوونکو او ګدام پوښښ.',
         ],
         'branches' => [
             'title' => 'مارکېټونه او جایدادونه',
@@ -29,6 +38,11 @@ return [
         'employees' => 'کارکوونکي',
         'active_employees' => 'فعال کارکوونکي',
         'approved_expenses' => 'منظور شوي لګښتونه',
+        'rent_received' => 'ترلاسه شوې کرایه',
+        'active_leases' => 'فعال قراردادونه',
+        'rent_outstanding' => 'پاتې کرایه',
+        'shareholder_allocations' => 'د شریکانو تخصیصونه',
+        'allocated_pnl' => 'تخصیص شوې ګټه او زیان',
         'pending_approvals' => 'د منظورۍ په تمه',
         'branches' => 'مارکېټونه',
         'active_branches' => 'فعال مارکېټونه',
@@ -46,7 +60,16 @@ return [
         ],
         'finance' => [
             'title' => 'مالي راپور',
-            'description' => 'د ټاکلې مودې د لګښتونو فعالیت.',
+            'description' => 'د ټاکلې مودې د کرایې عاید او لګښتونه.',
+        ],
+        'rentals' => [
+            'title' => 'د کرایې او قراردادونو راپور',
+            'description' => 'قراردادي مکلفیتونه، ترلاسه شوې او پاتې کرایه، او لاسلیک شوي قراردادونه.',
+        ],
+        'shareholders' => ['title' => 'د شریکانو د ګټې او زیان راپور', 'description' => 'د جایداد ګټه یا زیان د اغېزمنې ونډې فیصدۍ له مخې وېشل کېږي.'],
+        'properties' => [
+            'title' => 'د مارکېټونو او جایدادونو راپور',
+            'description' => 'په جایدادونو کې د کارکوونکو او ګدام پوښښ.',
         ],
         'branches' => [
             'title' => 'د مارکېټونو او جایدادونو راپور',
@@ -75,6 +98,18 @@ return [
         'user' => 'کارن',
         'email' => 'ایمیل',
         'roles' => 'صلاحیتونه',
+        'property' => 'جایداد',
+        'source' => 'سرچینه',
+        'tenant' => 'کرایه‌دار',
+        'business' => 'د سوداګرۍ نوم',
+        'space' => 'دوکان / ځای',
+        'contract' => 'قرارداد',
+        'contract_period' => 'د قرارداد موده',
+        'expected_rent' => 'قراردادي کرایه',
+        'received' => 'ترلاسه شوې',
+        'outstanding' => 'پاتې',
+        'signed_contract' => 'لاسلیک شوی قرارداد',
+        'shareholder' => 'شریک', 'share_percentage' => 'د ونډې فیصدۍ', 'rent_revenue' => 'د کرایې عاید', 'expenses' => 'لګښتونه', 'net_pnl' => 'د جایداد ګټه او زیان', 'shareholder_pnl' => 'د شریک ګټه او زیان',
     ],
     'status' => [
         'unassigned' => 'نه دی ټاکل شوی',
@@ -87,6 +122,10 @@ return [
         'submitted' => 'سپارل شوی',
         'approved' => 'منظور شوی',
         'rejected' => 'رد شوی',
+        'received' => 'ترلاسه شوې',
+        'uploaded' => 'پورته شوی',
+        'missing' => 'نشته',
+        'whole_property' => 'ټوله جایداد',
     ],
     'summary' => [
         'stock_items' => 'د ګدام توکي',
@@ -95,6 +134,12 @@ return [
         'active' => 'فعال',
         'expenses' => 'لګښتونه',
         'approved_amount' => 'منظور شوی مبلغ',
+        'rent_received' => 'ترلاسه شوې کرایه',
+        'net_operating' => 'خالصه عملیاتي پایله',
+        'active_leases' => 'فعال قراردادونه',
+        'expected_rent' => 'قراردادي کرایه',
+        'rent_outstanding' => 'پاتې کرایه',
+        'property_net_pnl' => 'د جایداد خالصه ګټه او زیان', 'shareholder_allocated_pnl' => 'شریکانو ته تخصیص شوې ګټه او زیان',
         'branches' => 'مارکېټونه',
         'accounts' => 'حسابونه',
     ],
@@ -109,4 +154,5 @@ return [
     'reference' => [
         'expense' => 'لګښت #:id',
     ],
+    'source' => ['expense' => 'لګښت', 'rent' => 'د کرایې تادیه'],
 ];

@@ -1,6 +1,16 @@
 import InputError from '@/components/input-error';
 import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -13,8 +23,24 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
@@ -26,23 +52,48 @@ import {
     SharedData,
     Tenant,
 } from '@/types';
+import { formatNumber } from '@/utils/format';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import {
+    Banknote,
     Building2,
+    ChevronLeft,
+    ChevronRight,
     ContactRound,
+    Eye,
+    FileSignature,
     IdCard,
-    MapPin,
+    MoreHorizontal,
+    Pencil,
     Plus,
+    Printer,
     ScanLine,
     Search,
     ShieldCheck,
     Store,
     UserRound,
 } from 'lucide-react';
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, Fragment, useEffect, useMemo, useState } from 'react';
+
+interface TenantPaginator {
+    data: Tenant[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    from: number | null;
+    to: number | null;
+    total: number;
+}
 
 interface Props {
-    tenants: Tenant[];
+    tenants: TenantPaginator;
+    summary: {
+        total: number;
+        assigned: number;
+        businesses: number;
+        properties: number;
+    };
+    filters: { search?: string };
     properties: Property[];
     currencies: Currency[];
     initialPropertyId?: number | null;
@@ -115,21 +166,39 @@ const initials = (name: string) =>
         .map((part) => part[0])
         .join('')
         .toUpperCase();
-const spaceLabel = (
-    lease: Lease | undefined,
-    t: (key: string, fallback?: string) => string,
-) => {
-    if (!lease) return t('tenants.lease.noAssignment');
-    const type = t(
-        `tenants.lease.${lease.leased_space_type}`,
-        lease.leased_space_type,
-    );
-    const unit = lease.unit ? ` ${lease.unit.unit_number}` : '';
-    return `${lease.property?.name ?? ''} · ${type}${unit}`;
-};
+const shopNumber = (lease?: Lease) =>
+    lease?.unit?.unit_number ??
+    (lease?.property?.property_type === 'commercial_unit'
+        ? lease.property.external_unit_number
+        : null);
+
+function buildPageNumbers(currentPage: number, lastPage: number) {
+    if (lastPage <= 7) {
+        return Array.from({ length: lastPage }, (_, index) => index + 1);
+    }
+
+    const pages = new Set<number>([1, lastPage]);
+
+    for (let page = currentPage - 1; page <= currentPage + 1; page += 1) {
+        if (page > 1 && page < lastPage) pages.add(page);
+    }
+
+    if (currentPage <= 3) [2, 3, 4].forEach((page) => pages.add(page));
+    if (currentPage >= lastPage - 2) {
+        [lastPage - 1, lastPage - 2, lastPage - 3].forEach((page) =>
+            pages.add(page),
+        );
+    }
+
+    return [...pages]
+        .filter((page) => page >= 1 && page <= lastPage)
+        .sort((left, right) => left - right);
+}
 
 export default function TenantsIndex({
     tenants,
+    summary,
+    filters,
     properties,
     currencies,
     initialPropertyId,
@@ -138,33 +207,65 @@ export default function TenantsIndex({
     const { auth } = usePage<SharedData>().props;
     const canManage =
         auth.is_super_admin || auth.permissions.includes('tenants.manage');
-    const [search, setSearch] = useState('');
+    const [search, setSearch] = useState(filters.search ?? '');
     const [scan, setScan] = useState('');
     const [open, setOpen] = useState(false);
-    const visible = useMemo(() => {
-        const query = search.trim().toLowerCase();
-        if (!query) return tenants;
-        return tenants.filter((tenant) =>
-            `${tenant.full_name} ${tenant.business_name ?? ''} ${tenant.phone} ${tenant.card_code}`
-                .toLowerCase()
-                .includes(query),
+    const pageNumbers = useMemo(
+        () => buildPageNumbers(tenants.current_page, tenants.last_page),
+        [tenants.current_page, tenants.last_page],
+    );
+
+    useEffect(() => {
+        if (search.trim() === (filters.search ?? '')) return;
+
+        const timeout = window.setTimeout(() => {
+            router.get(
+                '/tenants',
+                {
+                    search: search.trim() || undefined,
+                    property_id: initialPropertyId || undefined,
+                },
+                {
+                    preserveState: true,
+                    preserveScroll: true,
+                    replace: true,
+                    only: ['tenants', 'summary', 'filters'],
+                },
+            );
+        }, 350);
+
+        return () => window.clearTimeout(timeout);
+    }, [filters.search, initialPropertyId, search]);
+
+    const goToPage = (page: number) => {
+        router.get(
+            '/tenants',
+            {
+                page,
+                search: search.trim() || undefined,
+                property_id: initialPropertyId || undefined,
+            },
+            {
+                preserveState: true,
+                preserveScroll: true,
+                only: ['tenants', 'summary', 'filters'],
+            },
         );
-    }, [search, tenants]);
-    const activeLeases = tenants.filter((tenant) =>
-        currentLease(tenant),
-    ).length;
-    const propertyCount = new Set(
-        tenants.flatMap((tenant) =>
-            (tenant.leases ?? []).map((lease) => lease.property_id),
-        ),
-    ).size;
+    };
     const openScannedProfile = () => {
-        const match = tenants.find(
+        const match = tenants.data.find(
             (tenant) =>
                 tenant.card_code.toLowerCase() === scan.trim().toLowerCase(),
         );
-        if (match) router.visit(`/tenants/${match.id}`);
-        else setSearch(scan);
+        if (match) {
+            router.visit(`/tenants/${match.id}`);
+            return;
+        }
+
+        router.get('/tenants', {
+            scan: scan.trim(),
+            property_id: initialPropertyId || undefined,
+        });
     };
     const breadcrumbs: BreadcrumbItem[] = [
         { title: t('navigation.dashboard'), href: '/dashboard' },
@@ -224,14 +325,14 @@ export default function TenantsIndex({
 
                 <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                     {[
-                        [ContactRound, t('tenants.total'), tenants.length],
-                        [IdCard, t('tenants.assigned'), activeLeases],
+                        [ContactRound, t('tenants.total'), summary.total],
+                        [IdCard, t('tenants.assigned'), summary.assigned],
+                        [Store, t('tenants.businesses'), summary.businesses],
                         [
-                            Store,
-                            t('tenants.businesses'),
-                            tenants.filter((item) => item.business_name).length,
+                            Building2,
+                            t('tenants.properties'),
+                            summary.properties,
                         ],
-                        [Building2, t('tenants.properties'), propertyCount],
                     ].map(([Icon, label, value], index) => (
                         <Card
                             key={index}
@@ -299,93 +400,287 @@ export default function TenantsIndex({
                     </div>
                 </section>
 
-                {visible.length ? (
-                    <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                        {visible.map((tenant) => {
-                            const lease = currentLease(tenant);
-                            return (
-                                <Card
-                                    key={tenant.id}
-                                    className="group overflow-hidden rounded-2xl border-border/60 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-                                >
-                                    <div className="h-1.5 bg-gradient-to-r from-emerald-500 via-primary to-sky-500" />
-                                    <CardContent className="p-5">
-                                        <div className="flex items-start gap-4">
-                                            <Avatar className="h-14 w-14 rounded-2xl">
-                                                <AvatarImage
-                                                    src={
-                                                        tenant.photo_url ??
-                                                        undefined
-                                                    }
-                                                />
-                                                <AvatarFallback className="rounded-2xl bg-primary/10 text-primary">
-                                                    {initials(tenant.full_name)}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                            <div className="min-w-0 flex-1">
-                                                <div className="flex items-start justify-between gap-2">
+                {tenants.data.length ? (
+                    <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
+                        <Table>
+                            <TableHeader className="bg-[#edf1f4]">
+                                <TableRow className="hover:bg-transparent">
+                                    <TableHead className="min-w-64 px-4 text-start">
+                                        {t('tenants.table.owner')}
+                                    </TableHead>
+                                    <TableHead className="min-w-48 text-start">
+                                        {t('tenants.table.business')}
+                                    </TableHead>
+                                    <TableHead className="min-w-32 text-start">
+                                        {t('tenants.table.shop')}
+                                    </TableHead>
+                                    <TableHead className="min-w-48 text-start">
+                                        {t('tenants.table.property')}
+                                    </TableHead>
+                                    <TableHead className="min-w-44 text-start">
+                                        {t('tenants.table.finance')}
+                                    </TableHead>
+                                    <TableHead className="text-start">
+                                        {t('tenants.table.status')}
+                                    </TableHead>
+                                    <TableHead className="w-16 px-4 text-end">
+                                        {t('tenants.table.actions')}
+                                    </TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {tenants.data.map((tenant) => {
+                                    const lease = currentLease(tenant);
+                                    const number = shopNumber(lease);
+
+                                    return (
+                                        <TableRow
+                                            key={tenant.id}
+                                            tabIndex={0}
+                                            role="link"
+                                            className="cursor-pointer"
+                                            onClick={() =>
+                                                router.visit(
+                                                    `/tenants/${tenant.id}`,
+                                                )
+                                            }
+                                            onKeyDown={(event) => {
+                                                if (
+                                                    event.key === 'Enter' ||
+                                                    event.key === ' '
+                                                ) {
+                                                    event.preventDefault();
+                                                    router.visit(
+                                                        `/tenants/${tenant.id}`,
+                                                    );
+                                                }
+                                            }}
+                                        >
+                                            <TableCell className="px-4 py-3">
+                                                <div className="flex items-center gap-3">
+                                                    <Avatar className="size-11 shrink-0 rounded-xl border bg-white">
+                                                        <AvatarImage
+                                                            src={
+                                                                tenant.photo_url ??
+                                                                undefined
+                                                            }
+                                                            className="object-cover"
+                                                        />
+                                                        <AvatarFallback className="rounded-xl bg-primary/10 text-primary">
+                                                            {initials(
+                                                                tenant.full_name,
+                                                            )}
+                                                        </AvatarFallback>
+                                                    </Avatar>
                                                     <div className="min-w-0">
-                                                        <h2 className="truncate text-lg font-semibold">
-                                                            {tenant.business_name ||
-                                                                tenant.full_name}
-                                                        </h2>
-                                                        {tenant.business_name && (
-                                                            <p className="truncate text-sm text-muted-foreground">
-                                                                {
-                                                                    tenant.full_name
-                                                                }
-                                                            </p>
-                                                        )}
+                                                        <p className="truncate font-semibold">
+                                                            {tenant.full_name}
+                                                        </p>
+                                                        <p className="truncate text-xs text-muted-foreground">
+                                                            {tenant.phone} ·{' '}
+                                                            {tenant.card_code}
+                                                        </p>
                                                     </div>
-                                                    <Badge
-                                                        variant={
-                                                            tenant.is_active
-                                                                ? 'default'
-                                                                : 'secondary'
-                                                        }
-                                                    >
-                                                        {t(
-                                                            tenant.is_active
-                                                                ? 'tenants.active'
-                                                                : 'tenants.inactive',
-                                                        )}
-                                                    </Badge>
                                                 </div>
-                                            </div>
-                                        </div>
-                                        <div className="mt-5 space-y-2.5 rounded-xl bg-muted/45 p-3 text-sm">
-                                            <p className="flex items-center gap-2">
-                                                <MapPin className="h-4 w-4 shrink-0 text-primary" />
-                                                <span className="truncate">
-                                                    {spaceLabel(lease, t)}
-                                                </span>
-                                            </p>
-                                            <p className="flex items-center gap-2 font-mono text-xs text-muted-foreground">
-                                                <IdCard className="h-4 w-4" />
-                                                {tenant.card_code}
-                                            </p>
-                                        </div>
-                                        <div className="mt-4 flex items-center justify-between">
-                                            <span className="text-sm text-muted-foreground">
-                                                {tenant.phone}
-                                            </span>
-                                            <Button
-                                                asChild
-                                                variant="outline"
-                                                size="sm"
-                                                className="rounded-lg"
-                                            >
-                                                <Link
-                                                    href={`/tenants/${tenant.id}`}
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="max-w-56">
+                                                    <p className="truncate font-medium">
+                                                        {tenant.business_name ||
+                                                            t(
+                                                                'tenants.table.noBusiness',
+                                                            )}
+                                                    </p>
+                                                    <p className="text-xs text-muted-foreground">
+                                                        {t(
+                                                            `tenants.${tenant.tenant_type}`,
+                                                        )}
+                                                    </p>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                {number ? (
+                                                    <Badge variant="outline">
+                                                        {t(
+                                                            'tenants.lease.shop',
+                                                        )}{' '}
+                                                        {number}
+                                                    </Badge>
+                                                ) : (
+                                                    <span className="text-muted-foreground">
+                                                        —
+                                                    </span>
+                                                )}
+                                            </TableCell>
+                                            <TableCell>
+                                                <div className="max-w-60">
+                                                    <p className="truncate font-medium">
+                                                        {lease?.property
+                                                            ?.name ??
+                                                            t(
+                                                                'tenants.table.unassigned',
+                                                            )}
+                                                    </p>
+                                                    {lease?.floor && (
+                                                        <p className="truncate text-xs text-muted-foreground">
+                                                            {lease.floor.name}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                {lease ? (
+                                                    <div>
+                                                        <p className="font-semibold">
+                                                            {lease.rent_amount
+                                                                ? formatNumber(
+                                                                      lease.rent_amount,
+                                                                  )
+                                                                : '—'}{' '}
+                                                            <span className="text-xs font-normal text-muted-foreground">
+                                                                {lease.currency
+                                                                    ?.code ??
+                                                                    ''}
+                                                            </span>
+                                                        </p>
+                                                        <p className="text-xs text-muted-foreground">
+                                                            {t(
+                                                                `tenants.lease.${lease.payment_frequency}`,
+                                                            )}{' '}
+                                                            ·{' '}
+                                                            {t(
+                                                                `tenants.lease.${lease.status}`,
+                                                            )}
+                                                        </p>
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-sm text-muted-foreground">
+                                                        {t(
+                                                            'tenants.lease.noAssignment',
+                                                        )}
+                                                    </span>
+                                                )}
+                                            </TableCell>
+                                            <TableCell>
+                                                <Badge
+                                                    variant={
+                                                        tenant.is_active
+                                                            ? 'default'
+                                                            : 'secondary'
+                                                    }
                                                 >
-                                                    {t('tenants.viewProfile')}
-                                                </Link>
-                                            </Button>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            );
-                        })}
+                                                    {t(
+                                                        tenant.is_active
+                                                            ? 'tenants.active'
+                                                            : 'tenants.inactive',
+                                                    )}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell
+                                                className="px-4 text-end"
+                                                onClick={(event) =>
+                                                    event.stopPropagation()
+                                                }
+                                                onKeyDown={(event) =>
+                                                    event.stopPropagation()
+                                                }
+                                            >
+                                                <TenantRowActions
+                                                    tenant={tenant}
+                                                    lease={lease}
+                                                    canManage={canManage}
+                                                />
+                                            </TableCell>
+                                        </TableRow>
+                                    );
+                                })}
+                            </TableBody>
+                        </Table>
+                        <div className="flex flex-col gap-3 border-t bg-[#f8f9fd] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                            <p className="text-sm text-muted-foreground">
+                                {t('tenants.pagination.summary')
+                                    .replace(':from', String(tenants.from ?? 0))
+                                    .replace(':to', String(tenants.to ?? 0))
+                                    .replace(':total', String(tenants.total))}
+                            </p>
+                            {tenants.last_page > 1 && (
+                                <div className="flex flex-wrap items-center gap-1.5">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        disabled={tenants.current_page <= 1}
+                                        onClick={() =>
+                                            goToPage(tenants.current_page - 1)
+                                        }
+                                        aria-label={t('common.previousPage')}
+                                    >
+                                        {isRtl ? (
+                                            <ChevronRight className="size-4" />
+                                        ) : (
+                                            <ChevronLeft className="size-4" />
+                                        )}
+                                    </Button>
+                                    {pageNumbers.map((page, index) => {
+                                        const previous = pageNumbers[index - 1];
+                                        const showGap =
+                                            previous !== undefined &&
+                                            page - previous > 1;
+
+                                        return (
+                                            <Fragment key={page}>
+                                                {showGap && (
+                                                    <span className="px-1 text-muted-foreground">
+                                                        …
+                                                    </span>
+                                                )}
+                                                <Button
+                                                    type="button"
+                                                    variant={
+                                                        page ===
+                                                        tenants.current_page
+                                                            ? 'default'
+                                                            : 'outline'
+                                                    }
+                                                    size="sm"
+                                                    className="min-w-9"
+                                                    onClick={() =>
+                                                        goToPage(page)
+                                                    }
+                                                    aria-current={
+                                                        page ===
+                                                        tenants.current_page
+                                                            ? 'page'
+                                                            : undefined
+                                                    }
+                                                >
+                                                    {page}
+                                                </Button>
+                                            </Fragment>
+                                        );
+                                    })}
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        disabled={
+                                            tenants.current_page >=
+                                            tenants.last_page
+                                        }
+                                        onClick={() =>
+                                            goToPage(tenants.current_page + 1)
+                                        }
+                                        aria-label={t('common.nextPage')}
+                                    >
+                                        {isRtl ? (
+                                            <ChevronLeft className="size-4" />
+                                        ) : (
+                                            <ChevronRight className="size-4" />
+                                        )}
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
                     </section>
                 ) : (
                     <div className="rounded-2xl border border-dashed bg-card py-16 text-center text-muted-foreground">
@@ -395,6 +690,145 @@ export default function TenantsIndex({
                 )}
             </div>
         </AppLayout>
+    );
+}
+
+function TenantRowActions({
+    tenant,
+    lease,
+    canManage,
+}: {
+    tenant: Tenant;
+    lease?: Lease;
+    canManage: boolean;
+}) {
+    const { t, isRtl } = useLocalization();
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [isChangingStatus, setIsChangingStatus] = useState(false);
+
+    const changeStatus = () => {
+        router.post(
+            `/tenants/${tenant.id}/toggle`,
+            {},
+            {
+                preserveScroll: true,
+                onStart: () => setIsChangingStatus(true),
+                onFinish: () => {
+                    setIsChangingStatus(false);
+                    setConfirmOpen(false);
+                },
+            },
+        );
+    };
+
+    return (
+        <>
+            <DropdownMenu modal={false}>
+                <DropdownMenuTrigger asChild>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        aria-label={t('tenants.table.actions')}
+                    >
+                        <MoreHorizontal className="size-4" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="min-w-52">
+                    <DropdownMenuLabel>
+                        {t('tenants.table.actions')}
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                        <Link href={`/tenants/${tenant.id}`}>
+                            <Eye />
+                            {t('tenants.actions.view')}
+                        </Link>
+                    </DropdownMenuItem>
+                    {canManage && (
+                        <DropdownMenuItem asChild>
+                            <Link href={`/tenants/${tenant.id}?edit=1`}>
+                                <Pencil />
+                                {t('tenants.actions.edit')}
+                            </Link>
+                        </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem asChild>
+                        <Link href={`/tenants/${tenant.id}#tenant-finance`}>
+                            <Banknote />
+                            {t('tenants.actions.financialStatus')}
+                        </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                        <Link href={`/tenants/${tenant.id}/card`}>
+                            <Printer />
+                            {t('tenants.actions.printCard')}
+                        </Link>
+                    </DropdownMenuItem>
+                    {lease && (
+                        <DropdownMenuItem asChild>
+                            <Link
+                                href={`/tenants/${tenant.id}/leases/${lease.id}/contract`}
+                            >
+                                <FileSignature />
+                                {t('leaseContract.tableAction')}
+                            </Link>
+                        </DropdownMenuItem>
+                    )}
+                    {canManage && (
+                        <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                                onSelect={() => setConfirmOpen(true)}
+                            >
+                                <ShieldCheck />
+                                {t('tenants.statusAction')}
+                            </DropdownMenuItem>
+                        </>
+                    )}
+                </DropdownMenuContent>
+            </DropdownMenu>
+
+            <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+                <AlertDialogContent dir={isRtl ? 'rtl' : 'ltr'}>
+                    <AlertDialogHeader
+                        className={isRtl ? 'text-right sm:text-right' : ''}
+                    >
+                        <AlertDialogTitle>
+                            {t('tenants.statusConfirm.title')}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {t(
+                                tenant.is_active
+                                    ? 'tenants.statusConfirm.deactivateDescription'
+                                    : 'tenants.statusConfirm.activateDescription',
+                            ).replace(
+                                ':name',
+                                tenant.business_name || tenant.full_name,
+                            )}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={isChangingStatus}>
+                            {t('tenants.statusConfirm.cancel')}
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            variant={
+                                tenant.is_active ? 'destructive' : 'default'
+                            }
+                            disabled={isChangingStatus}
+                            onClick={changeStatus}
+                        >
+                            {t(
+                                tenant.is_active
+                                    ? 'tenants.statusConfirm.confirmDeactivate'
+                                    : 'tenants.statusConfirm.confirmActivate',
+                            )}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </>
     );
 }
 
@@ -417,20 +851,21 @@ function TenantForm({
     const property = properties.find(
         (item) => String(item.id) === data.property_id,
     );
-    const unitOptions =
-        property?.property_type === 'house'
-            ? [{ value: '', label: t('tenants.lease.wholeProperty') }]
-            : [
-                  ...(property?.property_type === 'block'
-                      ? [{ value: '', label: t('tenants.lease.wholeProperty') }]
-                      : []),
-                  ...(property?.floors ?? []).flatMap((floor) =>
-                      (floor.units ?? []).map((unit) => ({
-                          value: String(unit.id),
-                          label: `${floor.name} · ${t(`tenants.lease.${unit.unit_type}`)} ${unit.unit_number}`,
-                      })),
-                  ),
-              ];
+    const unitOptions = ['house', 'commercial_unit'].includes(
+        property?.property_type ?? '',
+    )
+        ? [{ value: '', label: t('tenants.lease.wholeProperty') }]
+        : [
+              ...(property?.property_type === 'block'
+                  ? [{ value: '', label: t('tenants.lease.wholeProperty') }]
+                  : []),
+              ...(property?.floors ?? []).flatMap((floor) =>
+                  (floor.units ?? []).map((unit) => ({
+                      value: String(unit.id),
+                      label: `${floor.name} · ${t(`tenants.lease.${unit.unit_type}`)} ${unit.unit_number}`,
+                  })),
+              ),
+          ];
     const submit = (event: FormEvent) => {
         event.preventDefault();
         post('/tenants', {

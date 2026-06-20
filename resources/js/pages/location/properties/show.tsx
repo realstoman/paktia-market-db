@@ -1,6 +1,7 @@
 import InputError from '@/components/input-error';
 import { EditPropertyDialog } from '@/components/properties/edit-property-dialog';
 import { NumericInput } from '@/components/shared/numeric-input';
+import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,6 +22,7 @@ import {
     BreadcrumbItem,
     Country,
     Property,
+    PropertyDocument,
     PropertyFloor,
     Province,
 } from '@/types';
@@ -33,6 +35,7 @@ import {
     Building2,
     ChefHat,
     DoorOpen,
+    FileText,
     HandCoins,
     Layers3,
     MapPin,
@@ -41,6 +44,7 @@ import {
     Ruler,
     Store,
     Trash2,
+    Upload,
     Users,
 } from 'lucide-react';
 import { FormEvent, useState } from 'react';
@@ -64,6 +68,7 @@ export default function PropertyShow({
     const isMarket = ['market', 'mall'].includes(
         property.property_type ?? 'market',
     );
+    const isCommercialUnit = property.property_type === 'commercial_unit';
     const breadcrumbs: BreadcrumbItem[] = [
         { title: t('propertyWorkspace.title'), href: '/properties' },
         { title: property.name, href: `/properties/${property.id}` },
@@ -120,10 +125,18 @@ export default function PropertyShow({
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                     <Metric
                         icon={Layers3}
-                        label={t('propertyWorkspace.configuredFloors')}
-                        value={floors.length}
+                        label={t(
+                            isCommercialUnit
+                                ? 'propertyWorkspace.fields.externalFloor'
+                                : 'propertyWorkspace.configuredFloors',
+                        )}
+                        value={
+                            isCommercialUnit
+                                ? (property.external_floor ?? '—')
+                                : floors.length
+                        }
                         hint={
-                            property.declared_floors
+                            !isCommercialUnit && property.declared_floors
                                 ? t('propertyWorkspace.planned').replace(
                                       ':count',
                                       String(property.declared_floors),
@@ -132,21 +145,27 @@ export default function PropertyShow({
                         }
                     />
                     <Metric
-                        icon={isMarket ? Store : DoorOpen}
+                        icon={isMarket || isCommercialUnit ? Store : DoorOpen}
                         label={
-                            isMarket
-                                ? t('propertyWorkspace.shops')
-                                : property.property_type === 'block'
-                                  ? t('propertyWorkspace.apartments')
-                                  : t('propertyWorkspace.rooms')
+                            isCommercialUnit
+                                ? t(
+                                      'propertyWorkspace.fields.externalUnitNumber',
+                                  )
+                                : isMarket
+                                  ? t('propertyWorkspace.shops')
+                                  : property.property_type === 'block'
+                                    ? t('propertyWorkspace.apartments')
+                                    : t('propertyWorkspace.rooms')
                         }
                         value={
-                            property.property_type === 'house'
-                                ? (property.rooms_count ?? 0)
-                                : units.length
+                            isCommercialUnit
+                                ? (property.external_unit_number ?? '—')
+                                : property.property_type === 'house'
+                                  ? (property.rooms_count ?? 0)
+                                  : units.length
                         }
                         hint={
-                            property.declared_units
+                            !isCommercialUnit && property.declared_units
                                 ? t('propertyWorkspace.planned').replace(
                                       ':count',
                                       String(property.declared_units),
@@ -167,11 +186,22 @@ export default function PropertyShow({
                         icon={Users}
                         label={t('propertyWorkspace.availableSpaces')}
                         value={
-                            units.filter(
-                                (unit) => unit.occupancy_status === 'vacant',
-                            ).length
+                            isCommercialUnit
+                                ? property.operating_mode === 'vacant'
+                                    ? 1
+                                    : 0
+                                : units.filter(
+                                      (unit) =>
+                                          unit.occupancy_status === 'vacant',
+                                  ).length
                         }
-                        hint={t('propertyWorkspace.contractsReady')}
+                        hint={
+                            isCommercialUnit
+                                ? t(
+                                      `propertyWorkspace.operatingMode.${property.operating_mode ?? 'owner_occupied'}`,
+                                  )
+                                : t('propertyWorkspace.contractsReady')
+                        }
                     />
                 </div>
 
@@ -229,6 +259,74 @@ export default function PropertyShow({
                                     )}
                                     value={`${resolveName(property.country)} / ${resolveName(property.province)}`}
                                 />
+                                {isCommercialUnit && (
+                                    <>
+                                        <Detail
+                                            label={t(
+                                                'propertyWorkspace.fields.hostMarketName',
+                                            )}
+                                            value={
+                                                property.host_market_name ?? '—'
+                                            }
+                                        />
+                                        <Detail
+                                            label={t(
+                                                'propertyWorkspace.fields.externalUnitNumber',
+                                            )}
+                                            value={
+                                                property.external_unit_number ??
+                                                '—'
+                                            }
+                                        />
+                                        <Detail
+                                            label={t(
+                                                'propertyWorkspace.fields.externalFloor',
+                                            )}
+                                            value={
+                                                property.external_floor ?? '—'
+                                            }
+                                        />
+                                        <Detail
+                                            label={t(
+                                                'propertyWorkspace.fields.ownershipType',
+                                            )}
+                                            value={t(
+                                                `propertyWorkspace.ownership.${property.ownership_type ?? 'owned'}`,
+                                            )}
+                                        />
+                                        <Detail
+                                            label={t(
+                                                'propertyWorkspace.fields.operatingMode',
+                                            )}
+                                            value={t(
+                                                `propertyWorkspace.operatingMode.${property.operating_mode ?? 'owner_occupied'}`,
+                                            )}
+                                        />
+                                        <Detail
+                                            label={t(
+                                                'propertyWorkspace.fields.titleDeedNumber',
+                                            )}
+                                            value={
+                                                property.title_deed_number ??
+                                                '—'
+                                            }
+                                        />
+                                        <Detail
+                                            label={t(
+                                                'propertyWorkspace.fields.businessActivities',
+                                            )}
+                                            value={
+                                                property.business_activities
+                                                    ?.map((activity) =>
+                                                        t(
+                                                            `propertyWorkspace.businessActivities.${activity}`,
+                                                        ),
+                                                    )
+                                                    .join('، ') || '—'
+                                            }
+                                        />
+                                    </>
+                                )}
                                 <Detail
                                     label={t('propertyWorkspace.landArea')}
                                     value={
@@ -249,7 +347,9 @@ export default function PropertyShow({
                                     label={t('propertyWorkspace.parking')}
                                     value={property.parking_spaces ?? '—'}
                                 />
-                                {property.property_type === 'house' && (
+                                {['house', 'commercial_unit'].includes(
+                                    property.property_type ?? '',
+                                ) && (
                                     <>
                                         <Detail
                                             label={t('propertyWorkspace.rooms')}
@@ -322,33 +422,53 @@ export default function PropertyShow({
                                 </CardContent>
                             </Card>
                         ) : null}
+                        <PropertyDocuments
+                            property={property}
+                            documents={property.documents ?? []}
+                        />
                     </div>
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
                             <div>
                                 <h2 className="text-xl font-semibold">
-                                    {t(
-                                        'propertyWorkspace.floorsAndSpaces',
-                                    ).replace(
-                                        ':spaces',
-                                        isMarket
-                                            ? t('propertyWorkspace.shops')
-                                            : t('propertyWorkspace.apartments'),
-                                    )}
+                                    {isCommercialUnit
+                                        ? t(
+                                              'propertyWorkspace.commercialUnitManagement',
+                                          )
+                                        : t(
+                                              'propertyWorkspace.floorsAndSpaces',
+                                          ).replace(
+                                              ':spaces',
+                                              isMarket
+                                                  ? t('propertyWorkspace.shops')
+                                                  : t(
+                                                        'propertyWorkspace.apartments',
+                                                    ),
+                                          )}
                                 </h2>
                                 <p className="text-sm text-muted-foreground">
-                                    {t('propertyWorkspace.basementHelp')}
+                                    {t(
+                                        isCommercialUnit
+                                            ? 'propertyWorkspace.commercialUnitRentalHelp'
+                                            : 'propertyWorkspace.basementHelp',
+                                    )}
                                 </p>
                             </div>
-                            {property.property_type !== 'house' && (
-                                <AddFloor property={property} />
-                            )}
+                            {!['house', 'commercial_unit'].includes(
+                                property.property_type ?? '',
+                            ) && <AddFloor property={property} />}
                         </div>
-                        {property.property_type === 'house' ? (
+                        {['house', 'commercial_unit'].includes(
+                            property.property_type ?? '',
+                        ) ? (
                             <Card>
                                 <CardContent className="py-10 text-center text-muted-foreground">
                                     <Building2 className="mx-auto mb-3 h-10 w-10" />
-                                    {t('propertyWorkspace.houseHelp')}
+                                    {t(
+                                        isCommercialUnit
+                                            ? 'propertyWorkspace.commercialUnitHelp'
+                                            : 'propertyWorkspace.houseHelp',
+                                    )}
                                 </CardContent>
                             </Card>
                         ) : floors.length ? (
@@ -369,6 +489,151 @@ export default function PropertyShow({
                 </div>
             </div>
         </AppLayout>
+    );
+}
+
+function PropertyDocuments({
+    property,
+    documents,
+}: {
+    property: Property;
+    documents: PropertyDocument[];
+}) {
+    const { t } = useLocalization();
+    const form = useForm<{
+        document_type: string;
+        documents: File[];
+    }>({
+        document_type: 'title_deed',
+        documents: [],
+    });
+
+    const submit = (event: FormEvent) => {
+        event.preventDefault();
+        form.post(`/properties/${property.id}/documents`, {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => form.reset('documents'),
+        });
+    };
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                    <FileText className="size-5" />
+                    {t('propertyWorkspace.documents.title')}
+                </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                    {t('propertyWorkspace.documents.help')}
+                </p>
+                <form
+                    onSubmit={submit}
+                    className="grid gap-3 rounded-xl border bg-muted/20 p-3"
+                >
+                    <SearchableDropdown
+                        value={form.data.document_type}
+                        onValueChange={(value) =>
+                            form.setData('document_type', value)
+                        }
+                        options={[
+                            'title_deed',
+                            'purchase_contract',
+                            'ownership',
+                            'other',
+                        ].map((value) => ({
+                            value,
+                            label: t(
+                                `propertyWorkspace.documents.types.${value}`,
+                            ),
+                        }))}
+                        searchPlaceholder={t('propertyWorkspace.searchOptions')}
+                        emptyText={t('propertyWorkspace.noOptions')}
+                    />
+                    <Input
+                        type="file"
+                        multiple
+                        accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx"
+                        className="bg-white dark:bg-neutral-900"
+                        onChange={(event) =>
+                            form.setData(
+                                'documents',
+                                Array.from(event.target.files ?? []),
+                            )
+                        }
+                    />
+                    <InputError message={form.errors.documents} />
+                    <Button
+                        type="submit"
+                        disabled={
+                            form.processing || !form.data.documents.length
+                        }
+                        className="w-fit gap-2"
+                    >
+                        <Upload className="size-4" />
+                        {t('propertyWorkspace.documents.upload')}
+                    </Button>
+                </form>
+                <div className="space-y-2">
+                    {documents.length ? (
+                        documents.map((document) => (
+                            <div
+                                key={document.id}
+                                className="flex items-center gap-3 rounded-xl border p-3"
+                            >
+                                <FileText className="size-5 shrink-0 text-primary" />
+                                <a
+                                    href={`/properties/${property.id}/documents/${document.id}`}
+                                    className="min-w-0 flex-1"
+                                >
+                                    <p className="truncate text-sm font-medium hover:underline">
+                                        {document.title}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                        {t(
+                                            `propertyWorkspace.documents.types.${document.document_type}`,
+                                        )}
+                                        {document.size_bytes
+                                            ? ` · ${formatNumber(Math.ceil(document.size_bytes / 1024))} KB`
+                                            : ''}
+                                    </p>
+                                </a>
+                                <Button
+                                    type="button"
+                                    size="icon"
+                                    variant="ghost"
+                                    aria-label={t(
+                                        'propertyWorkspace.documents.delete',
+                                    )}
+                                    onClick={() => {
+                                        if (
+                                            window.confirm(
+                                                t(
+                                                    'propertyWorkspace.documents.deleteConfirm',
+                                                ),
+                                            )
+                                        ) {
+                                            router.delete(
+                                                `/properties/${property.id}/documents/${document.id}`,
+                                                { preserveScroll: true },
+                                            );
+                                        }
+                                    }}
+                                >
+                                    <Trash2 className="size-4" />
+                                </Button>
+                            </div>
+                        ))
+                    ) : (
+                        <p className="py-3 text-center text-sm text-muted-foreground">
+                            {t('propertyWorkspace.documents.empty')}
+                        </p>
+                    )}
+                </div>
+            </CardContent>
+        </Card>
     );
 }
 

@@ -33,6 +33,7 @@ import {
     Building2,
     CalendarDays,
     Download,
+    FileSignature,
     FileText,
     IdCard,
     Mail,
@@ -52,6 +53,7 @@ interface Props {
     tenant: Tenant;
     properties: Property[];
     currencies: Currency[];
+    openEdit?: boolean;
 }
 interface LeaseForm {
     property_id: string;
@@ -101,6 +103,7 @@ export default function TenantProfile({
     tenant,
     properties,
     currencies,
+    openEdit = false,
 }: Props) {
     const { t, isRtl } = useLocalization();
     const { auth } = usePage<SharedData>().props;
@@ -108,7 +111,7 @@ export default function TenantProfile({
         auth.is_super_admin || auth.permissions.includes('tenants.manage');
     const lease = currentLease(tenant);
     const [assignmentOpen, setAssignmentOpen] = useState(false);
-    const [editOpen, setEditOpen] = useState(false);
+    const [editOpen, setEditOpen] = useState(openEdit);
     const breadcrumbs: BreadcrumbItem[] = [
         { title: t('navigation.dashboard'), href: '/dashboard' },
         { title: t('tenants.title'), href: '/tenants' },
@@ -117,8 +120,14 @@ export default function TenantProfile({
             href: `/tenants/${tenant.id}`,
         },
     ];
-    const location = (item: Lease) =>
-        `${item.property?.name ?? ''}${item.floor ? ` · ${item.floor.name}` : ''}${item.unit ? ` · ${t(`tenants.lease.${item.unit.unit_type}`)} ${item.unit.unit_number}` : ''}`;
+    const location = (item: Lease) => {
+        const externalUnit =
+            item.property?.property_type === 'commercial_unit'
+                ? item.property.external_unit_number
+                : null;
+
+        return `${item.property?.name ?? ''}${item.floor ? ` · ${item.floor.name}` : ''}${item.unit ? ` · ${t(`tenants.lease.${item.unit.unit_type}`)} ${item.unit.unit_number}` : externalUnit ? ` · ${t('tenants.lease.shop')} ${externalUnit}` : ''}`;
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -244,6 +253,19 @@ export default function TenantProfile({
                                     {t('tenants.profile.printCard')}
                                 </Link>
                             </Button>
+                            {lease && (
+                                <Button
+                                    asChild
+                                    className="bg-[#d3a450] text-[#002452] hover:bg-[#d3a450]/90"
+                                >
+                                    <Link
+                                        href={`/tenants/${tenant.id}/leases/${lease.id}/contract`}
+                                    >
+                                        <FileSignature className="me-2 h-4 w-4" />
+                                        {t('leaseContract.tableAction')}
+                                    </Link>
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </section>
@@ -354,7 +376,10 @@ export default function TenantProfile({
                             )}
                         </CardContent>
                     </Card>
-                    <Card className="rounded-2xl">
+                    <Card
+                        id="tenant-finance"
+                        className="scroll-mt-24 rounded-2xl"
+                    >
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2 text-lg">
                                 <Banknote className="h-5 w-5 text-primary" />
@@ -410,6 +435,20 @@ export default function TenantProfile({
                                             </p>
                                         </div>
                                         <div className="flex items-center gap-3">
+                                            <Button
+                                                asChild
+                                                variant="ghost"
+                                                size="sm"
+                                            >
+                                                <Link
+                                                    href={`/tenants/${tenant.id}/leases/${item.id}/contract`}
+                                                >
+                                                    <FileSignature className="me-2 size-4" />
+                                                    {t(
+                                                        'leaseContract.tableAction',
+                                                    )}
+                                                </Link>
+                                            </Button>
                                             <span className="font-medium">
                                                 {item.rent_amount
                                                     ? formatNumber(
@@ -617,20 +656,21 @@ function AssignmentForm({
     const property = properties.find(
         (item) => String(item.id) === form.data.property_id,
     );
-    const units =
-        property?.property_type === 'house'
-            ? [{ value: '', label: t('tenants.lease.wholeProperty') }]
-            : [
-                  ...(property?.property_type === 'block'
-                      ? [{ value: '', label: t('tenants.lease.wholeProperty') }]
-                      : []),
-                  ...(property?.floors ?? []).flatMap((floor) =>
-                      (floor.units ?? []).map((unit) => ({
-                          value: String(unit.id),
-                          label: `${floor.name} · ${t(`tenants.lease.${unit.unit_type}`)} ${unit.unit_number}`,
-                      })),
-                  ),
-              ];
+    const units = ['house', 'commercial_unit'].includes(
+        property?.property_type ?? '',
+    )
+        ? [{ value: '', label: t('tenants.lease.wholeProperty') }]
+        : [
+              ...(property?.property_type === 'block'
+                  ? [{ value: '', label: t('tenants.lease.wholeProperty') }]
+                  : []),
+              ...(property?.floors ?? []).flatMap((floor) =>
+                  (floor.units ?? []).map((unit) => ({
+                      value: String(unit.id),
+                      label: `${floor.name} · ${t(`tenants.lease.${unit.unit_type}`)} ${unit.unit_number}`,
+                  })),
+              ),
+          ];
     const submit = (event: FormEvent) => {
         event.preventDefault();
         form.post(`/tenants/${tenant.id}/leases`, {

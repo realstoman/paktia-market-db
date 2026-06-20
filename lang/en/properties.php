@@ -13,5 +13,7 @@ return [
         'apartment_added' => 'Apartment added successfully.',
         'space_deleted' => 'Space deleted successfully.',
         'order_updated' => 'Property order updated successfully.',
+        'documents_uploaded' => 'Property documents uploaded successfully.',
+        'document_deleted' => 'Property document deleted successfully.',
     ],
 ];

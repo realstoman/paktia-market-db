@@ -9,6 +9,7 @@ use App\Http\Controllers\BannerController;
 use App\Http\Controllers\CashBankController;
 use App\Http\Controllers\CashMovementTypeController;
 use App\Http\Controllers\ChartOfAccountController;
+use App\Http\Controllers\ContractTemplateController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmployeeAdvanceController;
 use App\Http\Controllers\EmployeeController;
@@ -16,12 +17,14 @@ use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\InventoryController;
+use App\Http\Controllers\LeaseContractController;
 use App\Http\Controllers\Location\CountryController;
 use App\Http\Controllers\Location\PropertyController;
 use App\Http\Controllers\Location\ProvinceController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OperationsRuntimeHealthController;
 use App\Http\Controllers\PayrollController;
+use App\Http\Controllers\RentPaymentController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\Settings\LanguageController;
 use App\Http\Controllers\ShareholderController;
@@ -106,6 +109,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('properties/{property}/floors/{floor}', [PropertyController::class, 'destroyFloor'])->name('properties.floors.destroy');
         Route::post('properties/{property}/floors/{floor}/units', [PropertyController::class, 'storeUnit'])->name('properties.floors.units.store');
         Route::delete('properties/{property}/floors/{floor}/units/{unit}', [PropertyController::class, 'destroyUnit'])->name('properties.floors.units.destroy');
+        Route::post('properties/{property}/documents', [PropertyController::class, 'uploadDocuments'])->name('properties.documents.store');
+        Route::get('properties/{property}/documents/{document}', [PropertyController::class, 'downloadDocument'])->name('properties.documents.download');
+        Route::delete('properties/{property}/documents/{document}', [PropertyController::class, 'destroyDocument'])->name('properties.documents.destroy');
+
+        Route::get('contract-templates', [ContractTemplateController::class, 'index'])->name('contract-templates.index');
+        Route::post('contract-templates', [ContractTemplateController::class, 'store'])->name('contract-templates.store');
+        Route::put('contract-templates/{contractTemplate}', [ContractTemplateController::class, 'update'])->name('contract-templates.update');
+        Route::delete('contract-templates/{contractTemplate}', [ContractTemplateController::class, 'destroy'])->name('contract-templates.destroy');
 
         // Activity / Audit Logs
         Route::get('admin/activity-logs', [ActivityLogController::class, 'index'])
@@ -148,6 +159,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('tenants/{tenant}/card', [TenantController::class, 'card'])->name('tenants.card');
         Route::get('tenants/{tenant}/documents/{document}', [TenantController::class, 'downloadDocument'])
             ->name('tenants.documents.download');
+        Route::get('tenants/{tenant}/leases/{lease}/contract', [LeaseContractController::class, 'show'])
+            ->name('tenants.leases.contract.show');
+        Route::get('tenants/{tenant}/leases/{lease}/contract-documents/{document}', [LeaseContractController::class, 'downloadSigned'])
+            ->name('tenants.leases.contract-documents.download');
     });
     Route::middleware('can:'.PermissionEnum::TENANTS_MANAGE->value)->group(function () {
         Route::post('tenants', [TenantController::class, 'store'])->name('tenants.store');
@@ -157,6 +172,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('tenants/{tenant}/documents', [TenantController::class, 'uploadDocuments'])->name('tenants.documents.store');
         Route::delete('tenants/{tenant}/documents/{document}', [TenantController::class, 'destroyDocument'])
             ->name('tenants.documents.destroy');
+        Route::post('tenants/{tenant}/leases/{lease}/contract-documents', [LeaseContractController::class, 'storeSigned'])
+            ->name('tenants.leases.contract-documents.store');
+        Route::delete('tenants/{tenant}/leases/{lease}/contract-documents/{document}', [LeaseContractController::class, 'destroySigned'])
+            ->name('tenants.leases.contract-documents.destroy');
     });
 
     // Inventory
@@ -197,6 +216,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('finance', [FinanceController::class, 'index'])->name('finance.index');
         Route::get('finance/general-ledger', [FinanceController::class, 'generalLedger'])->name('finance.general-ledger.index');
         Route::get('finance/inventory-valuation', [FinanceController::class, 'inventoryValuation'])->name('finance.inventory-valuation.index');
+        Route::get('finance/rentals', [RentPaymentController::class, 'index'])->name('finance.rentals.index');
     });
     Route::middleware('can:'.PermissionEnum::PAYROLL_VIEW->value)->group(function () {
         Route::get('finance/payroll', [PayrollController::class, 'index'])->name('finance.payroll.index');
@@ -240,6 +260,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('finance/expenses/{expense}/reject', [ExpenseController::class, 'reject'])->name('finance.expenses.reject');
     });
     Route::middleware('can:'.PermissionEnum::FINANCE_MANAGE->value)->group(function () {
+        Route::post('finance/rentals', [RentPaymentController::class, 'store'])->name('finance.rentals.store');
+        Route::post('finance/rentals/{rentPayment}/void', [RentPaymentController::class, 'void'])->name('finance.rentals.void');
         Route::get('finance/chart-of-accounts', [ChartOfAccountController::class, 'index'])->name('finance.chart-of-accounts.index');
         Route::post('finance/chart-of-accounts', [ChartOfAccountController::class, 'store'])->name('finance.chart-of-accounts.store');
         Route::put('finance/chart-of-accounts/{financeAccount}', [ChartOfAccountController::class, 'update'])->name('finance.chart-of-accounts.update');
