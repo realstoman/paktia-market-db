@@ -44,6 +44,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                         )}
                         className="absolute inset-0 h-full w-full object-cover"
                     />
+                    <div className="absolute inset-0 bg-black/20" />
                     <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(4,15,16,0.18)_0%,rgba(4,15,16,0.04)_42%,rgba(4,15,16,0.78)_100%)]" />
 
                     <div className="absolute inset-x-0 top-0 flex items-center gap-3 p-9 text-white xl:p-4">

@@ -46,9 +46,9 @@ const en = {
         login: {
             title: 'Log in',
             heading: 'Welcome back!',
-            welcomeBack: 'Welcome back to',
+            welcomeBack: 'Welcome back!',
             description:
-                'Sign in to manage markets, properties, finance, and daily market operations.',
+                'Sign in to manage markets, properties, finance, and daily market operations of Paktiawal Group.',
             mallImageAlt: 'Modern shopping mall interior',
             mallQuote:
                 'Manage Paktiawal Group markets and properties, in one place.',
