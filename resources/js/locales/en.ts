@@ -408,6 +408,23 @@ const en = {
         viewProfile: 'View profile',
         editProfile: 'Edit profile',
         statusAction: 'Change status',
+        table: {
+            owner: 'Owner / responsible person',
+            business: 'Business name',
+            shop: 'Shop / office',
+            property: 'Property',
+            finance: 'Contract finance',
+            status: 'Status',
+            actions: 'Actions',
+            noBusiness: 'No business name',
+            unassigned: 'Not assigned',
+        },
+        actions: {
+            view: 'View details',
+            edit: 'Edit tenant',
+            financialStatus: 'Financial status',
+            printCard: 'Print ID card',
+        },
         fields: {
             tenantType: 'Renter type',
             fullName: 'Full name / responsible person',

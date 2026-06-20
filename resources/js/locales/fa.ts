@@ -406,6 +406,23 @@ const fa = {
         viewProfile: 'مشاهده پروفایل',
         editProfile: 'ویرایش پروفایل',
         statusAction: 'تغییر وضعیت',
+        table: {
+            owner: 'مالک / شخص مسئول',
+            business: 'نام تجارت',
+            shop: 'دکان / دفتر',
+            property: 'جایداد',
+            finance: 'وضعیت مالی قرارداد',
+            status: 'وضعیت',
+            actions: 'عملیات',
+            noBusiness: 'نام تجارت ثبت نشده',
+            unassigned: 'واگذار نشده',
+        },
+        actions: {
+            view: 'مشاهده جزئیات',
+            edit: 'ویرایش مستأجر',
+            financialStatus: 'وضعیت مالی',
+            printCard: 'چاپ کارت شناسایی',
+        },
         fields: {
             tenantType: 'نوع مستأجر',
             fullName: 'نام کامل / شخص مسئول',

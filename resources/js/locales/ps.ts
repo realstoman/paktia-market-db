@@ -408,6 +408,23 @@ const ps = {
         viewProfile: 'پروفایل کتل',
         editProfile: 'پروفایل سمول',
         statusAction: 'حالت بدلول',
+        table: {
+            owner: 'مالک / مسؤل شخص',
+            business: 'د سوداګرۍ نوم',
+            shop: 'دوکان / دفتر',
+            property: 'جایداد',
+            finance: 'د قرارداد مالي حالت',
+            status: 'حالت',
+            actions: 'عملیات',
+            noBusiness: 'د سوداګرۍ نوم نشته',
+            unassigned: 'نه دی سپارل شوی',
+        },
+        actions: {
+            view: 'جزیات کتل',
+            edit: 'کرایه‌دار سمول',
+            financialStatus: 'مالي حالت',
+            printCard: 'د پېژند کارت چاپ',
+        },
         fields: {
             tenantType: 'د کرایه‌دار ډول',
             fullName: 'بشپړ نوم / مسؤل شخص',

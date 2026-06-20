@@ -167,6 +167,23 @@ test('a commercial unit is rented as one complete shop without internal market u
     expect($lease->leased_space_type)->toBe('shop')
         ->and($lease->property_unit_id)->toBeNull()
         ->and($property->fresh()->operating_mode)->toBe('rented');
+
+    $this->get(route('tenants.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('tenants.0.leases.0.property.external_unit_number', '47'));
+});
+
+test('tenant edit cell action can open the profile edit dialog directly', function () {
+    $tenant = Tenant::query()->create([
+        'full_name' => 'Editable Tenant',
+        'phone' => '0700000100',
+    ]);
+
+    $this->get(route('tenants.show', ['tenant' => $tenant, 'edit' => 1]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('openEdit', true));
 });
 
 test('finance users can view tenant profiles and cards but cannot manage tenants', function () {

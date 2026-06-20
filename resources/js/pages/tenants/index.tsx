@@ -23,7 +23,6 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import {
     Table,
     TableBody,
@@ -32,6 +31,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
 import {
@@ -42,8 +42,8 @@ import {
     SharedData,
     Tenant,
 } from '@/types';
-import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { formatNumber } from '@/utils/format';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import {
     Banknote,
     Building2,
@@ -52,8 +52,8 @@ import {
     IdCard,
     MoreHorizontal,
     Pencil,
-    Printer,
     Plus,
+    Printer,
     ScanLine,
     Search,
     ShieldCheck,
@@ -429,7 +429,8 @@ export default function TenantsIndex({
                                             <TableCell>
                                                 <div className="max-w-60">
                                                     <p className="truncate font-medium">
-                                                        {lease?.property?.name ??
+                                                        {lease?.property
+                                                            ?.name ??
                                                             t(
                                                                 'tenants.table.unassigned',
                                                             )}
@@ -452,7 +453,8 @@ export default function TenantsIndex({
                                                                 : '—'}{' '}
                                                             <span className="text-xs font-normal text-muted-foreground">
                                                                 {lease.currency
-                                                                    ?.code ?? ''}
+                                                                    ?.code ??
+                                                                    ''}
                                                             </span>
                                                         </p>
                                                         <p className="text-xs text-muted-foreground">
@@ -576,9 +578,13 @@ function TenantRowActions({
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                             onSelect={() =>
-                                router.post(`/tenants/${tenant.id}/toggle`, {}, {
-                                    preserveScroll: true,
-                                })
+                                router.post(
+                                    `/tenants/${tenant.id}/toggle`,
+                                    {},
+                                    {
+                                        preserveScroll: true,
+                                    },
+                                )
                             }
                         >
                             <ShieldCheck />
