@@ -139,9 +139,7 @@ function formatTimestamp(
 function Metric({ label, value }: { label: string; value: string | number }) {
     return (
         <div className="rounded-xl border border-border/60 bg-[#f8f9fd] p-3 dark:bg-neutral-950">
-            <p className="text-xs font-medium text-muted-foreground">
-                {label}
-            </p>
+            <p className="text-xs font-medium text-muted-foreground">{label}</p>
             <p className="mt-1 text-lg font-semibold text-foreground">
                 {value}
             </p>
@@ -426,8 +424,7 @@ export default function RuntimeHealthPage({
                                         'runtimeHealthPage.sync.recentlyUsed',
                                     )}
                                     value={formatNumber(
-                                        components.sync
-                                            .recentlyUsedCredentials,
+                                        components.sync.recentlyUsedCredentials,
                                     )}
                                 />
                                 <Metric
@@ -564,9 +561,7 @@ export default function RuntimeHealthPage({
                                     value={components.redis.queueConnection}
                                 />
                                 <Metric
-                                    label={t(
-                                        'runtimeHealthPage.redis.latency',
-                                    )}
+                                    label={t('runtimeHealthPage.redis.latency')}
                                     value={formatNumber(
                                         components.redis.latencyMs ?? 0,
                                     )}

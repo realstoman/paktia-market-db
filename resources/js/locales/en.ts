@@ -114,6 +114,140 @@ const en = {
         runtimeHealth: 'Runtime Health',
         activityLogs: 'Activity Logs',
     },
+    runtimeHealthPage: {
+        title: 'Runtime Health',
+        operationsRuntime: 'Operations Runtime',
+        propertyRuntimeHealth: 'Property Runtime Health',
+        notRecorded: 'Not recorded',
+        status: {
+            healthy: 'Healthy',
+            warning: 'Warning',
+            critical: 'Critical',
+            unavailable: 'Unavailable',
+        },
+        projection: {
+            title: 'Projection Health',
+            description:
+                'Monitors the freshness of calculated property finance summaries.',
+            criticalProperties: 'Critical properties',
+            warningProperties: 'Warning properties',
+            latestProjection: 'Latest projection',
+            noIssues: 'No property projection issues were detected.',
+        },
+        queue: {
+            title: 'Queue Health',
+            description:
+                'Tracks background job availability, backlog, and failures.',
+            connection: 'Connection',
+            driver: 'Driver',
+            pendingJobs: 'Pending jobs',
+            failedJobs: 'Failed jobs',
+            oldestPending: 'Oldest pending job',
+            latestFailure: 'Latest failure',
+        },
+        refresh: {
+            title: 'Recent Refresh',
+            description:
+                'Shows the latest successful projection refresh heartbeat.',
+            lastSuccessful: 'Last successful refresh',
+            ageMinutes: 'Age in minutes',
+        },
+        sync: {
+            title: 'Property Sync Activity',
+            description:
+                'Monitors property sync credentials and their latest usage.',
+            active: 'Active credentials',
+            recentlyUsed: 'Recently used',
+            stale: 'Stale credentials',
+            revoked: 'Revoked credentials',
+            expired: 'Expired credentials',
+            latestUsage: 'Latest usage',
+            usageSummary: ':recent recently used of :active active',
+            noCredentials: 'No property sync credentials are available.',
+        },
+        notes: {
+            title: 'Runtime Notes',
+            projection:
+                'Projection health highlights delayed property finance calculations.',
+            queue: 'Queue health reports background job backlog and failures.',
+            redis: 'Redis runtime confirms cache and queue connectivity when configured.',
+        },
+        redis: {
+            title: 'Redis Runtime',
+            description:
+                'Checks Redis availability for cache and queue services.',
+            cacheStore: 'Default cache store',
+            posCacheStore: 'Operations cache store',
+            queueConnection: 'Queue connection',
+            latency: 'Latency (ms)',
+        },
+        messages: {
+            overall: {
+                healthy: 'Runtime services are healthy.',
+                warning: 'One or more runtime services need attention.',
+                critical: 'Critical runtime issues have been detected.',
+                unavailable: 'Runtime health information is unavailable.',
+            },
+            queue: {
+                healthy:
+                    'Queue connection is reachable and backlog is within threshold.',
+                unreachable:
+                    'Queue connection is not reachable from the application.',
+                syncMode:
+                    'Queue is running in sync mode, which limits retry and buffering resilience.',
+                criticalThreshold:
+                    'Queue backlog or failed jobs are above the critical threshold.',
+                warningThreshold:
+                    'Queue backlog or failed jobs are above the warning threshold.',
+                warning: 'Queue health needs attention.',
+                critical: 'Queue health is critical.',
+                unavailable: 'Queue health information is unavailable.',
+            },
+            redis: {
+                notConfigured:
+                    'Redis is not configured as an active cache or queue dependency yet.',
+                healthy: 'Redis responded to a health check ping.',
+                unhealthy: 'Redis did not return a healthy ping response.',
+                unreachable:
+                    'Redis is configured but not reachable from the application.',
+                warning: 'Redis runtime needs attention.',
+                critical: 'Redis runtime is critical.',
+                unavailable: 'Redis runtime information is unavailable.',
+            },
+            sync: {
+                healthy:
+                    'Property sync credentials are active and have recent usage.',
+                noActive:
+                    'No active property sync credentials have been issued yet.',
+                noRecent:
+                    'Active property sync credentials exist but none were used recently.',
+                stale: 'Some active property sync credentials have not been used recently.',
+                warning: 'Property sync activity needs attention.',
+                critical: 'Property sync activity is critical.',
+                unavailable:
+                    'Property sync activity information is unavailable.',
+            },
+            refresh: {
+                cacheUnreadable:
+                    'The recent projection refresh heartbeat could not be read from cache.',
+                notRecorded:
+                    'The recent projection refresh heartbeat has not been recorded yet.',
+                current: 'The recent projection refresh heartbeat is current.',
+                criticalStale:
+                    'The recent projection refresh heartbeat is critically stale.',
+                delayed: 'The recent projection refresh heartbeat is delayed.',
+                warning: 'The recent refresh needs attention.',
+                critical: 'The recent refresh is critical.',
+                unavailable: 'Recent refresh information is unavailable.',
+            },
+            projection: {
+                healthy: 'Property projections are current.',
+                warning: 'Some property projections need attention.',
+                critical: 'Some property projections are critically delayed.',
+                unavailable: 'Property projection information is unavailable.',
+            },
+        },
+    },
     activityLogsPage: {
         title: 'Activity Logs',
         subtitle:

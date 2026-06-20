@@ -114,6 +114,139 @@ const fa = {
         runtimeHealth: 'وضعیت سیستم',
         activityLogs: 'فعالیت‌ ها در سیستم',
     },
+    runtimeHealthPage: {
+        title: 'سلامت اجرای سیستم (Runtime Health)',
+        operationsRuntime: 'اجرای عملیاتی (Operations Runtime)',
+        propertyRuntimeHealth: 'سلامت اجرای جایدادها (Property Runtime Health)',
+        notRecorded: 'ثبت نشده',
+        status: {
+            healthy: 'سالم',
+            warning: 'هشدار',
+            critical: 'بحرانی',
+            unavailable: 'در دسترس نیست',
+        },
+        projection: {
+            title: 'سلامت پردازش خلاصه (Projection Health)',
+            description:
+                'تازه‌بودن محاسبات خلاصه مالی جایدادها را بررسی می‌کند.',
+            criticalProperties: 'جایدادهای بحرانی (Critical Properties)',
+            warningProperties: 'جایدادهای هشدار (Warning Properties)',
+            latestProjection: 'آخرین پردازش خلاصه (Latest Projection)',
+            noIssues: 'هیچ مشکلی در پردازش خلاصه جایدادها تشخیص نشد.',
+        },
+        queue: {
+            title: 'سلامت صف (Queue Health)',
+            description:
+                'دسترسی وظایف پس‌زمینه، وظایف در انتظار و ناکامی‌ها را بررسی می‌کند.',
+            connection: 'اتصال (Connection)',
+            driver: 'درایور (Driver)',
+            pendingJobs: 'وظایف در انتظار (Pending Jobs)',
+            failedJobs: 'وظایف ناموفق (Failed Jobs)',
+            oldestPending: 'قدیمی‌ترین وظیفه در انتظار (Oldest Pending)',
+            latestFailure: 'آخرین ناکامی (Latest Failure)',
+        },
+        refresh: {
+            title: 'تازه‌سازی اخیر (Recent Refresh)',
+            description:
+                'آخرین نشانه موفق تازه‌سازی محاسبات خلاصه را نمایش می‌دهد.',
+            lastSuccessful: 'آخرین تازه‌سازی موفق (Last Successful)',
+            ageMinutes: 'مدت به دقیقه (Age in Minutes)',
+        },
+        sync: {
+            title: 'فعالیت همگام‌سازی جایداد (Property Sync Activity)',
+            description:
+                'اعتبارنامه‌های همگام‌سازی جایداد و آخرین استفاده از آن‌ها را بررسی می‌کند.',
+            active: 'اعتبارنامه‌های فعال (Active Credentials)',
+            recentlyUsed: 'اخیراً استفاده‌شده (Recently Used)',
+            stale: 'اعتبارنامه‌های بدون استفاده اخیر (Stale Credentials)',
+            revoked: 'اعتبارنامه‌های لغوشده (Revoked Credentials)',
+            expired: 'اعتبارنامه‌های منقضی‌شده (Expired Credentials)',
+            latestUsage: 'آخرین استفاده (Latest Usage)',
+            usageSummary: ':recent استفاده اخیر از :active اعتبارنامه فعال',
+            noCredentials: 'هیچ اعتبارنامه همگام‌سازی جایداد موجود نیست.',
+        },
+        notes: {
+            title: 'یادداشت‌های اجرا (Runtime Notes)',
+            projection:
+                'سلامت پردازش خلاصه، تأخیر در محاسبات مالی جایداد را مشخص می‌کند.',
+            queue: 'سلامت صف، وظایف پس‌زمینه در انتظار و ناکامی‌ها را گزارش می‌دهد.',
+            redis: 'اجرای ریدیس، اتصال حافظه موقت و صف را در صورت تنظیم بررسی می‌کند.',
+        },
+        redis: {
+            title: 'اجرای ریدیس (Redis Runtime)',
+            description:
+                'دسترسی ریدیس را برای خدمات حافظه موقت و صف بررسی می‌کند.',
+            cacheStore: 'حافظه موقت پیش‌فرض (Default Cache Store)',
+            posCacheStore: 'حافظه موقت عملیاتی (Operations Cache Store)',
+            queueConnection: 'اتصال صف (Queue Connection)',
+            latency: 'زمان پاسخ به میلی‌ثانیه (Latency)',
+        },
+        messages: {
+            overall: {
+                healthy: 'خدمات اجرایی سیستم سالم است.',
+                warning: 'یک یا چند خدمت اجرایی به بررسی نیاز دارد.',
+                critical: 'مشکلات بحرانی در اجرای سیستم تشخیص شده است.',
+                unavailable: 'معلومات سلامت اجرای سیستم در دسترس نیست.',
+            },
+            queue: {
+                healthy:
+                    'اتصال صف برقرار است و حجم وظایف در حد مجاز قرار دارد.',
+                unreachable: 'اتصال صف از داخل برنامه در دسترس نیست.',
+                syncMode:
+                    'صف در حالت همزمان (Sync Mode) اجرا می‌شود که توانایی تلاش مجدد و نگهداری موقت را محدود می‌کند.',
+                criticalThreshold:
+                    'وظایف در انتظار یا ناموفق از حد بحرانی بالاتر است.',
+                warningThreshold:
+                    'وظایف در انتظار یا ناموفق از حد هشدار بالاتر است.',
+                warning: 'سلامت صف به بررسی نیاز دارد.',
+                critical: 'وضعیت سلامت صف بحرانی است.',
+                unavailable: 'معلومات سلامت صف در دسترس نیست.',
+            },
+            redis: {
+                notConfigured:
+                    'ریدیس هنوز به‌عنوان وابستگی فعال حافظه موقت یا صف تنظیم نشده است.',
+                healthy: 'ریدیس به بررسی سلامت (Health Check Ping) پاسخ داد.',
+                unhealthy: 'ریدیس پاسخ سالم به بررسی اتصال نداد.',
+                unreachable:
+                    'ریدیس تنظیم شده، اما از داخل برنامه در دسترس نیست.',
+                warning: 'اجرای ریدیس به بررسی نیاز دارد.',
+                critical: 'اجرای ریدیس در وضعیت بحرانی است.',
+                unavailable: 'معلومات اجرای ریدیس در دسترس نیست.',
+            },
+            sync: {
+                healthy:
+                    'اعتبارنامه‌های همگام‌سازی جایداد فعال است و اخیراً استفاده شده است.',
+                noActive:
+                    'هنوز هیچ اعتبارنامه فعال همگام‌سازی جایداد صادر نشده است.',
+                noRecent:
+                    'اعتبارنامه فعال همگام‌سازی وجود دارد، اما اخیراً استفاده نشده است.',
+                stale: 'برخی اعتبارنامه‌های فعال همگام‌سازی اخیراً استفاده نشده است.',
+                warning: 'فعالیت همگام‌سازی جایداد به بررسی نیاز دارد.',
+                critical: 'فعالیت همگام‌سازی جایداد در وضعیت بحرانی است.',
+                unavailable: 'معلومات فعالیت همگام‌سازی جایداد در دسترس نیست.',
+            },
+            refresh: {
+                cacheUnreadable:
+                    'نشانه تازه‌سازی اخیر پردازش خلاصه از حافظه موقت خوانده نشد.',
+                notRecorded:
+                    'نشانه تازه‌سازی اخیر پردازش خلاصه هنوز ثبت نشده است.',
+                current: 'نشانه تازه‌سازی اخیر پردازش خلاصه به‌روز است.',
+                criticalStale:
+                    'نشانه تازه‌سازی اخیر پردازش خلاصه به‌گونه بحرانی قدیمی است.',
+                delayed: 'نشانه تازه‌سازی اخیر پردازش خلاصه با تأخیر است.',
+                warning: 'تازه‌سازی اخیر به بررسی نیاز دارد.',
+                critical: 'تازه‌سازی اخیر در وضعیت بحرانی است.',
+                unavailable: 'معلومات تازه‌سازی اخیر در دسترس نیست.',
+            },
+            projection: {
+                healthy: 'پردازش خلاصه جایدادها به‌روز است.',
+                warning: 'برخی پردازش‌های خلاصه جایداد به بررسی نیاز دارد.',
+                critical:
+                    'برخی پردازش‌های خلاصه جایداد به‌گونه بحرانی تأخیر دارد.',
+                unavailable: 'معلومات پردازش خلاصه جایداد در دسترس نیست.',
+            },
+        },
+    },
     activityLogsPage: {
         title: 'گزارش فعالیت‌ ها',
         subtitle:

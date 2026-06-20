@@ -114,6 +114,140 @@ const ps = {
         runtimeHealth: 'د سیستم وضعیت',
         activityLogs: 'سیستم کې فعالیت',
     },
+    runtimeHealthPage: {
+        title: 'د سیستم د اجرا روغتیا (Runtime Health)',
+        operationsRuntime: 'عملیاتي اجرا (Operations Runtime)',
+        propertyRuntimeHealth:
+            'د جایدادونو د اجرا روغتیا (Property Runtime Health)',
+        notRecorded: 'ثبت شوی نه دی',
+        status: {
+            healthy: 'روغ',
+            warning: 'خبرداری',
+            critical: 'بحراني',
+            unavailable: 'د لاسرسي وړ نه دی',
+        },
+        projection: {
+            title: 'د لنډیز محاسبې روغتیا (Projection Health)',
+            description: 'د جایدادونو د مالي لنډیز محاسبو تازه‌والی څاري.',
+            criticalProperties: 'بحراني جایدادونه (Critical Properties)',
+            warningProperties: 'د خبرداري جایدادونه (Warning Properties)',
+            latestProjection: 'وروستۍ لنډیز محاسبه (Latest Projection)',
+            noIssues:
+                'د جایدادونو په لنډیز محاسبه کې کومه ستونزه ونه موندل شوه.',
+        },
+        queue: {
+            title: 'د کتار روغتیا (Queue Health)',
+            description: 'د شالید دندو لاسرسی، پاتې دندې او ناکامۍ څاري.',
+            connection: 'اړیکه (Connection)',
+            driver: 'چلوونکی (Driver)',
+            pendingJobs: 'پاتې دندې (Pending Jobs)',
+            failedJobs: 'ناکامې دندې (Failed Jobs)',
+            oldestPending: 'تر ټولو پخوانۍ پاتې دنده (Oldest Pending)',
+            latestFailure: 'وروستۍ ناکامي (Latest Failure)',
+        },
+        refresh: {
+            title: 'وروستۍ تازه‌کونه (Recent Refresh)',
+            description: 'د لنډیز محاسبې د وروستۍ بریالۍ تازه‌کونې نښه ښيي.',
+            lastSuccessful: 'وروستۍ بریالۍ تازه‌کونه (Last Successful)',
+            ageMinutes: 'موده په دقیقو (Age in Minutes)',
+        },
+        sync: {
+            title: 'د جایداد همغږۍ فعالیت (Property Sync Activity)',
+            description:
+                'د جایداد د همغږۍ اعتبارپاڼې او وروستی استعمال یې څاري.',
+            active: 'فعالې اعتبارپاڼې (Active Credentials)',
+            recentlyUsed: 'وروستی استعمال (Recently Used)',
+            stale: 'زړې اعتبارپاڼې (Stale Credentials)',
+            revoked: 'لغوه شوې اعتبارپاڼې (Revoked Credentials)',
+            expired: 'پای‌ته‌رسېدلې اعتبارپاڼې (Expired Credentials)',
+            latestUsage: 'وروستی استعمال (Latest Usage)',
+            usageSummary: 'له :active فعالو څخه :recent وروستی استعمال لري',
+            noCredentials: 'د جایداد د همغږۍ کومه اعتبارپاڼه نشته.',
+        },
+        notes: {
+            title: 'د اجرا یادښتونه (Runtime Notes)',
+            projection:
+                'د لنډیز محاسبې روغتیا د جایداد په مالي محاسبو کې ځنډ څرګندوي.',
+            queue: 'د کتار روغتیا د شالید پاتې دندې او ناکامۍ راپوروي.',
+            redis: 'د رېډېس اجرا، د تنظیم په صورت کې د زیرمې او کتار اړیکه تاییدوي.',
+        },
+        redis: {
+            title: 'د رېډېس اجرا (Redis Runtime)',
+            description:
+                'د لنډمهالې زیرمې او کتار خدمتونو لپاره د رېډېس لاسرسی ګوري.',
+            cacheStore: 'اصلي لنډمهاله زیرمه (Default Cache Store)',
+            posCacheStore: 'عملیاتي لنډمهاله زیرمه (Operations Cache Store)',
+            queueConnection: 'د کتار اړیکه (Queue Connection)',
+            latency: 'د ځواب وخت په ملي‌ثانیو (Latency)',
+        },
+        messages: {
+            overall: {
+                healthy: 'د سیستم اجرایي خدمتونه روغ دي.',
+                warning: 'یو یا څو اجرایي خدمتونه پاملرنې ته اړتیا لري.',
+                critical: 'د سیستم په اجرا کې بحراني ستونزې موندل شوې دي.',
+                unavailable: 'د سیستم د اجرا روغتیا معلومات د لاسرسي وړ نه دي.',
+            },
+            queue: {
+                healthy:
+                    'د کتار اړیکه فعاله ده او د دندو شمېر په ټاکلي حد کې دی.',
+                unreachable: 'د کتار اړیکه له اپلېکېشن څخه د لاسرسي وړ نه ده.',
+                syncMode:
+                    'کتار په هممهاله حالت (Sync Mode) کې چلېږي، چې بیاځلي هڅه او لنډمهاله ساتنه محدودوي.',
+                criticalThreshold:
+                    'پاتې یا ناکامې دندې له بحراني حد څخه زیاتې دي.',
+                warningThreshold:
+                    'پاتې یا ناکامې دندې د خبرداري له حد څخه زیاتې دي.',
+                warning: 'د کتار روغتیا پاملرنې ته اړتیا لري.',
+                critical: 'د کتار روغتیا بحراني ده.',
+                unavailable: 'د کتار د روغتیا معلومات د لاسرسي وړ نه دي.',
+            },
+            redis: {
+                notConfigured:
+                    'رېډېس لا د لنډمهالې زیرمې یا کتار د فعالې برخې په توګه نه دی تنظیم شوی.',
+                healthy: 'رېډېس د روغتیا د اړیکې ازموینې ته ځواب ورکړ.',
+                unhealthy:
+                    'رېډېس د روغتیا د اړیکې ازموینې ته سم ځواب ور نه کړ.',
+                unreachable:
+                    'رېډېس تنظیم شوی، خو له اپلېکېشن څخه د لاسرسي وړ نه دی.',
+                warning: 'د رېډېس اجرا پاملرنې ته اړتیا لري.',
+                critical: 'د رېډېس اجرا بحراني ده.',
+                unavailable: 'د رېډېس اجرا معلومات د لاسرسي وړ نه دي.',
+            },
+            sync: {
+                healthy:
+                    'د جایداد د همغږۍ اعتبارپاڼې فعالې دي او وروستی استعمال لري.',
+                noActive:
+                    'تر اوسه د جایداد د همغږۍ کومه فعاله اعتبارپاڼه نه ده صادره شوې.',
+                noRecent:
+                    'فعالې همغږۍ اعتبارپاڼې شته، خو په دې وروستیو کې نه دي کارول شوې.',
+                stale: 'ځینې فعالې همغږۍ اعتبارپاڼې په دې وروستیو کې نه دي کارول شوې.',
+                warning: 'د جایداد همغږۍ فعالیت پاملرنې ته اړتیا لري.',
+                critical: 'د جایداد همغږۍ فعالیت بحراني دی.',
+                unavailable: 'د جایداد همغږۍ فعالیت معلومات د لاسرسي وړ نه دي.',
+            },
+            refresh: {
+                cacheUnreadable:
+                    'د لنډیز محاسبې د وروستۍ تازه‌کونې نښه له زیرمې ونه لوستل شوه.',
+                notRecorded:
+                    'د لنډیز محاسبې د وروستۍ تازه‌کونې نښه لا نه ده ثبت شوې.',
+                current: 'د لنډیز محاسبې د وروستۍ تازه‌کونې نښه اوسنۍ ده.',
+                criticalStale:
+                    'د لنډیز محاسبې د وروستۍ تازه‌کونې نښه په بحراني ډول زړه ده.',
+                delayed: 'د لنډیز محاسبې وروستۍ تازه‌کونه ځنډېدلې ده.',
+                warning: 'وروستۍ تازه‌کونه پاملرنې ته اړتیا لري.',
+                critical: 'وروستۍ تازه‌کونه بحراني ده.',
+                unavailable: 'د وروستۍ تازه‌کونې معلومات د لاسرسي وړ نه دي.',
+            },
+            projection: {
+                healthy: 'د جایدادونو لنډیز محاسبې تازه دي.',
+                warning: 'د ځینو جایدادونو لنډیز محاسبې پاملرنې ته اړتیا لري.',
+                critical:
+                    'د ځینو جایدادونو لنډیز محاسبې په بحراني ډول ځنډېدلې دي.',
+                unavailable:
+                    'د جایدادونو د لنډیز محاسبې معلومات د لاسرسي وړ نه دي.',
+            },
+        },
+    },
     activityLogsPage: {
         title: 'د فعالیتونو راپورونه',
         subtitle:
