@@ -13,9 +13,25 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table';
 import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
 import {
@@ -27,11 +43,16 @@ import {
     Tenant,
 } from '@/types';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { formatNumber } from '@/utils/format';
 import {
+    Banknote,
     Building2,
     ContactRound,
+    Eye,
     IdCard,
-    MapPin,
+    MoreHorizontal,
+    Pencil,
+    Printer,
     Plus,
     ScanLine,
     Search,
@@ -127,6 +148,12 @@ const spaceLabel = (
     const unit = lease.unit ? ` ${lease.unit.unit_number}` : '';
     return `${lease.property?.name ?? ''} · ${type}${unit}`;
 };
+
+const shopNumber = (lease?: Lease) =>
+    lease?.unit?.unit_number ??
+    (lease?.property?.property_type === 'commercial_unit'
+        ? lease.property.external_unit_number
+        : null);
 
 export default function TenantsIndex({
     tenants,

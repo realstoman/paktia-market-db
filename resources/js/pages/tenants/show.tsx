@@ -257,7 +257,7 @@ export default function TenantProfile({
                 </section>
 
                 <section className="grid gap-6 xl:grid-cols-[1.1fr_1.4fr_0.9fr]">
-                    <Card id="tenant-finance" className="scroll-mt-24 rounded-2xl">
+                    <Card className="rounded-2xl">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2 text-lg">
                                 <UserRound className="h-5 w-5 text-primary" />
@@ -362,7 +362,10 @@ export default function TenantProfile({
                             )}
                         </CardContent>
                     </Card>
-                    <Card className="rounded-2xl">
+                    <Card
+                        id="tenant-finance"
+                        className="scroll-mt-24 rounded-2xl"
+                    >
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2 text-lg">
                                 <Banknote className="h-5 w-5 text-primary" />
