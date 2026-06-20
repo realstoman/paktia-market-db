@@ -7,7 +7,6 @@ import { useLocalization } from '@/lib/localization';
 import { dashboard } from '@/routes';
 import countries from '@/routes/countries';
 import { BreadcrumbItem, Country } from '@/types';
-import { formatDateTime } from '@/utils/format';
 import { Head } from '@inertiajs/react';
 
 interface CountryShowProps {
@@ -15,7 +14,14 @@ interface CountryShowProps {
 }
 
 export default function CountryShow({ country }: CountryShowProps) {
-    const { t } = useLocalization();
+    const { locale, t } = useLocalization();
+    const dateLocale =
+        locale === 'fa' ? 'fa-AF' : locale === 'ps' ? 'ps-AF' : 'en-US';
+    const formatDateTime = (value: string) =>
+        new Intl.DateTimeFormat(dateLocale, {
+            dateStyle: 'medium',
+            timeStyle: 'short',
+        }).format(new Date(value));
     const breadcrumbs: BreadcrumbItem[] = [
         { title: t('navigation.dashboard'), href: dashboard().url },
         {

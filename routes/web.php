@@ -93,7 +93,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Locations
         Route::resource('countries', CountryController::class);
         Route::post('countries/{country}/disable', [CountryController::class, 'disable'])->name('countries.disable');
-        Route::resource('provinces', ProvinceController::class);
+        Route::post('provinces', [ProvinceController::class, 'store'])->name('provinces.store');
+        Route::put('provinces/{province}', [ProvinceController::class, 'update'])->name('provinces.update');
+        Route::delete('provinces/{province}', [ProvinceController::class, 'destroy'])->name('provinces.destroy');
         Route::resource('properties', PropertyController::class);
         Route::post('properties/{property}/disable', [PropertyController::class, 'disable'])->name('properties.disable');
         Route::patch('properties/{property}/order', [PropertyController::class, 'reorder'])->name('properties.order.update');

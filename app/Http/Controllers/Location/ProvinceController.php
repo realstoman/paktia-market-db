@@ -45,7 +45,11 @@ class ProvinceController extends Controller
     {
         $validated = $request->validate([
             'country_id' => 'required|exists:countries,id',
-            'name' => 'required|string|max:255',
+            'name' => [
+                'required', 'string', 'max:255',
+                Rule::unique('provinces', 'name')
+                    ->where('country_id', $request->integer('country_id')),
+            ],
             'name_fa' => 'required|string|max:255',
             'name_ps' => 'required|string|max:255',
         ]);
