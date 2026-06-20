@@ -186,6 +186,35 @@ test('tenant edit cell action can open the profile edit dialog directly', functi
             ->where('openEdit', true));
 });
 
+test('tenant status messages follow the selected locale', function (
+    string $locale,
+    bool $initialStatus,
+    string $expectedMessage,
+) {
+    $tenant = Tenant::query()->create([
+        'full_name' => 'احمد خان',
+        'business_name' => 'تجارت احمد',
+        'phone' => '0700000101',
+        'is_active' => $initialStatus,
+    ]);
+
+    $this->withUnencryptedCookie('locale', $locale)
+        ->post(route('tenants.toggle', $tenant))
+        ->assertRedirect()
+        ->assertSessionHas('success', $expectedMessage);
+})->with([
+    'Dari deactivation' => [
+        'fa',
+        true,
+        'تجارت احمد با موفقیت غیرفعال شد.',
+    ],
+    'Pashto activation' => [
+        'ps',
+        false,
+        'تجارت احمد په بریالیتوب سره فعال شو.',
+    ],
+]);
+
 test('finance users can view tenant profiles and cards but cannot manage tenants', function () {
     $tenant = Tenant::query()->create(['full_name' => 'View Only Tenant', 'phone' => '4']);
     $financeUser = User::factory()->create()->assignRole('finance');

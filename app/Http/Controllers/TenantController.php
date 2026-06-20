@@ -119,7 +119,12 @@ class TenantController extends Controller
     {
         $tenant->update(['is_active' => ! $tenant->is_active]);
 
-        return back()->with('success', 'Tenant status updated successfully.');
+        return back()->with('success', __(
+            $tenant->is_active
+                ? 'tenants.actions.activated'
+                : 'tenants.actions.deactivated',
+            ['name' => $tenant->business_name ?: $tenant->full_name],
+        ));
     }
 
     public function uploadDocuments(Request $request, Tenant $tenant)

@@ -1,7 +1,6 @@
 import InputError from '@/components/input-error';
 import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -12,6 +11,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
