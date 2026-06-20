@@ -64,4 +64,9 @@ class Lease extends Model
     {
         return $this->belongsTo(Currency::class);
     }
+
+    public function contractDocuments()
+    {
+        return $this->hasMany(LeaseContractDocument::class)->latest();
+    }
 }
