@@ -271,7 +271,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                 </div>
 
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="property-tabs-scroll inline-flex w-max max-w-full min-w-0 gap-0.5 overflow-x-auto overscroll-x-contain scroll-smooth rounded-full bg-[#edf1f4] p-1 sm:max-w-175">
+                    <div className="property-tabs-scroll inline-flex w-max max-w-full min-w-0 gap-0.5 overflow-x-auto overscroll-x-contain scroll-smooth rounded-full bg-[#edf1f4] p-1 sm:max-w-250">
                         <button
                             onClick={() => setActiveTab('overall')}
                             className={`shrink-0 rounded-full border px-4 py-2 text-base font-medium transition-colors ${
