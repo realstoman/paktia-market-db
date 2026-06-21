@@ -202,13 +202,13 @@ export default function PropertiesPage({
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={t('propertyWorkspace.title')} />
-            <div className="space-y-5 **:data-[slot=card]:shadow-none">
+            <div className="space-y-4 **:data-[slot=card]:shadow-none">
                 <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
                     <div>
                         <h1 className="text-2xl font-semibold tracking-tight">
                             {t('propertyWorkspace.title')}
                         </h1>
-                        <p className="mt-1 text-sm text-muted-foreground">
+                        <p className="mt-1 text-base text-muted-foreground">
                             {t('propertyWorkspace.subtitle')}
                         </p>
                     </div>
@@ -795,6 +795,7 @@ export default function PropertiesPage({
                     </div>
                 </div>
 
+                {/* Portfolio Metrics */}
                 <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                     <PortfolioMetric
                         icon={Building2}
@@ -837,7 +838,8 @@ export default function PropertiesPage({
                     />
                 </div>
 
-                <div className="flex flex-col gap-3 rounded-xl border bg-card p-3 sm:flex-row">
+                {/* Search and Filter */}
+                <div className="flex flex-col gap-3 rounded-xl border border-primary/10 bg-card p-3 shadow-none sm:flex-row">
                     <div className="relative flex-1">
                         <Search className="absolute inset-s-3 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input
@@ -1105,7 +1107,7 @@ function PropertyCard({ property }: { property: Property }) {
     return (
         <Link href={`/properties/${property.id}`} className="group">
             <Card className="h-full overflow-hidden p-0 shadow-none transition hover:border-primary/30 hover:shadow-[0_4px_14px_rgba(15,23,42,0.05)]">
-                <div className="relative h-40 overflow-hidden bg-muted">
+                <div className="relative h-64 overflow-hidden bg-muted">
                     {property.image_url ? (
                         <img
                             src={property.image_url}
@@ -1215,14 +1217,14 @@ function PortfolioMetric({
     value: number;
 }) {
     return (
-        <Card>
+        <Card className="border border-primary/10 shadow-none">
             <CardContent className="flex items-center gap-3 py-4">
                 <div className="rounded-lg bg-muted p-2.5 text-primary">
                     <Icon className="h-5 w-5" />
                 </div>
                 <div>
-                    <p className="text-xl font-semibold">{value}</p>
-                    <p className="text-xs text-muted-foreground">{label}</p>
+                    <p className="text-2xl font-semibold">{value}</p>
+                    <p className="text-base text-muted-foreground">{label}</p>
                 </div>
             </CardContent>
         </Card>
