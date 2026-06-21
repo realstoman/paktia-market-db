@@ -202,7 +202,7 @@ export default function PropertiesPage({
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={t('propertyWorkspace.title')} />
-            <div className="space-y-5 [&_[data-slot=card]]:shadow-none">
+            <div className="space-y-5 **:data-[slot=card]:shadow-none">
                 <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
                     <div>
                         <h1 className="text-2xl font-semibold tracking-tight">
@@ -569,6 +569,9 @@ export default function PropertiesPage({
                                                             value,
                                                         )
                                                     }
+                                                    placeholder={t(
+                                                        'propertyWorkspace.selectOwnershipType',
+                                                    )}
                                                     options={[
                                                         'owned',
                                                         'leased',
@@ -602,6 +605,9 @@ export default function PropertiesPage({
                                                             value,
                                                         )
                                                     }
+                                                    placeholder={t(
+                                                        'propertyWorkspace.selectOwnershipType',
+                                                    )}
                                                     options={[
                                                         'owner_occupied',
                                                         'vacant',
@@ -833,7 +839,7 @@ export default function PropertiesPage({
 
                 <div className="flex flex-col gap-3 rounded-xl border bg-card p-3 sm:flex-row">
                     <div className="relative flex-1">
-                        <Search className="absolute start-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Search className="absolute inset-s-3 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input
                             className="bg-white ps-9 dark:bg-neutral-900"
                             placeholder={t('propertyWorkspace.search')}
