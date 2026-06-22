@@ -3243,6 +3243,9 @@ const en = {
         noFloors:
             'No floors yet. Add a basement, ground floor or upper floor to begin.',
         noSpaces: 'No :spaces have been added.',
+        searchShops: 'Search shops by number or name…',
+        searchApartments: 'Search apartments by number or name…',
+        noMatchingSpaces: 'No matching shop or apartment was found.',
         deleteFloor: 'Delete this floor and all of its spaces?',
         deleteSpace: 'Delete this space?',
         deleteFloorTitle: 'Delete floor?',

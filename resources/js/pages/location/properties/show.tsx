@@ -55,6 +55,7 @@ import {
     Plus,
     ReceiptText,
     Ruler,
+    Search,
     Store,
     Trash2,
     Upload,
@@ -90,8 +91,8 @@ export default function PropertyShow({
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={property.name} />
-            <div className="mx-auto w-full max-w-[1600px] space-y-5 [&_[data-slot=card]]:rounded-2xl [&_[data-slot=card]]:border-slate-200/80 [&_[data-slot=card]]:bg-white [&_[data-slot=card]]:shadow-none">
-                <section className="relative min-h-64 overflow-hidden rounded-3xl border border-slate-200/80 bg-gradient-to-r from-emerald-950 to-teal-700 shadow-none">
+            <div className="[**:data-[slot=card]:border-slate-200/80 mx-auto w-full max-w-[1600px] space-y-5 **:data-[slot=card]:rounded-2xl **:data-[slot=card]:bg-white **:data-[slot=card]:shadow-none">
+                <section className="relative min-h-64 overflow-hidden rounded-3xl border border-slate-200/80 bg-linear-to-r from-emerald-950 to-teal-700 shadow-none">
                     {property.image_url && (
                         <img
                             src={property.image_url}
@@ -99,7 +100,7 @@ export default function PropertyShow({
                             className="absolute inset-0 h-full w-full object-cover opacity-45"
                         />
                     )}
-                    <div className="relative flex min-h-64 flex-col justify-end bg-gradient-to-t from-black/80 to-transparent p-6 text-white md:p-8">
+                    <div className="relative flex min-h-64 flex-col justify-end bg-linear-to-t from-black/80 to-transparent p-6 text-white md:p-8">
                         <div className="mb-3 flex gap-2">
                             <Badge className="bg-white/90 text-slate-900">
                                 {t(
@@ -562,6 +563,7 @@ function PropertyDocuments({
                                 `propertyWorkspace.documents.types.${value}`,
                             ),
                         }))}
+                        placeholder={t('propertyWorkspace.documents.type')}
                         searchPlaceholder={t('propertyWorkspace.searchOptions')}
                         emptyText={t('propertyWorkspace.noOptions')}
                     />
@@ -653,12 +655,19 @@ function FloorCard({
     isMarket: boolean;
 }) {
     const { t } = useLocalization();
+    const [spaceSearch, setSpaceSearch] = useState('');
     const spaceLabel = isMarket
         ? t('propertyWorkspace.shops')
         : t('propertyWorkspace.apartments');
+    const normalizedSearch = spaceSearch.trim().toLowerCase();
+    const visibleUnits = (floor.units ?? []).filter((unit) =>
+        `${unit.unit_number} ${unit.description ?? ''} ${unit.electricity_meter ?? ''} ${unit.water_meter ?? ''}`
+            .toLowerCase()
+            .includes(normalizedSearch),
+    );
     return (
         <Card>
-            <CardHeader className="flex-row items-start justify-between space-y-0">
+            <CardHeader className="flex flex-col items-start justify-between gap-3 space-y-0 sm:flex-row">
                 <div>
                     <CardTitle>{floor.name}</CardTitle>
                     <p className="mt-1 text-sm text-muted-foreground">
@@ -669,7 +678,7 @@ function FloorCard({
                         · {(floor.units ?? []).length} {spaceLabel}
                     </p>
                 </div>
-                <div className="flex gap-1">
+                <div className="flex flex-wrap gap-1.5">
                     <AddUnit
                         property={property}
                         floor={floor}
@@ -691,70 +700,105 @@ function FloorCard({
             </CardHeader>
             <CardContent>
                 {floor.units?.length ? (
-                    <div className="grid gap-3 md:grid-cols-2">
-                        {floor.units.map((unit) => (
-                            <div
-                                key={unit.id}
-                                className="flex items-center justify-between rounded-xl border border-slate-200/80 bg-white p-3"
-                            >
-                                <div>
-                                    <div className="flex items-center gap-2 font-medium">
-                                        <Store className="h-4 w-4" />
-                                        {isMarket
-                                            ? t('propertyWorkspace.shops')
-                                            : t(
-                                                  'propertyWorkspace.apartments',
-                                              )}{' '}
-                                        {unit.unit_number}
-                                        <Badge
-                                            variant={
-                                                unit.occupancy_status ===
-                                                'vacant'
-                                                    ? 'success'
-                                                    : 'secondary'
-                                            }
-                                        >
-                                            {t(
-                                                `propertyWorkspace.occupancy.${unit.occupancy_status}`,
-                                                unit.occupancy_status,
+                    <div className="space-y-3">
+                        <div className="relative max-w-sm">
+                            <Search className="absolute inset-s-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input
+                                value={spaceSearch}
+                                onChange={(event) =>
+                                    setSpaceSearch(event.target.value)
+                                }
+                                placeholder={t(
+                                    isMarket
+                                        ? 'propertyWorkspace.searchShops'
+                                        : 'propertyWorkspace.searchApartments',
+                                )}
+                                className="h-9 bg-white ps-9"
+                            />
+                        </div>
+                        {visibleUnits.length ? (
+                            <div className="property-space-scroll">
+                                {visibleUnits.map((unit) => (
+                                    <div
+                                        key={unit.id}
+                                        className="flex min-h-28 flex-col justify-between gap-3 rounded-xl border border-slate-200/80 bg-white p-3"
+                                    >
+                                        <div>
+                                            <div className="flex items-center gap-2 font-medium">
+                                                <Store className="h-4 w-4" />
+                                                {isMarket
+                                                    ? t(
+                                                          'propertyWorkspace.shops',
+                                                      )
+                                                    : t(
+                                                          'propertyWorkspace.apartments',
+                                                      )}{' '}
+                                                {unit.unit_number}
+                                            </div>
+                                            <p className="mt-1 text-xs text-muted-foreground">
+                                                {unit.area_sqm
+                                                    ? `${formatNumber(unit.area_sqm)} m²`
+                                                    : '—'}
+                                                {!isMarket &&
+                                                    ` · ${unit.rooms_count ?? 0} ${t('propertyWorkspace.rooms')} · ${unit.bathrooms_count ?? 0} ${t('propertyWorkspace.bathrooms')}`}
+                                            </p>
+                                            {unit.description && (
+                                                <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">
+                                                    {unit.description}
+                                                </p>
                                             )}
-                                        </Badge>
+                                        </div>
+                                        <div className="flex shrink-0 items-center justify-between gap-2 border-t pt-2">
+                                            <Badge
+                                                variant={
+                                                    unit.occupancy_status ===
+                                                    'vacant'
+                                                        ? 'success'
+                                                        : 'secondary'
+                                                }
+                                            >
+                                                {t(
+                                                    `propertyWorkspace.occupancy.${unit.occupancy_status}`,
+                                                    unit.occupancy_status,
+                                                )}
+                                            </Badge>
+                                            <div className="flex gap-1.5">
+                                                <EditUnit
+                                                    property={property}
+                                                    floor={floor}
+                                                    unit={unit}
+                                                    isMarket={isMarket}
+                                                />
+                                                <DeleteConfirmation
+                                                    title={t(
+                                                        'propertyWorkspace.deleteSpaceTitle',
+                                                    )}
+                                                    description={t(
+                                                        'propertyWorkspace.deleteSpace',
+                                                    )}
+                                                    confirmLabel={t(
+                                                        'propertyWorkspace.confirmDeleteSpace',
+                                                    )}
+                                                    onConfirm={() =>
+                                                        router.delete(
+                                                            `/properties/${property.id}/floors/${floor.id}/units/${unit.id}`,
+                                                            {
+                                                                preserveScroll: true,
+                                                            },
+                                                        )
+                                                    }
+                                                    compact
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
-                                    <p className="mt-1 text-xs text-muted-foreground">
-                                        {unit.area_sqm
-                                            ? `${formatNumber(unit.area_sqm)} m²`
-                                            : '—'}
-                                        {!isMarket &&
-                                            ` · ${unit.rooms_count ?? 0} ${t('propertyWorkspace.rooms')} · ${unit.bathrooms_count ?? 0} ${t('propertyWorkspace.bathrooms')}`}
-                                    </p>
-                                </div>
-                                <div className="flex shrink-0 gap-1">
-                                    <EditUnit
-                                        property={property}
-                                        floor={floor}
-                                        unit={unit}
-                                        isMarket={isMarket}
-                                    />
-                                    <DeleteConfirmation
-                                        title={t(
-                                            'propertyWorkspace.deleteSpaceTitle',
-                                        )}
-                                        description={t(
-                                            'propertyWorkspace.deleteSpace',
-                                        )}
-                                        confirmLabel={t(
-                                            'propertyWorkspace.confirmDeleteSpace',
-                                        )}
-                                        onConfirm={() =>
-                                            router.delete(
-                                                `/properties/${property.id}/floors/${floor.id}/units/${unit.id}`,
-                                                { preserveScroll: true },
-                                            )
-                                        }
-                                    />
-                                </div>
+                                ))}
                             </div>
-                        ))}
+                        ) : (
+                            <p className="rounded-xl border border-dashed py-8 text-center text-sm text-muted-foreground">
+                                {t('propertyWorkspace.noMatchingSpaces')}
+                            </p>
+                        )}
                     </div>
                 ) : (
                     <p className="rounded-lg bg-muted/50 py-8 text-center text-sm text-muted-foreground">
@@ -910,7 +954,7 @@ function AddUnit({
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button size="sm" variant="outline">
+                <Button size="sm" className="h-8 px-2.5 text-xs">
                     <Plus className="me-1 h-4 w-4" />
                     {addLabel}
                 </Button>
@@ -1066,10 +1110,11 @@ function EditFloor({
                 <Button
                     type="button"
                     size="icon"
-                    variant="ghost"
+                    variant="outline"
+                    className="size-8 border-primary/15 bg-primary/8 text-primary hover:bg-primary/15 hover:text-primary"
                     aria-label={t('propertyWorkspace.editFloor')}
                 >
-                    <Pencil className="size-4" />
+                    <Pencil className="size-3.5" />
                 </Button>
             </DialogTrigger>
             <DialogContent className="bg-[#f8f9fd] sm:max-w-xl [&_input]:bg-white [&_textarea]:bg-white">
@@ -1200,10 +1245,11 @@ function EditUnit({
                 <Button
                     type="button"
                     size="icon"
-                    variant="ghost"
+                    variant="outline"
+                    className="size-7 border-primary/15 bg-primary/8 text-primary hover:bg-primary/15 hover:text-primary"
                     aria-label={editLabel}
                 >
-                    <Pencil className="size-4" />
+                    <Pencil className="size-3" />
                 </Button>
             </DialogTrigger>
             <DialogContent className="max-h-[92vh] overflow-y-auto bg-[#f8f9fd] sm:max-w-2xl [&_input]:bg-white [&_textarea]:bg-white">
@@ -1383,11 +1429,13 @@ function DeleteConfirmation({
     description,
     confirmLabel,
     onConfirm,
+    compact = false,
 }: {
     title: string;
     description: string;
     confirmLabel: string;
     onConfirm: () => void;
+    compact?: boolean;
 }) {
     const { t, isRtl } = useLocalization();
 
@@ -1397,10 +1445,15 @@ function DeleteConfirmation({
                 <Button
                     type="button"
                     size="icon"
-                    variant="ghost"
+                    variant="outline"
+                    className={
+                        compact
+                            ? 'size-7 border-destructive/15 bg-destructive/8 text-destructive hover:bg-destructive/15 hover:text-destructive'
+                            : 'size-8 border-destructive/15 bg-destructive/8 text-destructive hover:bg-destructive/15 hover:text-destructive'
+                    }
                     aria-label={confirmLabel}
                 >
-                    <Trash2 className="size-4 text-destructive" />
+                    <Trash2 className={compact ? 'size-3' : 'size-3.5'} />
                 </Button>
             </AlertDialogTrigger>
             <AlertDialogContent dir={isRtl ? 'rtl' : 'ltr'}>
@@ -1531,7 +1584,7 @@ function CountInput({
     return (
         <Field label={label}>
             <div className="relative">
-                <Icon className="absolute start-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Icon className="absolute inset-s-3 top-2.5 h-4 w-4 text-muted-foreground" />
                 <NumericInput
                     className="ps-9"
                     min="0"
