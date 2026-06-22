@@ -613,30 +613,23 @@ function PropertyDocuments({
                                             : ''}
                                     </p>
                                 </a>
-                                <Button
-                                    type="button"
-                                    size="icon"
-                                    variant="ghost"
-                                    aria-label={t(
+                                <DeleteConfirmation
+                                    title={t(
                                         'propertyWorkspace.documents.delete',
                                     )}
-                                    onClick={() => {
-                                        if (
-                                            window.confirm(
-                                                t(
-                                                    'propertyWorkspace.documents.deleteConfirm',
-                                                ),
-                                            )
-                                        ) {
-                                            router.delete(
-                                                `/properties/${property.id}/documents/${document.id}`,
-                                                { preserveScroll: true },
-                                            );
-                                        }
-                                    }}
-                                >
-                                    <Trash2 className="size-4" />
-                                </Button>
+                                    description={t(
+                                        'propertyWorkspace.documents.deleteConfirm',
+                                    )}
+                                    confirmLabel={t(
+                                        'propertyWorkspace.documents.delete',
+                                    )}
+                                    onConfirm={() =>
+                                        router.delete(
+                                            `/properties/${property.id}/documents/${document.id}`,
+                                            { preserveScroll: true },
+                                        )
+                                    }
+                                />
                             </div>
                         ))
                     ) : (
@@ -803,7 +796,7 @@ function AddFloor({ property }: { property: Property }) {
                     {t('propertyWorkspace.addFloor')}
                 </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="bg-[#f8f9fd] [&_input]:bg-white [&_textarea]:bg-white">
                 <DialogHeader>
                     <DialogTitle>{t('propertyWorkspace.addFloor')}</DialogTitle>
                     <DialogDescription>
@@ -922,7 +915,7 @@ function AddUnit({
                     {addLabel}
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-2xl">
+            <DialogContent className="bg-[#f8f9fd] [&_input]:bg-white [&_textarea]:bg-white sm:max-w-2xl">
                 <DialogHeader>
                     <DialogTitle>{addLabel}</DialogTitle>
                     <DialogDescription>
