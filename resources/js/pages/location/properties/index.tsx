@@ -222,7 +222,7 @@ export default function PropertiesPage({
                                     {t('propertyWorkspace.register')}
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent className="max-h-[92vh] overflow-y-auto bg-[#f8f9fd] sm:max-w-4xl [&_input]:bg-white [&_textarea]:bg-white">
+                            <DialogContent className="max-h-[92vh] overflow-x-hidden overflow-y-auto rounded-2xl bg-[#f8f9fd] sm:max-w-4xl [&_input]:bg-white [&_textarea]:bg-white">
                                 <DialogHeader>
                                     <DialogTitle>
                                         {t('propertyWorkspace.registerTitle')}
@@ -233,7 +233,7 @@ export default function PropertiesPage({
                                 </DialogHeader>
                                 <form
                                     onSubmit={submit}
-                                    className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+                                    className="grid min-w-0 gap-4 md:grid-cols-3"
                                 >
                                     <LocalizedFields form={form} />
 
@@ -386,7 +386,7 @@ export default function PropertiesPage({
                                             label={t(
                                                 'propertyWorkspace.relatedLocation',
                                             )}
-                                            className="sm:col-span-2 lg:col-span-3"
+                                            className="md:col-span-3"
                                             error={
                                                 form.errors.parent_property_id
                                             }
@@ -632,9 +632,9 @@ export default function PropertiesPage({
                                                 label={t(
                                                     'propertyWorkspace.fields.businessActivities',
                                                 )}
-                                                className="sm:col-span-2"
+                                                className="md:col-span-2"
                                             >
-                                                <div className="grid gap-2 rounded-xl border p-3 sm:grid-cols-2">
+                                                <div className="grid gap-2 rounded-xl border bg-white p-3 sm:grid-cols-2">
                                                     {[
                                                         'money_exchange',
                                                         'jewelry',
@@ -776,9 +776,9 @@ export default function PropertiesPage({
                                             form.setData('image', file)
                                         }
                                         error={form.errors.image}
-                                        className="sm:col-span-2 lg:col-span-3"
+                                        className="md:col-span-3"
                                     />
-                                    <div className="flex justify-end gap-2 border-t pt-4 sm:col-span-2 lg:col-span-3">
+                                    <div className="flex justify-end gap-2 border-t border-[#002452]/10 pt-4 md:col-span-3">
                                         <Button
                                             type="button"
                                             variant="ghost"
@@ -1001,9 +1001,9 @@ function LocalizedFields({ form }: { form: InertiaFormProps<PropertyForm> }) {
     const { t } = useLocalization();
 
     return (
-        <div className="grid gap-4 rounded-xl border bg-muted/20 p-4 sm:col-span-2 sm:grid-cols-2 lg:col-span-3 lg:grid-cols-3">
-            <div className="space-y-1 sm:col-span-2 lg:col-span-3">
-                <p className="text-sm font-medium">
+        <div className="grid min-w-0 gap-4 rounded-2xl border border-[#002452]/10 bg-white p-4 md:col-span-3 md:grid-cols-3">
+            <div className="space-y-1 border-b border-[#002452]/10 pb-3 md:col-span-3">
+                <p className="text-sm font-semibold text-[#002452]">
                     {t('propertyWorkspace.languages.fa')}
                 </p>
                 <p className="text-xs text-muted-foreground">
@@ -1271,7 +1271,7 @@ function Field({
     children: React.ReactNode;
 }) {
     return (
-        <div className={`grid gap-2 ${className}`}>
+        <div className={`grid min-w-0 gap-2 ${className}`}>
             <Label>{label}</Label>
             {children}
             <InputError message={error} />

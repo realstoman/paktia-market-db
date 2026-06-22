@@ -36,13 +36,13 @@ export function PropertyImageUpload({
     );
 
     return (
-        <div className={`grid gap-2 ${className}`}>
+        <div className={`grid min-w-0 gap-2 ${className}`}>
             <Label htmlFor={inputId}>
                 {t('propertyWorkspace.fields.photo')}
             </Label>
             <label
                 htmlFor={inputId}
-                className="group grid cursor-pointer gap-4 rounded-xl border border-dashed border-border bg-white p-3 transition-colors hover:border-primary/40 hover:bg-primary/[0.03] sm:grid-cols-[112px_1fr_auto] sm:items-center"
+                className="group grid min-w-0 cursor-pointer gap-4 rounded-2xl border border-dashed border-[#002452]/20 bg-white p-4 transition-colors hover:border-primary/40 hover:bg-primary/[0.03] sm:grid-cols-[112px_minmax(0,1fr)_auto] sm:items-center"
             >
                 <input
                     id={inputId}
