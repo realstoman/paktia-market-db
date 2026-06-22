@@ -1119,31 +1119,13 @@ function PropertyCard({ property }: { property: Property }) {
                             <Icon className="h-12 w-12 text-slate-400" />
                         </div>
                     )}
-                    <div className="absolute inset-x-0 top-0 flex justify-between p-3">
-                        <Badge className="bg-background/90 text-foreground backdrop-blur">
-                            {t(`propertyWorkspace.types.${type}`)}
-                        </Badge>
-                        <Badge
-                            variant="outline"
-                            className="border-white/50 bg-background/80 text-foreground backdrop-blur"
-                        >
-                            <CheckCircle2 className="me-1 h-3 w-3" />
-                            {t(
-                                property.is_active
-                                    ? 'propertyWorkspace.active'
-                                    : 'propertyWorkspace.inactive',
-                            )}
-                        </Badge>
-                    </div>
                 </div>
                 <CardContent className="space-y-4 p-5">
                     <div>
                         <div className="flex items-start justify-between gap-3">
                             <h2 className="font-semibold">{property.name}</h2>
                             <Badge variant="secondary">
-                                {t(
-                                    `propertyWorkspace.usage.${property.usage_type}`,
-                                )}
+                                {t(`propertyWorkspace.types.${type}`)}
                             </Badge>
                         </div>
                         {property.parent_property && (
@@ -1189,17 +1171,35 @@ function PropertyCard({ property }: { property: Property }) {
                         <Stat
                             value={
                                 property.building_area_sqm
-                                    ? `${formatNumber(property.building_area_sqm)} m²`
+                                    ? formatNumber(property.building_area_sqm)
                                     : '—'
                             }
                             label={t('propertyWorkspace.building')}
                         />
                     </div>
-                    <div className="flex items-center justify-between border-t pt-3 text-xs text-muted-foreground">
-                        <span>{t('propertyWorkspace.ready')}</span>
-                        <span className="font-medium text-primary">
-                            {t('propertyWorkspace.openWorkspace')} →
-                        </span>
+                    <div className="flex flex-wrap items-center gap-2 border-t pt-3">
+                        <Badge
+                            variant="outline"
+                            className={
+                                property.is_active
+                                    ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                                    : 'border-slate-200 bg-slate-50 text-slate-500'
+                            }
+                        >
+                            {property.is_active && (
+                                <CheckCircle2 className="me-1 h-3.5 w-3.5 text-emerald-600" />
+                            )}
+                            {t(
+                                property.is_active
+                                    ? 'propertyWorkspace.active'
+                                    : 'propertyWorkspace.inactive',
+                            )}
+                        </Badge>
+                        <Badge variant="secondary">
+                            {t(
+                                `propertyWorkspace.usage.${property.usage_type}`,
+                            )}
+                        </Badge>
                     </div>
                 </CardContent>
             </Card>

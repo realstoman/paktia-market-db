@@ -3213,7 +3213,7 @@ const en = {
         shops: 'Shops',
         apartments: 'Apartments',
         rooms: 'Rooms',
-        building: 'Building',
+        building: 'Building area (m²)',
         ready: 'Employees, expenses and reports ready',
         openWorkspace: 'Open workspace',
         profile: 'Property profile',
