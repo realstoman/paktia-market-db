@@ -221,7 +221,7 @@ export default function PropertiesPage({
                                     {t('propertyWorkspace.register')}
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent className="max-h-[92vh] overflow-y-auto bg-[#f8f9fd] [&_input]:bg-white [&_textarea]:bg-white sm:max-w-4xl">
+                            <DialogContent className="max-h-[92vh] overflow-y-auto bg-[#f8f9fd] sm:max-w-4xl [&_input]:bg-white [&_textarea]:bg-white">
                                 <DialogHeader>
                                     <DialogTitle>
                                         {t('propertyWorkspace.registerTitle')}

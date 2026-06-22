@@ -152,6 +152,44 @@ test('floors support basements and market spaces are always shops', function () 
     ]);
 });
 
+test('floors and shops can be edited without changing their property relationships', function () {
+    [$country, $province] = propertyLocation();
+    $property = Property::query()->create([
+        'name' => 'Editable Mall', 'property_type' => 'mall', 'usage_type' => 'commercial',
+        'country_id' => $country->id, 'province_id' => $province->id,
+    ]);
+    $floor = $property->floors()->create([
+        'name' => 'Ground floor', 'level_number' => 0, 'planned_units' => 10,
+    ]);
+    $shop = $floor->units()->create([
+        'unit_type' => 'shop', 'unit_number' => 'G-01', 'occupancy_status' => 'vacant',
+    ]);
+
+    $this->put(route('properties.floors.update', [$property, $floor]), [
+        'name' => 'Main floor',
+        'level_number' => 1,
+        'area_sqm' => 800,
+        'planned_units' => 12,
+        'usage_type' => 'commercial',
+        'description' => 'Updated floor',
+    ])->assertRedirect()->assertSessionHas('success', __('properties.actions.floor_updated'));
+
+    $this->put(route('properties.floors.units.update', [$property, $floor, $shop]), [
+        'unit_number' => 'M-101',
+        'area_sqm' => 36,
+        'width_m' => 4,
+        'length_m' => 9,
+        'occupancy_status' => 'reserved',
+        'electricity_meter' => 'EL-101',
+    ])->assertRedirect()->assertSessionHas('success', __('properties.actions.space_updated'));
+
+    expect($floor->fresh()->name)->toBe('Main floor')
+        ->and($floor->fresh()->property_id)->toBe($property->id)
+        ->and($shop->fresh()->unit_number)->toBe('M-101')
+        ->and($shop->fresh()->occupancy_status)->toBe('reserved')
+        ->and($shop->fresh()->property_floor_id)->toBe($floor->id);
+});
+
 test('residential block spaces are always apartments', function () {
     [$country, $province] = propertyLocation();
     $property = Property::query()->create([

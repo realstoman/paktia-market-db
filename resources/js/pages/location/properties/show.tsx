@@ -2,7 +2,6 @@ import InputError from '@/components/input-error';
 import { EditPropertyDialog } from '@/components/properties/edit-property-dialog';
 import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
-import { Badge } from '@/components/ui/badge';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -14,6 +13,7 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -90,7 +90,7 @@ export default function PropertyShow({
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={property.name} />
-            <div className="space-y-5 [&_[data-slot=card]]:rounded-2xl [&_[data-slot=card]]:border-slate-200/80 [&_[data-slot=card]]:bg-white [&_[data-slot=card]]:shadow-none">
+            <div className="mx-auto w-full max-w-[1600px] space-y-5 [&_[data-slot=card]]:rounded-2xl [&_[data-slot=card]]:border-slate-200/80 [&_[data-slot=card]]:bg-white [&_[data-slot=card]]:shadow-none">
                 <section className="relative min-h-64 overflow-hidden rounded-3xl border border-slate-200/80 bg-gradient-to-r from-emerald-950 to-teal-700 shadow-none">
                     {property.image_url && (
                         <img
@@ -695,7 +695,7 @@ function FloorCard({
                         {floor.units.map((unit) => (
                             <div
                                 key={unit.id}
-                                className="flex items-center justify-between rounded-lg border p-3"
+                                className="flex items-center justify-between rounded-xl border border-slate-200/80 bg-white p-3"
                             >
                                 <div>
                                     <div className="flex items-center gap-2 font-medium">
@@ -915,7 +915,7 @@ function AddUnit({
                     {addLabel}
                 </Button>
             </DialogTrigger>
-            <DialogContent className="bg-[#f8f9fd] [&_input]:bg-white [&_textarea]:bg-white sm:max-w-2xl">
+            <DialogContent className="bg-[#f8f9fd] sm:max-w-2xl [&_input]:bg-white [&_textarea]:bg-white">
                 <DialogHeader>
                     <DialogTitle>{addLabel}</DialogTitle>
                     <DialogDescription>
@@ -1072,7 +1072,7 @@ function EditFloor({
                     <Pencil className="size-4" />
                 </Button>
             </DialogTrigger>
-            <DialogContent className="bg-[#f8f9fd] [&_input]:bg-white [&_textarea]:bg-white sm:max-w-xl">
+            <DialogContent className="bg-[#f8f9fd] sm:max-w-xl [&_input]:bg-white [&_textarea]:bg-white">
                 <DialogHeader>
                     <DialogTitle>
                         {t('propertyWorkspace.editFloor')}
@@ -1206,7 +1206,7 @@ function EditUnit({
                     <Pencil className="size-4" />
                 </Button>
             </DialogTrigger>
-            <DialogContent className="max-h-[92vh] overflow-y-auto bg-[#f8f9fd] [&_input]:bg-white [&_textarea]:bg-white sm:max-w-2xl">
+            <DialogContent className="max-h-[92vh] overflow-y-auto bg-[#f8f9fd] sm:max-w-2xl [&_input]:bg-white [&_textarea]:bg-white">
                 <DialogHeader>
                     <DialogTitle>{editLabel}</DialogTitle>
                     <DialogDescription>
@@ -1267,13 +1267,43 @@ function EditUnit({
                         </>
                     ) : (
                         <>
-                            <CountInput icon={BedDouble} label={t('propertyWorkspace.fields.rooms')} value={form.data.rooms_count} set={(value) => form.setData('rooms_count', value)} />
-                            <CountInput icon={ChefHat} label={t('propertyWorkspace.fields.kitchens')} value={form.data.kitchens_count} set={(value) => form.setData('kitchens_count', value)} />
-                            <CountInput icon={DoorOpen} label={t('propertyWorkspace.fields.halls')} value={form.data.halls_count} set={(value) => form.setData('halls_count', value)} />
-                            <CountInput icon={Bath} label={t('propertyWorkspace.fields.bathrooms')} value={form.data.bathrooms_count} set={(value) => form.setData('bathrooms_count', value)} />
+                            <CountInput
+                                icon={BedDouble}
+                                label={t('propertyWorkspace.fields.rooms')}
+                                value={form.data.rooms_count}
+                                set={(value) =>
+                                    form.setData('rooms_count', value)
+                                }
+                            />
+                            <CountInput
+                                icon={ChefHat}
+                                label={t('propertyWorkspace.fields.kitchens')}
+                                value={form.data.kitchens_count}
+                                set={(value) =>
+                                    form.setData('kitchens_count', value)
+                                }
+                            />
+                            <CountInput
+                                icon={DoorOpen}
+                                label={t('propertyWorkspace.fields.halls')}
+                                value={form.data.halls_count}
+                                set={(value) =>
+                                    form.setData('halls_count', value)
+                                }
+                            />
+                            <CountInput
+                                icon={Bath}
+                                label={t('propertyWorkspace.fields.bathrooms')}
+                                value={form.data.bathrooms_count}
+                                set={(value) =>
+                                    form.setData('bathrooms_count', value)
+                                }
+                            />
                         </>
                     )}
-                    <Field label={t('propertyWorkspace.fields.occupancyStatus')}>
+                    <Field
+                        label={t('propertyWorkspace.fields.occupancyStatus')}
+                    >
                         <SearchableDropdown
                             value={form.data.occupancy_status}
                             onValueChange={(value) =>
@@ -1298,7 +1328,9 @@ function EditUnit({
                             }))}
                         />
                     </Field>
-                    <Field label={t('propertyWorkspace.fields.electricityMeter')}>
+                    <Field
+                        label={t('propertyWorkspace.fields.electricityMeter')}
+                    >
                         <Input
                             value={form.data.electricity_meter}
                             onChange={(event) =>
@@ -1382,7 +1414,10 @@ function DeleteConfirmation({
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
-                    <AlertDialogAction variant="destructive" onClick={onConfirm}>
+                    <AlertDialogAction
+                        variant="destructive"
+                        onClick={onConfirm}
+                    >
                         {confirmLabel}
                     </AlertDialogAction>
                 </AlertDialogFooter>
