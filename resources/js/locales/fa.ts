@@ -3278,7 +3278,7 @@ const fa = {
             occupancyStatus: 'وضعیت اشغال',
             hostMarketName: 'نام مارکیت بیرونی',
             externalUnitNumber: 'نمبر دکان / دفتر',
-            externalFloor: 'منزل در داخل مارکیت بیرونی',
+            externalFloor: 'منزل در داخل مارکیت',
             ownershipType: 'وضعیت مالکیت',
             operatingMode: 'وضعیت فعلی استفاده',
             businessActivities: 'فعالیت‌های تجارتی',
