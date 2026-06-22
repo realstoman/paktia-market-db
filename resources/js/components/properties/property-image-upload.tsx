@@ -42,7 +42,7 @@ export function PropertyImageUpload({
             </Label>
             <label
                 htmlFor={inputId}
-                className="group grid cursor-pointer gap-4 rounded-xl border border-dashed border-border bg-muted/20 p-3 transition-colors hover:border-primary/40 hover:bg-primary/[0.03] sm:grid-cols-[112px_1fr_auto] sm:items-center"
+                className="group grid cursor-pointer gap-4 rounded-xl border border-dashed border-border bg-white p-3 transition-colors hover:border-primary/40 hover:bg-primary/[0.03] sm:grid-cols-[112px_1fr_auto] sm:items-center"
             >
                 <input
                     id={inputId}
@@ -54,7 +54,7 @@ export function PropertyImageUpload({
                     }
                 />
 
-                <div className="flex h-24 items-center justify-center overflow-hidden rounded-lg border bg-background">
+                <div className="flex h-24 items-center justify-center overflow-hidden rounded-lg border bg-white">
                     {previewUrl ? (
                         <img
                             src={previewUrl}
@@ -79,7 +79,7 @@ export function PropertyImageUpload({
                     </p>
                 </div>
 
-                <span className="inline-flex h-9 items-center justify-center gap-2 rounded-lg border bg-background px-3 text-xs font-medium text-foreground transition-colors group-hover:border-primary/30 group-hover:text-primary">
+                <span className="inline-flex h-9 items-center justify-center gap-2 rounded-lg border bg-white px-3 text-xs font-medium text-foreground transition-colors group-hover:border-primary/30 group-hover:text-primary">
                     <UploadCloud className="size-4" />
                     {t('propertyWorkspace.choosePhoto')}
                 </span>
