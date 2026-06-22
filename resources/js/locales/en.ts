@@ -416,6 +416,7 @@ const en = {
             owner: 'Owner / responsible person',
             business: 'Business name',
             shop: 'Shop / office',
+            space: 'Shop / apartment',
             property: 'Property',
             finance: 'Contract finance',
             status: 'Status',

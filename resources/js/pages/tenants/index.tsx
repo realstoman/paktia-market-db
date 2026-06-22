@@ -276,33 +276,27 @@ export default function TenantsIndex({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={t('tenants.title')} />
             <div
-                className="mx-auto w-full max-w-[1600px] space-y-6"
+                className="mx-auto w-full max-w-[1600px] space-y-4 **:data-[slot=card]:shadow-none"
                 dir={isRtl ? 'rtl' : 'ltr'}
             >
-                <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 p-6 text-white shadow-xl sm:p-8">
-                    <div className="absolute -end-10 -top-20 h-64 w-64 rounded-full bg-emerald-400/20 blur-3xl" />
-                    <div className="relative flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
+                <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
                         <div className="max-w-2xl">
-                            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-sm">
-                                <ShieldCheck className="h-4 w-4 text-emerald-300" />
-                                {t('tenants.identity')}
-                            </div>
-                            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+                            <h1 className="text-2xl font-semibold tracking-tight">
                                 {t('tenants.title')}
                             </h1>
-                            <p className="mt-3 text-sm leading-6 text-slate-300 sm:text-base">
+                            <p className="mt-1 text-base text-muted-foreground">
                                 {t('tenants.subtitle')}
                             </p>
                         </div>
                         {canManage && (
                             <Dialog open={open} onOpenChange={setOpen}>
                                 <DialogTrigger asChild>
-                                    <Button className="h-11 rounded-xl bg-white px-5 text-slate-950 hover:bg-slate-100">
+                                    <Button>
                                         <Plus className="me-2 h-4 w-4" />
                                         {t('tenants.register')}
                                     </Button>
                                 </DialogTrigger>
-                                <DialogContent className="max-h-[92vh] overflow-y-auto rounded-2xl sm:max-w-5xl">
+                                <DialogContent className="max-h-[92vh] overflow-y-auto rounded-2xl bg-[#f8f9fd] [&_input]:bg-white [&_textarea]:bg-white sm:max-w-5xl">
                                     <DialogHeader>
                                         <DialogTitle>
                                             {t('tenants.register')}
@@ -320,10 +314,9 @@ export default function TenantsIndex({
                                 </DialogContent>
                             </Dialog>
                         )}
-                    </div>
                 </section>
 
-                <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                     {[
                         [ContactRound, t('tenants.total'), summary.total],
                         [IdCard, t('tenants.assigned'), summary.assigned],
@@ -336,17 +329,17 @@ export default function TenantsIndex({
                     ].map(([Icon, label, value], index) => (
                         <Card
                             key={index}
-                            className="rounded-2xl border-border/60 shadow-sm"
+                            className="border border-primary/10 shadow-none"
                         >
-                            <CardContent className="flex items-center gap-4 p-5">
-                                <div className="rounded-xl bg-primary/10 p-3 text-primary">
+                            <CardContent className="flex items-center gap-3 py-4">
+                                <div className="rounded-lg bg-muted p-2.5 text-primary">
                                     <Icon className="h-5 w-5" />
                                 </div>
                                 <div>
                                     <p className="text-2xl font-semibold">
                                         {value as number}
                                     </p>
-                                    <p className="text-sm text-muted-foreground">
+                                    <p className="text-base text-muted-foreground">
                                         {label as string}
                                     </p>
                                 </div>
@@ -355,7 +348,7 @@ export default function TenantsIndex({
                     ))}
                 </section>
 
-                <section className="grid gap-3 rounded-2xl border bg-card p-4 shadow-sm lg:grid-cols-[1fr_1.35fr]">
+                <section className="grid gap-3 rounded-xl border border-primary/10 bg-card p-3 shadow-none lg:grid-cols-[1fr_1.35fr]">
                     <div>
                         <Label className="mb-2 flex items-center gap-2">
                             <ScanLine className="h-4 w-4 text-primary" />
@@ -401,7 +394,7 @@ export default function TenantsIndex({
                 </section>
 
                 {tenants.data.length ? (
-                    <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
+                    <section className="overflow-hidden rounded-xl border bg-card shadow-none">
                         <Table>
                             <TableHeader className="bg-[#edf1f4]">
                                 <TableRow className="hover:bg-transparent">
@@ -412,7 +405,7 @@ export default function TenantsIndex({
                                         {t('tenants.table.business')}
                                     </TableHead>
                                     <TableHead className="min-w-32 text-start">
-                                        {t('tenants.table.shop')}
+                                        {t('tenants.table.space')}
                                     </TableHead>
                                     <TableHead className="min-w-48 text-start">
                                         {t('tenants.table.property')}
@@ -432,6 +425,9 @@ export default function TenantsIndex({
                                 {tenants.data.map((tenant) => {
                                     const lease = currentLease(tenant);
                                     const number = shopNumber(lease);
+                                    const spaceType =
+                                        lease?.unit?.unit_type ??
+                                        lease?.leased_space_type;
 
                                     return (
                                         <TableRow
@@ -502,7 +498,10 @@ export default function TenantsIndex({
                                                 {number ? (
                                                     <Badge variant="outline">
                                                         {t(
-                                                            'tenants.lease.shop',
+                                                            spaceType ===
+                                                                'apartment'
+                                                                ? 'tenants.lease.apartment'
+                                                                : 'tenants.lease.shop',
                                                         )}{' '}
                                                         {number}
                                                     </Badge>
@@ -902,9 +901,13 @@ function TenantForm({
                         <Label>{t('tenants.fields.tenantType')}</Label>
                         <SearchableDropdown
                             value={data.tenant_type}
-                            onValueChange={(value) =>
-                                setData('tenant_type', value)
-                            }
+                            onValueChange={(value) => {
+                                setData('tenant_type', value);
+                                if (value === 'individual') {
+                                    setData('business_name', '');
+                                    setData('license_number', '');
+                                }
+                            }}
                             placeholder={t('tenants.fields.select')}
                             options={[
                                 {
@@ -920,12 +923,17 @@ function TenantForm({
                     </div>
                     {field('full_name', t('tenants.fields.fullName'))}
                     {field('father_name', t('tenants.fields.fatherName'))}
-                    {field('business_name', t('tenants.fields.businessName'))}
+                    {data.tenant_type === 'company' &&
+                        field(
+                            'business_name',
+                            t('tenants.fields.businessName'),
+                        )}
                     {field('phone', t('tenants.fields.phone'))}
                     {field('whatsapp', t('tenants.fields.whatsapp'))}
                     {field('email', t('tenants.fields.email'), 'email')}
                     {field('nid_number', t('tenants.fields.nid'))}
-                    {field('license_number', t('tenants.fields.license'))}
+                    {data.tenant_type === 'company' &&
+                        field('license_number', t('tenants.fields.license'))}
                     <div className="space-y-1.5">
                         <Label>{t('tenants.fields.photo')}</Label>
                         <Input
