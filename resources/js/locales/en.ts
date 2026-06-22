@@ -3236,11 +3236,19 @@ const en = {
         addFloor: 'Add floor',
         addShop: 'Add shop',
         addApartment: 'Add apartment',
+        editFloor: 'Edit floor',
+        editShop: 'Edit shop',
+        editApartment: 'Edit apartment',
+        saveChanges: 'Save changes',
         noFloors:
             'No floors yet. Add a basement, ground floor or upper floor to begin.',
         noSpaces: 'No :spaces have been added.',
         deleteFloor: 'Delete this floor and all of its spaces?',
         deleteSpace: 'Delete this space?',
+        deleteFloorTitle: 'Delete floor?',
+        deleteSpaceTitle: 'Delete space?',
+        confirmDeleteFloor: 'Delete floor',
+        confirmDeleteSpace: 'Delete space',
         houseHelp:
             'House details are managed at property level. The complete house can later be assigned to one rental contract.',
         commercialUnitHelp:
@@ -3283,6 +3291,7 @@ const en = {
             waterMeter: 'Water meter',
             shopNumber: 'Shop number',
             apartmentNumber: 'Apartment number',
+            occupancyStatus: 'Occupancy status',
             hostMarketName: 'External market name',
             externalUnitNumber: 'Shop / office number',
             externalFloor: 'Floor inside external market',
@@ -3305,6 +3314,12 @@ const en = {
             commercial: 'Commercial',
             residential: 'Residential',
             mixed: 'Mixed use',
+        },
+        occupancy: {
+            vacant: 'Vacant',
+            occupied: 'Occupied',
+            reserved: 'Reserved',
+            maintenance: 'Maintenance',
         },
         ownership: {
             owned: 'Owned',

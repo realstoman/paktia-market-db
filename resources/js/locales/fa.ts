@@ -3217,11 +3217,19 @@ const fa = {
         addFloor: 'افزودن منزل',
         addShop: 'افزودن دکان',
         addApartment: 'افزودن آپارتمان',
+        editFloor: 'ویرایش منزل',
+        editShop: 'ویرایش دکان',
+        editApartment: 'ویرایش آپارتمان',
+        saveChanges: 'ذخیره تغییرات',
         noFloors:
             'هنوز منزلی ثبت نشده است. از زیرزمین، منزل همکف یا منزل بالا آغاز کنید.',
         noSpaces: 'هنوز :spaces ثبت نشده است.',
         deleteFloor: 'این منزل و تمام ساحات آن حذف شود؟',
         deleteSpace: 'این ساحه حذف شود؟',
+        deleteFloorTitle: 'منزل حذف شود؟',
+        deleteSpaceTitle: 'ساحه حذف شود؟',
+        confirmDeleteFloor: 'حذف منزل',
+        confirmDeleteSpace: 'حذف ساحه',
         houseHelp:
             'جزئیات خانه در سطح جایداد مدیریت می‌شود و بعداً تمام خانه به یک قرارداد کرایی سپرده می‌شود.',
         commercialUnitHelp:
@@ -3264,6 +3272,7 @@ const fa = {
             waterMeter: 'میتر آب',
             shopNumber: 'نمبر دکان',
             apartmentNumber: 'نمبر آپارتمان',
+            occupancyStatus: 'وضعیت اشغال',
             hostMarketName: 'نام مارکیت بیرونی',
             externalUnitNumber: 'نمبر دکان / دفتر',
             externalFloor: 'منزل در داخل مارکیت بیرونی',
@@ -3283,6 +3292,12 @@ const fa = {
             commercial_unit: 'واحد تجارتی / دکان–دفتر',
         },
         usage: { commercial: 'تجارتی', residential: 'رهایشی', mixed: 'مختلط' },
+        occupancy: {
+            vacant: 'خالی',
+            occupied: 'اشغال‌شده',
+            reserved: 'رزرو‌شده',
+            maintenance: 'تحت ترمیم',
+        },
         ownership: {
             owned: 'ملکیت شرکت',
             leased: 'کرایه‌شده توسط شرکت',

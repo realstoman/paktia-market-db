@@ -3206,11 +3206,19 @@ const ps = {
         addFloor: 'منزل زیات کړئ',
         addShop: 'دوکان زیات کړئ',
         addApartment: 'اپارتمان زیات کړئ',
+        editFloor: 'منزل سمول',
+        editShop: 'دوکان سمول',
+        editApartment: 'اپارتمان سمول',
+        saveChanges: 'بدلونونه خوندي کړئ',
         noFloors:
             'تر اوسه منزل نشته. له زیرزمین، ځمکني یا پورته منزل څخه پیل وکړئ.',
         noSpaces: 'تر اوسه :spaces نه دي ثبت شوي.',
         deleteFloor: 'دا منزل او ټول ځایونه یې حذف شي؟',
         deleteSpace: 'دا ځای حذف شي؟',
+        deleteFloorTitle: 'منزل حذف شي؟',
+        deleteSpaceTitle: 'ځای حذف شي؟',
+        confirmDeleteFloor: 'منزل حذف کړئ',
+        confirmDeleteSpace: 'ځای حذف کړئ',
         houseHelp:
             'د کور معلومات د جایداد په کچه اداره کېږي او وروسته ټول کور یوه کرایي قرارداد ته سپارل کېږي.',
         commercialUnitHelp:
@@ -3253,6 +3261,7 @@ const ps = {
             waterMeter: 'د اوبو میتر',
             shopNumber: 'د دوکان نمبر',
             apartmentNumber: 'د اپارتمان نمبر',
+            occupancyStatus: 'د اشغال حالت',
             hostMarketName: 'د بهرني مارکېټ نوم',
             externalUnitNumber: 'د دوکان / دفتر نمبر',
             externalFloor: 'په بهرني مارکېټ کې منزل',
@@ -3272,6 +3281,12 @@ const ps = {
             commercial_unit: 'سوداګریز واحد / دوکان–دفتر',
         },
         usage: { commercial: 'سوداګریز', residential: 'استوګنیز', mixed: 'ګډ' },
+        occupancy: {
+            vacant: 'خالي',
+            occupied: 'اشغال شوی',
+            reserved: 'رزرو شوی',
+            maintenance: 'ترمیم لاندې',
+        },
         ownership: {
             owned: 'د شرکت ملکیت',
             leased: 'د شرکت له خوا په کرایه اخیستل شوی',
