@@ -1,6 +1,17 @@
 import InputError from '@/components/input-error';
 import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -42,12 +53,13 @@ import {
     Phone,
     Plus,
     Printer,
+    ShieldBan,
     ShieldCheck,
     Trash2,
     Upload,
     UserRound,
 } from 'lucide-react';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 
 interface Props {
     tenant: Tenant;
@@ -110,13 +122,15 @@ export default function TenantProfile({
     const canManage =
         auth.is_super_admin || auth.permissions.includes('tenants.manage');
     const lease = currentLease(tenant);
+    const hasBusiness = Boolean(tenant.business_name?.trim());
+    const displayName = tenant.business_name?.trim() || tenant.full_name;
     const [assignmentOpen, setAssignmentOpen] = useState(false);
     const [editOpen, setEditOpen] = useState(openEdit);
     const breadcrumbs: BreadcrumbItem[] = [
         { title: t('navigation.dashboard'), href: '/dashboard' },
         { title: t('tenants.title'), href: '/tenants' },
         {
-            title: tenant.business_name || tenant.full_name,
+            title: displayName,
             href: `/tenants/${tenant.id}`,
         },
     ];
@@ -126,31 +140,34 @@ export default function TenantProfile({
                 ? item.property.external_unit_number
                 : null;
 
-        return `${item.property?.name ?? ''}${item.floor ? ` · ${item.floor.name}` : ''}${item.unit ? ` · ${t(`tenants.lease.${item.unit.unit_type}`)} ${item.unit.unit_number}` : externalUnit ? ` · ${t('tenants.lease.shop')} ${externalUnit}` : ''}`;
+        return `${item.property?.name ?? ''}${item.floor ? ` - ${item.floor.name}` : ''}${item.unit ? ` - ${t(`tenants.lease.${item.unit.unit_type}`)} ${item.unit.unit_number}` : externalUnit ? ` - ${t('tenants.lease.shop')} ${externalUnit}` : ''}`;
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={tenant.business_name || tenant.full_name} />
+            <Head title={displayName} />
             <div
                 className="mx-auto w-full max-w-[1500px] space-y-6"
                 dir={isRtl ? 'rtl' : 'ltr'}
             >
-                <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 p-6 text-white shadow-xl sm:p-8">
-                    <div className="absolute -end-16 -top-24 h-72 w-72 rounded-full bg-emerald-400/20 blur-3xl" />
-                    <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+                <section className="overflow-hidden rounded-3xl border border-[#002452]/10 bg-[#f1f5f9] p-6 text-[#002452] shadow-none sm:p-8">
+                    <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
                         <div className="flex items-center gap-5">
-                            <Avatar className="h-24 w-24 rounded-3xl border-4 border-white/15 shadow-lg">
+                            <Avatar className="h-24 w-24 rounded-3xl border-4 border-white shadow-none">
                                 <AvatarImage
                                     src={tenant.photo_url ?? undefined}
+                                    className="h-full w-full object-cover object-center"
                                 />
-                                <AvatarFallback className="rounded-3xl bg-white/10 text-2xl">
+                                <AvatarFallback className="rounded-3xl bg-white text-2xl text-[#002452]">
                                     {initials(tenant.full_name)}
                                 </AvatarFallback>
                             </Avatar>
                             <div>
                                 <div className="mb-2 flex flex-wrap gap-2">
-                                    <Badge className="bg-emerald-400 text-emerald-950 hover:bg-emerald-400">
+                                    <Badge
+                                        variant="outline"
+                                        className="border-[#002452]/15 bg-[#002452]/5 text-[#002452]"
+                                    >
                                         {t(
                                             tenant.is_active
                                                 ? 'tenants.active'
@@ -159,20 +176,22 @@ export default function TenantProfile({
                                     </Badge>
                                     <Badge
                                         variant="outline"
-                                        className="border-white/20 text-white"
+                                        className="border-[#002452]/15 bg-white/70 text-[#002452]"
                                     >
                                         {t(`tenants.${tenant.tenant_type}`)}
                                     </Badge>
                                 </div>
                                 <h1 className="text-3xl font-semibold tracking-tight">
-                                    {tenant.business_name || tenant.full_name}
+                                    {hasBusiness
+                                        ? tenant.business_name
+                                        : tenant.full_name}
                                 </h1>
-                                {tenant.business_name && (
-                                    <p className="mt-1 text-slate-300">
+                                {hasBusiness && (
+                                    <p className="mt-1 text-[#002452]/70">
                                         {tenant.full_name}
                                     </p>
                                 )}
-                                <p className="mt-2 flex items-center gap-2 font-mono text-sm text-emerald-200">
+                                <p className="mt-2 flex items-center gap-2 font-mono text-sm text-[#002452]/70">
                                     <IdCard className="h-4 w-4" />
                                     {tenant.card_code}
                                 </p>
@@ -188,13 +207,13 @@ export default function TenantProfile({
                                         <DialogTrigger asChild>
                                             <Button
                                                 variant="outline"
-                                                className="border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+                                                className="border-[#002452]/20 bg-white text-[#002452] hover:bg-[#002452]/5 hover:text-[#002452]"
                                             >
                                                 <Pencil className="me-2 h-4 w-4" />
                                                 {t('tenants.editProfile')}
                                             </Button>
                                         </DialogTrigger>
-                                        <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-3xl">
+                                        <DialogContent className="max-h-[92vh] overflow-x-hidden overflow-y-auto sm:max-w-3xl">
                                             <DialogHeader>
                                                 <DialogTitle>
                                                     {t('tenants.editProfile')}
@@ -216,7 +235,7 @@ export default function TenantProfile({
                                         onOpenChange={setAssignmentOpen}
                                     >
                                         <DialogTrigger asChild>
-                                            <Button className="bg-emerald-400 text-emerald-950 hover:bg-emerald-300">
+                                            <Button className="bg-[#002452] text-white hover:bg-[#002452]/90">
                                                 <Plus className="me-2 h-4 w-4" />
                                                 {t('tenants.lease.add')}
                                             </Button>
@@ -246,7 +265,7 @@ export default function TenantProfile({
                             )}
                             <Button
                                 asChild
-                                className="bg-white text-slate-950 hover:bg-slate-100"
+                                className="bg-[#002452] text-white hover:bg-[#002452]/90"
                             >
                                 <Link href={`/tenants/${tenant.id}/card`}>
                                     <Printer className="me-2 h-4 w-4" />
@@ -256,7 +275,8 @@ export default function TenantProfile({
                             {lease && (
                                 <Button
                                     asChild
-                                    className="bg-[#d3a450] text-[#002452] hover:bg-[#d3a450]/90"
+                                    variant="outline"
+                                    className="border-[#002452]/20 bg-transparent text-[#002452] hover:bg-[#002452]/5 hover:text-[#002452]"
                                 >
                                     <Link
                                         href={`/tenants/${tenant.id}/leases/${lease.id}/contract`}
@@ -482,6 +502,11 @@ export default function TenantProfile({
                                 router.post(`/tenants/${tenant.id}/toggle`)
                             }
                         >
+                            {tenant.is_active ? (
+                                <ShieldBan className="me-2 size-4" />
+                            ) : (
+                                <ShieldCheck className="me-2 size-4" />
+                            )}
                             {t(
                                 tenant.is_active
                                     ? 'tenants.profile.deactivate'
@@ -542,7 +567,7 @@ function Documents({
     tenant: Tenant;
     canManage: boolean;
 }) {
-    const { t } = useLocalization();
+    const { t, isRtl } = useLocalization();
     const form = useForm<{ documents: File[] }>({ documents: [] });
     const upload = (event: FormEvent) => {
         event.preventDefault();
@@ -582,18 +607,65 @@ function Documents({
                                     </a>
                                 </Button>
                                 {canManage && (
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() =>
-                                            router.delete(
-                                                `/tenants/${tenant.id}/documents/${document.id}`,
-                                                { preserveScroll: true },
-                                            )
-                                        }
-                                    >
-                                        <Trash2 className="h-4 w-4 text-destructive" />
-                                    </Button>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="icon"
+                                                aria-label={t(
+                                                    'tenants.profile.deleteDocumentConfirm',
+                                                )}
+                                            >
+                                                <Trash2 className="h-4 w-4 text-destructive" />
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent
+                                            dir={isRtl ? 'rtl' : 'ltr'}
+                                        >
+                                            <AlertDialogHeader
+                                                className={
+                                                    isRtl
+                                                        ? 'text-right sm:text-right'
+                                                        : ''
+                                                }
+                                            >
+                                                <AlertDialogTitle>
+                                                    {t(
+                                                        'tenants.profile.deleteDocumentTitle',
+                                                    )}
+                                                </AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    {t(
+                                                        'tenants.profile.deleteDocumentDescription',
+                                                    ).replace(
+                                                        ':name',
+                                                        document.original_name,
+                                                    )}
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>
+                                                    {t('common.cancel')}
+                                                </AlertDialogCancel>
+                                                <AlertDialogAction
+                                                    variant="destructive"
+                                                    onClick={() =>
+                                                        router.delete(
+                                                            `/tenants/${tenant.id}/documents/${document.id}`,
+                                                            {
+                                                                preserveScroll: true,
+                                                            },
+                                                        )
+                                                    }
+                                                >
+                                                    {t(
+                                                        'tenants.profile.deleteDocumentConfirm',
+                                                    )}
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
                                 )}
                             </div>
                         </div>
@@ -667,7 +739,7 @@ function AssignmentForm({
               ...(property?.floors ?? []).flatMap((floor) =>
                   (floor.units ?? []).map((unit) => ({
                       value: String(unit.id),
-                      label: `${floor.name} · ${t(`tenants.lease.${unit.unit_type}`)} ${unit.unit_number}`,
+                      label: `${floor.name} - ${t(`tenants.lease.${unit.unit_type}`)} ${unit.unit_number}`,
                   })),
               ),
           ];
@@ -797,6 +869,26 @@ function EditProfileForm({
         notes: tenant.notes ?? '',
         photo: null,
     });
+    const [photoPreview, setPhotoPreview] = useState<string | null>(
+        tenant.photo_url ?? null,
+    );
+
+    useEffect(
+        () => () => {
+            if (photoPreview?.startsWith('blob:')) {
+                URL.revokeObjectURL(photoPreview);
+            }
+        },
+        [photoPreview],
+    );
+
+    const selectPhoto = (photo: File | null) => {
+        form.setData('photo', photo);
+        setPhotoPreview(
+            photo ? URL.createObjectURL(photo) : (tenant.photo_url ?? null),
+        );
+    };
+
     const submit = (event: FormEvent) => {
         event.preventDefault();
         form.post(`/tenants/${tenant.id}`, {
@@ -806,78 +898,137 @@ function EditProfileForm({
         });
     };
     return (
-        <form onSubmit={submit} className="grid gap-4 md:grid-cols-2">
-            <Drop
-                label={t('tenants.fields.tenantType')}
-                value={form.data.tenant_type}
-                set={(value) => form.setData('tenant_type', value)}
-                options={[
-                    { value: 'individual', label: t('tenants.individual') },
-                    { value: 'company', label: t('tenants.company') },
-                ]}
-                t={t}
-            />
-            <Field
-                label={t('tenants.fields.fullName')}
-                value={form.data.full_name}
-                set={(value) => form.setData('full_name', value)}
-            />
-            <Field
-                label={t('tenants.fields.fatherName')}
-                value={form.data.father_name}
-                set={(value) => form.setData('father_name', value)}
-            />
-            <Field
-                label={t('tenants.fields.businessName')}
-                value={form.data.business_name}
-                set={(value) => form.setData('business_name', value)}
-            />
-            <Field
-                label={t('tenants.fields.phone')}
-                value={form.data.phone}
-                set={(value) => form.setData('phone', value)}
-            />
-            <Field
-                label={t('tenants.fields.whatsapp')}
-                value={form.data.whatsapp}
-                set={(value) => form.setData('whatsapp', value)}
-            />
-            <Field
-                label={t('tenants.fields.email')}
-                type="email"
-                value={form.data.email}
-                set={(value) => form.setData('email', value)}
-            />
-            <Field
-                label={t('tenants.fields.nid')}
-                value={form.data.nid_number}
-                set={(value) => form.setData('nid_number', value)}
-            />
-            <Field
-                label={t('tenants.fields.license')}
-                value={form.data.license_number}
-                set={(value) => form.setData('license_number', value)}
-            />
-            <div className="space-y-1.5">
-                <Label>{t('tenants.fields.photo')}</Label>
-                <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={(event) =>
-                        form.setData('photo', event.target.files?.[0] ?? null)
-                    }
+        <form onSubmit={submit} className="min-w-0 space-y-5">
+            <div className="grid min-w-0 gap-4 md:grid-cols-3">
+                <Drop
+                    label={t('tenants.fields.tenantType')}
+                    value={form.data.tenant_type}
+                    set={(value) => {
+                        form.setData('tenant_type', value);
+                        if (value === 'individual') {
+                            form.setData('business_name', '');
+                            form.setData('license_number', '');
+                        }
+                    }}
+                    options={[
+                        {
+                            value: 'individual',
+                            label: t('tenants.individual'),
+                        },
+                        { value: 'company', label: t('tenants.company') },
+                    ]}
+                    t={t}
                 />
-            </div>
-            <div className="space-y-1.5 md:col-span-2">
-                <Label>{t('tenants.fields.address')}</Label>
-                <Textarea
-                    value={form.data.address}
-                    onChange={(event) =>
-                        form.setData('address', event.target.value)
-                    }
+                <Field
+                    label={t('tenants.fields.fullName')}
+                    value={form.data.full_name}
+                    set={(value) => form.setData('full_name', value)}
                 />
+                <Field
+                    label={t('tenants.fields.fatherName')}
+                    value={form.data.father_name}
+                    set={(value) => form.setData('father_name', value)}
+                />
+                {form.data.tenant_type === 'company' && (
+                    <Field
+                        label={t('tenants.fields.businessName')}
+                        value={form.data.business_name}
+                        set={(value) => form.setData('business_name', value)}
+                    />
+                )}
+                <Field
+                    label={t('tenants.fields.phone')}
+                    value={form.data.phone}
+                    set={(value) => form.setData('phone', value)}
+                />
+                <Field
+                    label={t('tenants.fields.whatsapp')}
+                    value={form.data.whatsapp}
+                    set={(value) => form.setData('whatsapp', value)}
+                />
+                <Field
+                    label={t('tenants.fields.email')}
+                    type="email"
+                    value={form.data.email}
+                    set={(value) => form.setData('email', value)}
+                />
+                <Field
+                    label={t('tenants.fields.nid')}
+                    value={form.data.nid_number}
+                    set={(value) => form.setData('nid_number', value)}
+                />
+                {form.data.tenant_type === 'company' && (
+                    <Field
+                        label={t('tenants.fields.license')}
+                        value={form.data.license_number}
+                        set={(value) => form.setData('license_number', value)}
+                    />
+                )}
             </div>
-            <div className="flex justify-end md:col-span-2">
+
+            <div className="min-w-0 space-y-1.5">
+                <Label htmlFor={`tenant-photo-${tenant.id}`}>
+                    {t('tenants.fields.photo')}
+                </Label>
+                <div className="flex min-w-0 flex-col gap-4 rounded-2xl border border-dashed border-[#002452]/20 bg-white p-4 sm:flex-row sm:items-center">
+                    <Avatar className="h-20 w-20 rounded-2xl border border-[#002452]/10">
+                        <AvatarImage
+                            src={photoPreview ?? undefined}
+                            className="h-full w-full object-cover object-center"
+                        />
+                        <AvatarFallback className="rounded-2xl bg-[#f1f5f9] text-xl text-[#002452]">
+                            {initials(tenant.full_name)}
+                        </AvatarFallback>
+                    </Avatar>
+                    <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-[#002452]">
+                            {form.data.photo?.name ?? t('tenants.fields.photo')}
+                        </p>
+                        <label
+                            htmlFor={`tenant-photo-${tenant.id}`}
+                            className="mt-3 inline-flex h-9 cursor-pointer items-center rounded-lg border border-[#002452]/20 bg-white px-3 text-sm font-medium text-[#002452] transition-colors hover:bg-[#002452]/5"
+                        >
+                            <Upload className="me-2 size-4" />
+                            {t('tenants.profile.upload')}
+                        </label>
+                        <Input
+                            id={`tenant-photo-${tenant.id}`}
+                            type="file"
+                            accept="image/*"
+                            className="sr-only"
+                            onChange={(event) =>
+                                selectPhoto(event.target.files?.[0] ?? null)
+                            }
+                        />
+                    </div>
+                </div>
+                <InputError message={form.errors.photo} />
+            </div>
+
+            <div className="grid min-w-0 gap-4 md:grid-cols-2">
+                <div className="min-w-0 space-y-1.5">
+                    <Label>{t('tenants.fields.address')}</Label>
+                    <Textarea
+                        className="min-h-24 bg-white"
+                        value={form.data.address}
+                        onChange={(event) =>
+                            form.setData('address', event.target.value)
+                        }
+                    />
+                </div>
+                <div className="min-w-0 space-y-1.5">
+                    <Label>{t('tenants.fields.notes')}</Label>
+                    <Textarea
+                        className="min-h-24 bg-white"
+                        value={form.data.notes}
+                        onChange={(event) =>
+                            form.setData('notes', event.target.value)
+                        }
+                    />
+                </div>
+            </div>
+
+            <div className="flex justify-end">
                 <Button disabled={form.processing}>{t('common.save')}</Button>
             </div>
         </form>
@@ -896,9 +1047,10 @@ function Field({
     type?: string;
 }) {
     return (
-        <div className="space-y-1.5">
+        <div className="min-w-0 space-y-1.5">
             <Label>{label}</Label>
             <Input
+                className="bg-white"
                 type={type}
                 value={value}
                 onChange={(event) => set(event.target.value)}
@@ -916,7 +1068,7 @@ function NumberField({
     set: (value: string) => void;
 }) {
     return (
-        <div className="space-y-1.5">
+        <div className="min-w-0 space-y-1.5">
             <Label>{label}</Label>
             <NumericInput
                 showControls={false}
@@ -944,7 +1096,7 @@ function Drop({
     t: (key: string, fallback?: string) => string;
 }) {
     return (
-        <div className="space-y-1.5">
+        <div className="min-w-0 space-y-1.5">
             <Label>{label}</Label>
             <SearchableDropdown
                 value={value}

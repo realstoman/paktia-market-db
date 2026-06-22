@@ -36,13 +36,13 @@ export function PropertyImageUpload({
     );
 
     return (
-        <div className={`grid gap-2 ${className}`}>
+        <div className={`grid min-w-0 gap-2 ${className}`}>
             <Label htmlFor={inputId}>
                 {t('propertyWorkspace.fields.photo')}
             </Label>
             <label
                 htmlFor={inputId}
-                className="group grid cursor-pointer gap-4 rounded-xl border border-dashed border-border bg-muted/20 p-3 transition-colors hover:border-primary/40 hover:bg-primary/[0.03] sm:grid-cols-[112px_1fr_auto] sm:items-center"
+                className="group grid min-w-0 cursor-pointer gap-4 rounded-2xl border border-dashed border-[#002452]/20 bg-white p-4 transition-colors hover:border-primary/40 hover:bg-primary/[0.03] sm:grid-cols-[112px_minmax(0,1fr)_auto] sm:items-center"
             >
                 <input
                     id={inputId}
@@ -54,7 +54,7 @@ export function PropertyImageUpload({
                     }
                 />
 
-                <div className="flex h-24 items-center justify-center overflow-hidden rounded-lg border bg-background">
+                <div className="flex h-24 items-center justify-center overflow-hidden rounded-lg border bg-white">
                     {previewUrl ? (
                         <img
                             src={previewUrl}
@@ -79,7 +79,7 @@ export function PropertyImageUpload({
                     </p>
                 </div>
 
-                <span className="inline-flex h-9 items-center justify-center gap-2 rounded-lg border bg-background px-3 text-xs font-medium text-foreground transition-colors group-hover:border-primary/30 group-hover:text-primary">
+                <span className="inline-flex h-9 items-center justify-center gap-2 rounded-lg border bg-white px-3 text-xs font-medium text-foreground transition-colors group-hover:border-primary/30 group-hover:text-primary">
                     <UploadCloud className="size-4" />
                     {t('propertyWorkspace.choosePhoto')}
                 </span>

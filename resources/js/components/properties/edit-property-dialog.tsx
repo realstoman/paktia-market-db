@@ -114,7 +114,7 @@ export function EditPropertyDialog({
                     {t('propertyWorkspace.edit')}
                 </Button>
             </DialogTrigger>
-            <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-4xl">
+            <DialogContent className="max-h-[92vh] overflow-y-auto bg-[#f8f9fd] sm:max-w-4xl [&_input]:bg-white [&_textarea]:bg-white">
                 <DialogHeader>
                     <DialogTitle>
                         {t('propertyWorkspace.editTitle')}

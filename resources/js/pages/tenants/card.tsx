@@ -26,7 +26,7 @@ export default function TenantCard({ tenant }: Props) {
             ? lease.property.external_unit_number
             : null;
     const location = lease
-        ? `${lease.property?.name ?? ''}${lease.unit ? ` · ${t(`tenants.lease.${lease.unit.unit_type}`)} ${lease.unit.unit_number}` : externalUnit ? ` · ${t('tenants.lease.shop')} ${externalUnit}` : ''}`
+        ? `${lease.property?.name ?? ''}${lease.unit ? ` - ${t(`tenants.lease.${lease.unit.unit_type}`)} ${lease.unit.unit_number}` : externalUnit ? ` - ${t('tenants.lease.shop')} ${externalUnit}` : ''}`
         : t('tenants.lease.noAssignment');
 
     return (

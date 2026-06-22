@@ -31,6 +31,7 @@ import {
 import {
     ArrowDown,
     ArrowUp,
+    ArrowUpRight,
     BriefcaseBusiness,
     Building2,
     CheckCircle2,
@@ -202,13 +203,13 @@ export default function PropertiesPage({
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={t('propertyWorkspace.title')} />
-            <div className="space-y-5 [&_[data-slot=card]]:shadow-none">
+            <div className="space-y-4 **:data-[slot=card]:shadow-none">
                 <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
                     <div>
                         <h1 className="text-2xl font-semibold tracking-tight">
                             {t('propertyWorkspace.title')}
                         </h1>
-                        <p className="mt-1 text-sm text-muted-foreground">
+                        <p className="mt-1 text-base text-muted-foreground">
                             {t('propertyWorkspace.subtitle')}
                         </p>
                     </div>
@@ -221,7 +222,7 @@ export default function PropertiesPage({
                                     {t('propertyWorkspace.register')}
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-4xl">
+                            <DialogContent className="max-h-[92vh] overflow-x-hidden overflow-y-auto rounded-2xl bg-[#f8f9fd] sm:max-w-4xl [&_input]:bg-white [&_textarea]:bg-white">
                                 <DialogHeader>
                                     <DialogTitle>
                                         {t('propertyWorkspace.registerTitle')}
@@ -232,7 +233,7 @@ export default function PropertiesPage({
                                 </DialogHeader>
                                 <form
                                     onSubmit={submit}
-                                    className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+                                    className="grid min-w-0 gap-4 md:grid-cols-3"
                                 >
                                     <LocalizedFields form={form} />
 
@@ -385,7 +386,7 @@ export default function PropertiesPage({
                                             label={t(
                                                 'propertyWorkspace.relatedLocation',
                                             )}
-                                            className="sm:col-span-2 lg:col-span-3"
+                                            className="md:col-span-3"
                                             error={
                                                 form.errors.parent_property_id
                                             }
@@ -569,6 +570,9 @@ export default function PropertiesPage({
                                                             value,
                                                         )
                                                     }
+                                                    placeholder={t(
+                                                        'propertyWorkspace.selectOwnershipType',
+                                                    )}
                                                     options={[
                                                         'owned',
                                                         'leased',
@@ -602,6 +606,9 @@ export default function PropertiesPage({
                                                             value,
                                                         )
                                                     }
+                                                    placeholder={t(
+                                                        'propertyWorkspace.selectOwnershipType',
+                                                    )}
                                                     options={[
                                                         'owner_occupied',
                                                         'vacant',
@@ -625,9 +632,9 @@ export default function PropertiesPage({
                                                 label={t(
                                                     'propertyWorkspace.fields.businessActivities',
                                                 )}
-                                                className="sm:col-span-2"
+                                                className="md:col-span-2"
                                             >
-                                                <div className="grid gap-2 rounded-xl border p-3 sm:grid-cols-2">
+                                                <div className="grid gap-2 rounded-xl border bg-white p-3 sm:grid-cols-2">
                                                     {[
                                                         'money_exchange',
                                                         'jewelry',
@@ -769,9 +776,9 @@ export default function PropertiesPage({
                                             form.setData('image', file)
                                         }
                                         error={form.errors.image}
-                                        className="sm:col-span-2 lg:col-span-3"
+                                        className="md:col-span-3"
                                     />
-                                    <div className="flex justify-end gap-2 border-t pt-4 sm:col-span-2 lg:col-span-3">
+                                    <div className="flex justify-end gap-2 border-t border-[#002452]/10 pt-4 md:col-span-3">
                                         <Button
                                             type="button"
                                             variant="ghost"
@@ -789,6 +796,7 @@ export default function PropertiesPage({
                     </div>
                 </div>
 
+                {/* Portfolio Metrics */}
                 <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                     <PortfolioMetric
                         icon={Building2}
@@ -831,9 +839,10 @@ export default function PropertiesPage({
                     />
                 </div>
 
-                <div className="flex flex-col gap-3 rounded-xl border bg-card p-3 sm:flex-row">
+                {/* Search and Filter */}
+                <div className="flex flex-col gap-3 rounded-xl border border-primary/10 bg-card p-3 shadow-none sm:flex-row">
                     <div className="relative flex-1">
-                        <Search className="absolute start-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Search className="absolute inset-s-3 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input
                             className="bg-white ps-9 dark:bg-neutral-900"
                             placeholder={t('propertyWorkspace.search')}
@@ -992,9 +1001,9 @@ function LocalizedFields({ form }: { form: InertiaFormProps<PropertyForm> }) {
     const { t } = useLocalization();
 
     return (
-        <div className="grid gap-4 rounded-xl border bg-muted/20 p-4 sm:col-span-2 sm:grid-cols-2 lg:col-span-3 lg:grid-cols-3">
-            <div className="space-y-1 sm:col-span-2 lg:col-span-3">
-                <p className="text-sm font-medium">
+        <div className="grid min-w-0 gap-4 rounded-2xl border border-[#002452]/10 bg-white p-4 md:col-span-3 md:grid-cols-3">
+            <div className="space-y-1 border-b border-[#002452]/10 pb-3 md:col-span-3">
+                <p className="text-sm font-semibold text-[#002452]">
                     {t('propertyWorkspace.languages.fa')}
                 </p>
                 <p className="text-xs text-muted-foreground">
@@ -1097,9 +1106,12 @@ function PropertyCard({ property }: { property: Property }) {
             : t('propertyWorkspace.rooms');
 
     return (
-        <Link href={`/properties/${property.id}`} className="group">
-            <Card className="h-full overflow-hidden p-0 shadow-none transition hover:border-primary/30 hover:shadow-[0_4px_14px_rgba(15,23,42,0.05)]">
-                <div className="relative h-40 overflow-hidden bg-muted">
+        <Link
+            href={`/properties/${property.id}`}
+            className="group block h-full"
+        >
+            <Card className="flex h-full flex-col overflow-hidden p-0 shadow-none transition hover:border-primary/30 hover:shadow-[0_4px_14px_rgba(15,23,42,0.05)]">
+                <div className="relative h-64 overflow-hidden bg-muted">
                     {property.image_url ? (
                         <img
                             src={property.image_url}
@@ -1111,49 +1123,70 @@ function PropertyCard({ property }: { property: Property }) {
                             <Icon className="h-12 w-12 text-slate-400" />
                         </div>
                     )}
-                    <div className="absolute inset-x-0 top-0 flex justify-between p-3">
-                        <Badge className="bg-background/90 text-foreground backdrop-blur">
-                            {t(`propertyWorkspace.types.${type}`)}
-                        </Badge>
-                        <Badge
-                            variant="outline"
-                            className="border-white/50 bg-background/80 text-foreground backdrop-blur"
-                        >
-                            <CheckCircle2 className="me-1 h-3 w-3" />
-                            {t(
-                                property.is_active
-                                    ? 'propertyWorkspace.active'
-                                    : 'propertyWorkspace.inactive',
-                            )}
-                        </Badge>
-                    </div>
+                    <div className="pointer-events-none absolute inset-0 bg-black/25 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100" />
+                    <Badge
+                        variant="outline"
+                        className={
+                            property.is_active
+                                ? 'absolute top-3 left-3 border-emerald-200 bg-emerald-50/95 text-emerald-700 backdrop-blur'
+                                : 'absolute top-3 left-3 border-slate-200 bg-slate-50/95 text-slate-500 backdrop-blur'
+                        }
+                    >
+                        {property.is_active && (
+                            <CheckCircle2 className="me-1 h-3.5 w-3.5 text-emerald-600" />
+                        )}
+                        {t(
+                            property.is_active
+                                ? 'propertyWorkspace.active'
+                                : 'propertyWorkspace.inactive',
+                        )}
+                    </Badge>
+                    <span className="absolute inset-e-3 bottom-3 inline-flex translate-y-1 items-center gap-2 rounded-lg bg-white px-3 py-2 text-sm font-medium text-primary opacity-0 shadow-sm transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100">
+                        {t('propertyWorkspace.viewDetails')}
+                        <ArrowUpRight className="size-4" />
+                    </span>
                 </div>
-                <CardContent className="space-y-4 p-5">
+                <CardContent className="flex flex-1 flex-col gap-4 px-5 pt-5 pb-3">
                     <div>
                         <div className="flex items-start justify-between gap-3">
-                            <h2 className="font-semibold">{property.name}</h2>
-                            <Badge variant="secondary">
-                                {t(
-                                    `propertyWorkspace.usage.${property.usage_type}`,
+                            <div className="min-w-0 flex-1">
+                                <h2 className="truncate font-semibold">
+                                    {property.name}
+                                </h2>
+                                <p className="mt-0.5 flex items-center gap-1 text-sm text-muted-foreground">
+                                    <MapPin className="h-3.5 w-3.5 shrink-0" />
+                                    <span className="truncate">
+                                        {property.address ||
+                                            resolveLocationName(
+                                                property.province,
+                                            ) ||
+                                            '—'}
+                                    </span>
+                                </p>
+                                {property.parent_property && (
+                                    <p className="mt-1 text-xs font-medium text-primary">
+                                        {t(
+                                            'propertyWorkspace.relatedTo',
+                                        ).replace(
+                                            ':name',
+                                            property.parent_property.name,
+                                        )}
+                                    </p>
                                 )}
-                            </Badge>
+                            </div>
+                            <div className="flex shrink-0 flex-col items-end gap-1.5">
+                                <Badge variant="secondary">
+                                    {t(`propertyWorkspace.types.${type}`)}
+                                </Badge>
+                                <Badge variant="outline">
+                                    {t(
+                                        `propertyWorkspace.usage.${property.usage_type}`,
+                                    )}
+                                </Badge>
+                            </div>
                         </div>
-                        {property.parent_property && (
-                            <p className="mt-1 text-xs font-medium text-primary">
-                                {t('propertyWorkspace.relatedTo').replace(
-                                    ':name',
-                                    property.parent_property.name,
-                                )}
-                            </p>
-                        )}
-                        <p className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
-                            <MapPin className="h-3.5 w-3.5" />
-                            {property.address ||
-                                resolveLocationName(property.province) ||
-                                '—'}
-                        </p>
                     </div>
-                    <div className="grid grid-cols-3 divide-x rounded-lg border bg-muted/30 py-3 text-center text-xs rtl:divide-x-reverse">
+                    <div className="mt-auto grid grid-cols-3 divide-x rounded-lg border bg-muted/30 py-3 text-center text-xs rtl:divide-x-reverse">
                         <Stat
                             value={
                                 type === 'commercial_unit'
@@ -1181,17 +1214,11 @@ function PropertyCard({ property }: { property: Property }) {
                         <Stat
                             value={
                                 property.building_area_sqm
-                                    ? `${formatNumber(property.building_area_sqm)} m²`
+                                    ? formatNumber(property.building_area_sqm)
                                     : '—'
                             }
                             label={t('propertyWorkspace.building')}
                         />
-                    </div>
-                    <div className="flex items-center justify-between border-t pt-3 text-xs text-muted-foreground">
-                        <span>{t('propertyWorkspace.ready')}</span>
-                        <span className="font-medium text-primary">
-                            {t('propertyWorkspace.openWorkspace')} →
-                        </span>
                     </div>
                 </CardContent>
             </Card>
@@ -1209,14 +1236,14 @@ function PortfolioMetric({
     value: number;
 }) {
     return (
-        <Card>
+        <Card className="border border-primary/10 shadow-none">
             <CardContent className="flex items-center gap-3 py-4">
                 <div className="rounded-lg bg-muted p-2.5 text-primary">
                     <Icon className="h-5 w-5" />
                 </div>
                 <div>
-                    <p className="text-xl font-semibold">{value}</p>
-                    <p className="text-xs text-muted-foreground">{label}</p>
+                    <p className="text-2xl font-semibold">{value}</p>
+                    <p className="text-base text-muted-foreground">{label}</p>
                 </div>
             </CardContent>
         </Card>
@@ -1244,7 +1271,7 @@ function Field({
     children: React.ReactNode;
 }) {
     return (
-        <div className={`grid gap-2 ${className}`}>
+        <div className={`grid min-w-0 gap-2 ${className}`}>
             <Label>{label}</Label>
             {children}
             <InputError message={error} />

@@ -71,6 +71,48 @@ body {
     background: rgb(0 36 82 / 35%);
 }
 
+.property-space-scroll {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(230px, calc((100% - 3rem) / 4.25));
+    gap: 0.75rem;
+    overflow-x: auto;
+    padding-bottom: 0.75rem;
+    scrollbar-color: rgb(0 36 82 / 42%) #edf1f4;
+    scrollbar-width: thin;
+    scroll-snap-type: x proximity;
+}
+
+.property-space-scroll > * {
+    scroll-snap-align: start;
+}
+
+.property-space-scroll::-webkit-scrollbar {
+    height: 7px;
+}
+
+.property-space-scroll::-webkit-scrollbar-track {
+    border-radius: 999px;
+    background: #edf1f4;
+}
+
+.property-space-scroll::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: rgb(0 36 82 / 42%);
+}
+
+@media (max-width: 1023px) {
+    .property-space-scroll {
+        grid-auto-columns: minmax(230px, 72%);
+    }
+}
+
+@media (max-width: 639px) {
+    .property-space-scroll {
+        grid-auto-columns: 88%;
+    }
+}
+
 @theme {
     --font-sans:
         'App Digits', 'Manrope', ui-sans-serif, system-ui, sans-serif,

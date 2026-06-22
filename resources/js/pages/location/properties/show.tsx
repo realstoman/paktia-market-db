@@ -2,6 +2,17 @@ import InputError from '@/components/input-error';
 import { EditPropertyDialog } from '@/components/properties/edit-property-dialog';
 import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,6 +35,7 @@ import {
     Property,
     PropertyDocument,
     PropertyFloor,
+    PropertyUnit,
     Province,
 } from '@/types';
 import { formatNumber } from '@/utils/format';
@@ -39,9 +51,11 @@ import {
     HandCoins,
     Layers3,
     MapPin,
+    Pencil,
     Plus,
     ReceiptText,
     Ruler,
+    Search,
     Store,
     Trash2,
     Upload,
@@ -77,8 +91,8 @@ export default function PropertyShow({
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={property.name} />
-            <div className="space-y-6 [&_[data-slot=card]]:shadow-none">
-                <section className="relative min-h-64 overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-950 to-teal-700">
+            <div className="[**:data-[slot=card]:border-slate-200/80 mx-auto w-full max-w-[1600px] space-y-5 **:data-[slot=card]:rounded-2xl **:data-[slot=card]:bg-white **:data-[slot=card]:shadow-none">
+                <section className="relative min-h-64 overflow-hidden rounded-3xl border border-slate-200/80 bg-linear-to-r from-emerald-950 to-teal-700 shadow-none">
                     {property.image_url && (
                         <img
                             src={property.image_url}
@@ -86,7 +100,7 @@ export default function PropertyShow({
                             className="absolute inset-0 h-full w-full object-cover opacity-45"
                         />
                     )}
-                    <div className="relative flex min-h-64 flex-col justify-end bg-gradient-to-t from-black/80 to-transparent p-6 text-white md:p-8">
+                    <div className="relative flex min-h-64 flex-col justify-end bg-linear-to-t from-black/80 to-transparent p-6 text-white md:p-8">
                         <div className="mb-3 flex gap-2">
                             <Badge className="bg-white/90 text-slate-900">
                                 {t(
@@ -549,6 +563,7 @@ function PropertyDocuments({
                                 `propertyWorkspace.documents.types.${value}`,
                             ),
                         }))}
+                        placeholder={t('propertyWorkspace.documents.type')}
                         searchPlaceholder={t('propertyWorkspace.searchOptions')}
                         emptyText={t('propertyWorkspace.noOptions')}
                     />
@@ -600,30 +615,23 @@ function PropertyDocuments({
                                             : ''}
                                     </p>
                                 </a>
-                                <Button
-                                    type="button"
-                                    size="icon"
-                                    variant="ghost"
-                                    aria-label={t(
+                                <DeleteConfirmation
+                                    title={t(
                                         'propertyWorkspace.documents.delete',
                                     )}
-                                    onClick={() => {
-                                        if (
-                                            window.confirm(
-                                                t(
-                                                    'propertyWorkspace.documents.deleteConfirm',
-                                                ),
-                                            )
-                                        ) {
-                                            router.delete(
-                                                `/properties/${property.id}/documents/${document.id}`,
-                                                { preserveScroll: true },
-                                            );
-                                        }
-                                    }}
-                                >
-                                    <Trash2 className="size-4" />
-                                </Button>
+                                    description={t(
+                                        'propertyWorkspace.documents.deleteConfirm',
+                                    )}
+                                    confirmLabel={t(
+                                        'propertyWorkspace.documents.delete',
+                                    )}
+                                    onConfirm={() =>
+                                        router.delete(
+                                            `/properties/${property.id}/documents/${document.id}`,
+                                            { preserveScroll: true },
+                                        )
+                                    }
+                                />
                             </div>
                         ))
                     ) : (
@@ -647,12 +655,19 @@ function FloorCard({
     isMarket: boolean;
 }) {
     const { t } = useLocalization();
+    const [spaceSearch, setSpaceSearch] = useState('');
     const spaceLabel = isMarket
         ? t('propertyWorkspace.shops')
         : t('propertyWorkspace.apartments');
+    const normalizedSearch = spaceSearch.trim().toLowerCase();
+    const visibleUnits = (floor.units ?? []).filter((unit) =>
+        `${unit.unit_number} ${unit.description ?? ''} ${unit.electricity_meter ?? ''} ${unit.water_meter ?? ''}`
+            .toLowerCase()
+            .includes(normalizedSearch),
+    );
     return (
         <Card>
-            <CardHeader className="flex-row items-start justify-between space-y-0">
+            <CardHeader className="flex flex-col items-start justify-between gap-3 space-y-0 sm:flex-row">
                 <div>
                     <CardTitle>{floor.name}</CardTitle>
                     <p className="mt-1 text-sm text-muted-foreground">
@@ -663,79 +678,127 @@ function FloorCard({
                         · {(floor.units ?? []).length} {spaceLabel}
                     </p>
                 </div>
-                <div className="flex gap-1">
+                <div className="flex flex-wrap gap-1.5">
                     <AddUnit
                         property={property}
                         floor={floor}
                         isMarket={isMarket}
                     />
-                    <Button
-                        size="icon"
-                        variant="ghost"
-                        aria-label={t('propertyWorkspace.deleteFloor')}
-                        onClick={() =>
-                            confirm(t('propertyWorkspace.deleteFloor')) &&
+                    <EditFloor property={property} floor={floor} />
+                    <DeleteConfirmation
+                        title={t('propertyWorkspace.deleteFloorTitle')}
+                        description={t('propertyWorkspace.deleteFloor')}
+                        confirmLabel={t('propertyWorkspace.confirmDeleteFloor')}
+                        onConfirm={() =>
                             router.delete(
                                 `/properties/${property.id}/floors/${floor.id}`,
+                                { preserveScroll: true },
                             )
                         }
-                    >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+                    />
                 </div>
             </CardHeader>
             <CardContent>
                 {floor.units?.length ? (
-                    <div className="grid gap-3 md:grid-cols-2">
-                        {floor.units.map((unit) => (
-                            <div
-                                key={unit.id}
-                                className="flex items-center justify-between rounded-lg border p-3"
-                            >
-                                <div>
-                                    <div className="flex items-center gap-2 font-medium">
-                                        <Store className="h-4 w-4" />
-                                        {isMarket
-                                            ? t('propertyWorkspace.shops')
-                                            : t(
-                                                  'propertyWorkspace.apartments',
-                                              )}{' '}
-                                        {unit.unit_number}
-                                        <Badge
-                                            variant={
-                                                unit.occupancy_status ===
-                                                'vacant'
-                                                    ? 'success'
-                                                    : 'secondary'
-                                            }
-                                        >
-                                            {unit.occupancy_status}
-                                        </Badge>
+                    <div className="space-y-3">
+                        <div className="relative max-w-sm">
+                            <Search className="absolute inset-s-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                            <Input
+                                value={spaceSearch}
+                                onChange={(event) =>
+                                    setSpaceSearch(event.target.value)
+                                }
+                                placeholder={t(
+                                    isMarket
+                                        ? 'propertyWorkspace.searchShops'
+                                        : 'propertyWorkspace.searchApartments',
+                                )}
+                                className="h-9 bg-white ps-9"
+                            />
+                        </div>
+                        {visibleUnits.length ? (
+                            <div className="property-space-scroll">
+                                {visibleUnits.map((unit) => (
+                                    <div
+                                        key={unit.id}
+                                        className="flex min-h-28 flex-col justify-between gap-3 rounded-xl border border-slate-200/80 bg-white p-3"
+                                    >
+                                        <div>
+                                            <div className="flex items-center gap-2 font-medium">
+                                                <Store className="h-4 w-4" />
+                                                {isMarket
+                                                    ? t(
+                                                          'propertyWorkspace.shops',
+                                                      )
+                                                    : t(
+                                                          'propertyWorkspace.apartments',
+                                                      )}{' '}
+                                                {unit.unit_number}
+                                            </div>
+                                            <p className="mt-1 text-xs text-muted-foreground">
+                                                {unit.area_sqm
+                                                    ? `${formatNumber(unit.area_sqm)} m²`
+                                                    : '—'}
+                                                {!isMarket &&
+                                                    ` · ${unit.rooms_count ?? 0} ${t('propertyWorkspace.rooms')} · ${unit.bathrooms_count ?? 0} ${t('propertyWorkspace.bathrooms')}`}
+                                            </p>
+                                            {unit.description && (
+                                                <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">
+                                                    {unit.description}
+                                                </p>
+                                            )}
+                                        </div>
+                                        <div className="flex shrink-0 items-center justify-between gap-2 border-t pt-2">
+                                            <Badge
+                                                variant={
+                                                    unit.occupancy_status ===
+                                                    'vacant'
+                                                        ? 'success'
+                                                        : 'secondary'
+                                                }
+                                            >
+                                                {t(
+                                                    `propertyWorkspace.occupancy.${unit.occupancy_status}`,
+                                                    unit.occupancy_status,
+                                                )}
+                                            </Badge>
+                                            <div className="flex gap-1.5">
+                                                <EditUnit
+                                                    property={property}
+                                                    floor={floor}
+                                                    unit={unit}
+                                                    isMarket={isMarket}
+                                                />
+                                                <DeleteConfirmation
+                                                    title={t(
+                                                        'propertyWorkspace.deleteSpaceTitle',
+                                                    )}
+                                                    description={t(
+                                                        'propertyWorkspace.deleteSpace',
+                                                    )}
+                                                    confirmLabel={t(
+                                                        'propertyWorkspace.confirmDeleteSpace',
+                                                    )}
+                                                    onConfirm={() =>
+                                                        router.delete(
+                                                            `/properties/${property.id}/floors/${floor.id}/units/${unit.id}`,
+                                                            {
+                                                                preserveScroll: true,
+                                                            },
+                                                        )
+                                                    }
+                                                    compact
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
-                                    <p className="mt-1 text-xs text-muted-foreground">
-                                        {unit.area_sqm
-                                            ? `${formatNumber(unit.area_sqm)} m²`
-                                            : '—'}
-                                        {!isMarket &&
-                                            ` · ${unit.rooms_count ?? 0} ${t('propertyWorkspace.rooms')} · ${unit.bathrooms_count ?? 0} ${t('propertyWorkspace.bathrooms')}`}
-                                    </p>
-                                </div>
-                                <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    onClick={() =>
-                                        confirm(
-                                            t('propertyWorkspace.deleteSpace'),
-                                        ) &&
-                                        router.delete(
-                                            `/properties/${property.id}/floors/${floor.id}/units/${unit.id}`,
-                                        )
-                                    }
-                                >
-                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                </Button>
+                                ))}
                             </div>
-                        ))}
+                        ) : (
+                            <p className="rounded-xl border border-dashed py-8 text-center text-sm text-muted-foreground">
+                                {t('propertyWorkspace.noMatchingSpaces')}
+                            </p>
+                        )}
                     </div>
                 ) : (
                     <p className="rounded-lg bg-muted/50 py-8 text-center text-sm text-muted-foreground">
@@ -777,7 +840,7 @@ function AddFloor({ property }: { property: Property }) {
                     {t('propertyWorkspace.addFloor')}
                 </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="bg-[#f8f9fd] [&_input]:bg-white [&_textarea]:bg-white">
                 <DialogHeader>
                     <DialogTitle>{t('propertyWorkspace.addFloor')}</DialogTitle>
                     <DialogDescription>
@@ -891,12 +954,12 @@ function AddUnit({
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button size="sm" variant="outline">
+                <Button size="sm" className="h-8 px-2.5 text-xs">
                     <Plus className="me-1 h-4 w-4" />
                     {addLabel}
                 </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-2xl">
+            <DialogContent className="bg-[#f8f9fd] sm:max-w-2xl [&_input]:bg-white [&_textarea]:bg-white">
                 <DialogHeader>
                     <DialogTitle>{addLabel}</DialogTitle>
                     <DialogDescription>
@@ -1015,6 +1078,406 @@ function AddUnit({
         </Dialog>
     );
 }
+
+function EditFloor({
+    property,
+    floor,
+}: {
+    property: Property;
+    floor: PropertyFloor;
+}) {
+    const { t } = useLocalization();
+    const [open, setOpen] = useState(false);
+    const form = useForm({
+        name: floor.name,
+        level_number: String(floor.level_number),
+        area_sqm: String(floor.area_sqm ?? ''),
+        planned_units: String(floor.planned_units ?? ''),
+        usage_type: floor.usage_type ?? property.usage_type ?? 'commercial',
+        description: floor.description ?? '',
+    });
+    const submit = (event: FormEvent) => {
+        event.preventDefault();
+        form.put(`/properties/${property.id}/floors/${floor.id}`, {
+            preserveScroll: true,
+            onSuccess: () => setOpen(false),
+        });
+    };
+
+    return (
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+                <Button
+                    type="button"
+                    size="icon"
+                    variant="outline"
+                    className="size-8 border-primary/15 bg-primary/8 text-primary hover:bg-primary/15 hover:text-primary"
+                    aria-label={t('propertyWorkspace.editFloor')}
+                >
+                    <Pencil className="size-3.5" />
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-[#f8f9fd] sm:max-w-xl [&_input]:bg-white [&_textarea]:bg-white">
+                <DialogHeader>
+                    <DialogTitle>
+                        {t('propertyWorkspace.editFloor')}
+                    </DialogTitle>
+                    <DialogDescription>{floor.name}</DialogDescription>
+                </DialogHeader>
+                <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
+                    <Field
+                        label={t('propertyWorkspace.fields.floorName')}
+                        error={form.errors.name}
+                    >
+                        <Input
+                            value={form.data.name}
+                            onChange={(event) =>
+                                form.setData('name', event.target.value)
+                            }
+                        />
+                    </Field>
+                    <Field
+                        label={t('propertyWorkspace.fields.levelNumber')}
+                        error={form.errors.level_number}
+                    >
+                        <NumericInput
+                            value={form.data.level_number}
+                            onValueChange={(value) =>
+                                form.setData('level_number', value)
+                            }
+                            showControls={false}
+                        />
+                    </Field>
+                    <Field label={t('propertyWorkspace.fields.area')}>
+                        <NumericInput
+                            min="0"
+                            step="any"
+                            value={form.data.area_sqm}
+                            onValueChange={(value) =>
+                                form.setData('area_sqm', value)
+                            }
+                            showControls={false}
+                        />
+                    </Field>
+                    <Field label={t('propertyWorkspace.fields.plannedSpaces')}>
+                        <NumericInput
+                            min="0"
+                            value={form.data.planned_units}
+                            onValueChange={(value) =>
+                                form.setData('planned_units', value)
+                            }
+                            showControls={false}
+                        />
+                    </Field>
+                    <Field
+                        label={t('propertyWorkspace.fields.description')}
+                        className="sm:col-span-2"
+                    >
+                        <Textarea
+                            value={form.data.description}
+                            onChange={(event) =>
+                                form.setData('description', event.target.value)
+                            }
+                        />
+                    </Field>
+                    <div className="flex justify-end gap-2 sm:col-span-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setOpen(false)}
+                        >
+                            {t('common.cancel')}
+                        </Button>
+                        <Button type="submit" disabled={form.processing}>
+                            {t('propertyWorkspace.saveChanges')}
+                        </Button>
+                    </div>
+                </form>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+function EditUnit({
+    property,
+    floor,
+    unit,
+    isMarket,
+}: {
+    property: Property;
+    floor: PropertyFloor;
+    unit: PropertyUnit;
+    isMarket: boolean;
+}) {
+    const { t } = useLocalization();
+    const [open, setOpen] = useState(false);
+    const form = useForm({
+        unit_number: unit.unit_number,
+        area_sqm: String(unit.area_sqm ?? ''),
+        width_m: String(unit.width_m ?? ''),
+        length_m: String(unit.length_m ?? ''),
+        rooms_count: String(unit.rooms_count ?? ''),
+        kitchens_count: String(unit.kitchens_count ?? ''),
+        halls_count: String(unit.halls_count ?? ''),
+        bathrooms_count: String(unit.bathrooms_count ?? ''),
+        occupancy_status: unit.occupancy_status,
+        electricity_meter: unit.electricity_meter ?? '',
+        water_meter: unit.water_meter ?? '',
+        description: unit.description ?? '',
+    });
+    const submit = (event: FormEvent) => {
+        event.preventDefault();
+        form.put(
+            `/properties/${property.id}/floors/${floor.id}/units/${unit.id}`,
+            {
+                preserveScroll: true,
+                onSuccess: () => setOpen(false),
+            },
+        );
+    };
+    const editLabel = isMarket
+        ? t('propertyWorkspace.editShop')
+        : t('propertyWorkspace.editApartment');
+
+    return (
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+                <Button
+                    type="button"
+                    size="icon"
+                    variant="outline"
+                    className="size-7 border-primary/15 bg-primary/8 text-primary hover:bg-primary/15 hover:text-primary"
+                    aria-label={editLabel}
+                >
+                    <Pencil className="size-3" />
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="max-h-[92vh] overflow-y-auto bg-[#f8f9fd] sm:max-w-2xl [&_input]:bg-white [&_textarea]:bg-white">
+                <DialogHeader>
+                    <DialogTitle>{editLabel}</DialogTitle>
+                    <DialogDescription>
+                        {floor.name} · {property.name}
+                    </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
+                    <Field
+                        label={t(
+                            isMarket
+                                ? 'propertyWorkspace.fields.shopNumber'
+                                : 'propertyWorkspace.fields.apartmentNumber',
+                        )}
+                        error={form.errors.unit_number}
+                    >
+                        <Input
+                            value={form.data.unit_number}
+                            onChange={(event) =>
+                                form.setData('unit_number', event.target.value)
+                            }
+                        />
+                    </Field>
+                    <Field label={t('propertyWorkspace.fields.area')}>
+                        <NumericInput
+                            min="0"
+                            step="any"
+                            value={form.data.area_sqm}
+                            onValueChange={(value) =>
+                                form.setData('area_sqm', value)
+                            }
+                            showControls={false}
+                        />
+                    </Field>
+                    {isMarket ? (
+                        <>
+                            <Field label={t('propertyWorkspace.fields.width')}>
+                                <NumericInput
+                                    min="0"
+                                    step="any"
+                                    value={form.data.width_m}
+                                    onValueChange={(value) =>
+                                        form.setData('width_m', value)
+                                    }
+                                    showControls={false}
+                                />
+                            </Field>
+                            <Field label={t('propertyWorkspace.fields.length')}>
+                                <NumericInput
+                                    min="0"
+                                    step="any"
+                                    value={form.data.length_m}
+                                    onValueChange={(value) =>
+                                        form.setData('length_m', value)
+                                    }
+                                    showControls={false}
+                                />
+                            </Field>
+                        </>
+                    ) : (
+                        <>
+                            <CountInput
+                                icon={BedDouble}
+                                label={t('propertyWorkspace.fields.rooms')}
+                                value={form.data.rooms_count}
+                                set={(value) =>
+                                    form.setData('rooms_count', value)
+                                }
+                            />
+                            <CountInput
+                                icon={ChefHat}
+                                label={t('propertyWorkspace.fields.kitchens')}
+                                value={form.data.kitchens_count}
+                                set={(value) =>
+                                    form.setData('kitchens_count', value)
+                                }
+                            />
+                            <CountInput
+                                icon={DoorOpen}
+                                label={t('propertyWorkspace.fields.halls')}
+                                value={form.data.halls_count}
+                                set={(value) =>
+                                    form.setData('halls_count', value)
+                                }
+                            />
+                            <CountInput
+                                icon={Bath}
+                                label={t('propertyWorkspace.fields.bathrooms')}
+                                value={form.data.bathrooms_count}
+                                set={(value) =>
+                                    form.setData('bathrooms_count', value)
+                                }
+                            />
+                        </>
+                    )}
+                    <Field
+                        label={t('propertyWorkspace.fields.occupancyStatus')}
+                    >
+                        <SearchableDropdown
+                            value={form.data.occupancy_status}
+                            onValueChange={(value) =>
+                                form.setData(
+                                    'occupancy_status',
+                                    value as PropertyUnit['occupancy_status'],
+                                )
+                            }
+                            placeholder={t(
+                                'propertyWorkspace.fields.occupancyStatus',
+                            )}
+                            options={[
+                                'vacant',
+                                'occupied',
+                                'reserved',
+                                'maintenance',
+                            ].map((value) => ({
+                                value,
+                                label: t(
+                                    `propertyWorkspace.occupancy.${value}`,
+                                ),
+                            }))}
+                        />
+                    </Field>
+                    <Field
+                        label={t('propertyWorkspace.fields.electricityMeter')}
+                    >
+                        <Input
+                            value={form.data.electricity_meter}
+                            onChange={(event) =>
+                                form.setData(
+                                    'electricity_meter',
+                                    event.target.value,
+                                )
+                            }
+                        />
+                    </Field>
+                    <Field label={t('propertyWorkspace.fields.waterMeter')}>
+                        <Input
+                            value={form.data.water_meter}
+                            onChange={(event) =>
+                                form.setData('water_meter', event.target.value)
+                            }
+                        />
+                    </Field>
+                    <Field
+                        label={t('propertyWorkspace.fields.description')}
+                        className="sm:col-span-2"
+                    >
+                        <Textarea
+                            value={form.data.description}
+                            onChange={(event) =>
+                                form.setData('description', event.target.value)
+                            }
+                        />
+                    </Field>
+                    <div className="flex justify-end gap-2 sm:col-span-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setOpen(false)}
+                        >
+                            {t('common.cancel')}
+                        </Button>
+                        <Button type="submit" disabled={form.processing}>
+                            {t('propertyWorkspace.saveChanges')}
+                        </Button>
+                    </div>
+                </form>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+function DeleteConfirmation({
+    title,
+    description,
+    confirmLabel,
+    onConfirm,
+    compact = false,
+}: {
+    title: string;
+    description: string;
+    confirmLabel: string;
+    onConfirm: () => void;
+    compact?: boolean;
+}) {
+    const { t, isRtl } = useLocalization();
+
+    return (
+        <AlertDialog>
+            <AlertDialogTrigger asChild>
+                <Button
+                    type="button"
+                    size="icon"
+                    variant="outline"
+                    className={
+                        compact
+                            ? 'size-7 border-destructive/15 bg-destructive/8 text-destructive hover:bg-destructive/15 hover:text-destructive'
+                            : 'size-8 border-destructive/15 bg-destructive/8 text-destructive hover:bg-destructive/15 hover:text-destructive'
+                    }
+                    aria-label={confirmLabel}
+                >
+                    <Trash2 className={compact ? 'size-3' : 'size-3.5'} />
+                </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent dir={isRtl ? 'rtl' : 'ltr'}>
+                <AlertDialogHeader
+                    className={isRtl ? 'text-right sm:text-right' : ''}
+                >
+                    <AlertDialogTitle>{title}</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        {description}
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+                    <AlertDialogAction
+                        variant="destructive"
+                        onClick={onConfirm}
+                    >
+                        {confirmLabel}
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+    );
+}
 function Metric({
     icon: Icon,
     label,
@@ -1121,7 +1584,7 @@ function CountInput({
     return (
         <Field label={label}>
             <div className="relative">
-                <Icon className="absolute start-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Icon className="absolute inset-s-3 top-2.5 h-4 w-4 text-muted-foreground" />
                 <NumericInput
                     className="ps-9"
                     min="0"
