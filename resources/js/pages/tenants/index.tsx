@@ -71,6 +71,7 @@ import {
     Search,
     ShieldCheck,
     Store,
+    Upload,
     UserRound,
 } from 'lucide-react';
 import { FormEvent, Fragment, useEffect, useMemo, useState } from 'react';
@@ -296,7 +297,7 @@ export default function TenantsIndex({
                                     {t('tenants.register')}
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent className="max-h-[92vh] overflow-y-auto rounded-2xl bg-[#f8f9fd] sm:max-w-5xl [&_input]:bg-white [&_textarea]:bg-white">
+                            <DialogContent className="max-h-[92vh] overflow-x-hidden overflow-y-auto rounded-2xl bg-[#f8f9fd] sm:max-w-5xl [&_input]:bg-white [&_textarea]:bg-white">
                                 <DialogHeader>
                                     <DialogTitle>
                                         {t('tenants.register')}
@@ -847,6 +848,21 @@ function TenantForm({
     initial.property_id = initialPropertyId ? String(initialPropertyId) : '';
     const { data, setData, post, processing, errors, reset } =
         useForm<FormData>(initial);
+    const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+
+    useEffect(
+        () => () => {
+            if (photoPreview?.startsWith('blob:')) {
+                URL.revokeObjectURL(photoPreview);
+            }
+        },
+        [photoPreview],
+    );
+
+    const selectPhoto = (photo: File | null) => {
+        setData('photo', photo);
+        setPhotoPreview(photo ? URL.createObjectURL(photo) : null);
+    };
     const property = properties.find(
         (item) => String(item.id) === data.property_id,
     );
@@ -872,16 +888,18 @@ function TenantForm({
             preserveScroll: true,
             onSuccess: () => {
                 reset();
+                setPhotoPreview(null);
                 onDone();
             },
         });
     };
     const field = (key: keyof FormData, label: string, type = 'text') => (
-        <div className="space-y-1.5">
+        <div className="min-w-0 space-y-1.5">
             <Label htmlFor={`tenant-${key}`}>{label}</Label>
             <Input
                 id={`tenant-${key}`}
                 type={type}
+                className="bg-white"
                 value={data[key] as string}
                 onChange={(event) => setData(key, event.target.value as never)}
             />
@@ -890,14 +908,14 @@ function TenantForm({
     );
 
     return (
-        <form onSubmit={submit} className="space-y-6">
+        <form onSubmit={submit} className="min-w-0 space-y-6">
             <section className="space-y-4">
                 <h3 className="flex items-center gap-2 font-semibold">
                     <UserRound className="h-4 w-4 text-primary" />
                     {t('tenants.identity')}
                 </h3>
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    <div className="space-y-1.5">
+                <div className="grid min-w-0 gap-4 md:grid-cols-3">
+                    <div className="min-w-0 space-y-1.5">
                         <Label>{t('tenants.fields.tenantType')}</Label>
                         <SearchableDropdown
                             value={data.tenant_type}
@@ -934,34 +952,95 @@ function TenantForm({
                     {field('nid_number', t('tenants.fields.nid'))}
                     {data.tenant_type === 'company' &&
                         field('license_number', t('tenants.fields.license'))}
-                    <div className="space-y-1.5">
-                        <Label>{t('tenants.fields.photo')}</Label>
-                        <Input
-                            type="file"
-                            accept="image/*"
-                            onChange={(event) =>
-                                setData(
-                                    'photo',
-                                    event.target.files?.[0] ?? null,
-                                )
-                            }
-                        />
+                </div>
+
+                <div className="min-w-0 space-y-1.5">
+                    <Label htmlFor="tenant-create-photo">
+                        {t('tenants.fields.photo')}
+                    </Label>
+                    <div className="flex min-w-0 flex-col gap-4 rounded-2xl border border-dashed border-[#002452]/20 bg-white p-4 sm:flex-row sm:items-center">
+                        <Avatar className="h-20 w-20 rounded-2xl border border-[#002452]/10">
+                            <AvatarImage
+                                src={photoPreview ?? undefined}
+                                className="h-full w-full object-cover object-center"
+                            />
+                            <AvatarFallback className="rounded-2xl bg-[#f1f5f9] text-xl text-[#002452]">
+                                {initials(data.full_name || '?')}
+                            </AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-medium text-[#002452]">
+                                {data.photo?.name ?? t('tenants.fields.photo')}
+                            </p>
+                            <label
+                                htmlFor="tenant-create-photo"
+                                className="mt-3 inline-flex h-9 cursor-pointer items-center rounded-lg border border-[#002452]/20 bg-white px-3 text-sm font-medium text-[#002452] transition-colors hover:bg-[#002452]/5"
+                            >
+                                <Upload className="me-2 size-4" />
+                                {t('tenants.profile.upload')}
+                            </label>
+                            <Input
+                                id="tenant-create-photo"
+                                type="file"
+                                accept="image/*"
+                                className="sr-only"
+                                onChange={(event) =>
+                                    selectPhoto(event.target.files?.[0] ?? null)
+                                }
+                            />
+                        </div>
                     </div>
-                    <div className="space-y-1.5 md:col-span-2">
+                    <InputError message={errors.photo} />
+                </div>
+
+                <div className="grid min-w-0 gap-4 md:grid-cols-2">
+                    <div className="min-w-0 space-y-1.5">
                         <Label>{t('tenants.fields.address')}</Label>
-                        <Input
+                        <Textarea
+                            className="min-h-24 bg-white"
                             value={data.address}
                             onChange={(event) =>
                                 setData('address', event.target.value)
                             }
                         />
                     </div>
-                    <div className="space-y-1.5 md:col-span-2">
-                        <Label>{t('tenants.fields.documents')}</Label>
+                    <div className="min-w-0 space-y-1.5">
+                        <Label>{t('tenants.fields.notes')}</Label>
+                        <Textarea
+                            className="min-h-24 bg-white"
+                            value={data.notes}
+                            onChange={(event) =>
+                                setData('notes', event.target.value)
+                            }
+                        />
+                    </div>
+                </div>
+
+                <div className="min-w-0 space-y-1.5">
+                    <Label htmlFor="tenant-create-documents">
+                        {t('tenants.fields.documents')}
+                    </Label>
+                    <div className="min-w-0 rounded-2xl border border-dashed border-[#002452]/20 bg-white p-4">
+                        <p className="truncate text-sm font-medium text-[#002452]">
+                            {data.documents.length
+                                ? data.documents
+                                      .map((document) => document.name)
+                                      .join(', ')
+                                : t('tenants.fields.documents')}
+                        </p>
+                        <label
+                            htmlFor="tenant-create-documents"
+                            className="mt-3 inline-flex h-9 cursor-pointer items-center rounded-lg border border-[#002452]/20 bg-white px-3 text-sm font-medium text-[#002452] transition-colors hover:bg-[#002452]/5"
+                        >
+                            <Upload className="me-2 size-4" />
+                            {t('tenants.profile.upload')}
+                        </label>
                         <Input
+                            id="tenant-create-documents"
                             type="file"
                             multiple
                             accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx"
+                            className="sr-only"
                             onChange={(event) =>
                                 setData(
                                     'documents',
@@ -970,15 +1049,7 @@ function TenantForm({
                             }
                         />
                     </div>
-                    <div className="space-y-1.5 md:col-span-2 lg:col-span-3">
-                        <Label>{t('tenants.fields.notes')}</Label>
-                        <Textarea
-                            value={data.notes}
-                            onChange={(event) =>
-                                setData('notes', event.target.value)
-                            }
-                        />
-                    </div>
+                    <InputError message={errors.documents} />
                 </div>
             </section>
             <section className="space-y-4 rounded-2xl border bg-muted/25 p-4">
@@ -991,7 +1062,7 @@ function TenantForm({
                         {t('tenants.lease.optional')}
                     </p>
                 </div>
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <div className="grid min-w-0 gap-4 md:grid-cols-3">
                     <div className="space-y-1.5">
                         <Label>{t('tenants.lease.property')}</Label>
                         <SearchableDropdown
