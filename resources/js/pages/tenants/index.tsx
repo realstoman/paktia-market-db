@@ -280,40 +280,40 @@ export default function TenantsIndex({
                 dir={isRtl ? 'rtl' : 'ltr'}
             >
                 <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-                        <div className="max-w-2xl">
-                            <h1 className="text-2xl font-semibold tracking-tight">
-                                {t('tenants.title')}
-                            </h1>
-                            <p className="mt-1 text-base text-muted-foreground">
-                                {t('tenants.subtitle')}
-                            </p>
-                        </div>
-                        {canManage && (
-                            <Dialog open={open} onOpenChange={setOpen}>
-                                <DialogTrigger asChild>
-                                    <Button>
-                                        <Plus className="me-2 h-4 w-4" />
+                    <div className="max-w-2xl">
+                        <h1 className="text-2xl font-semibold tracking-tight">
+                            {t('tenants.title')}
+                        </h1>
+                        <p className="mt-1 text-base text-muted-foreground">
+                            {t('tenants.subtitle')}
+                        </p>
+                    </div>
+                    {canManage && (
+                        <Dialog open={open} onOpenChange={setOpen}>
+                            <DialogTrigger asChild>
+                                <Button>
+                                    <Plus className="me-2 h-4 w-4" />
+                                    {t('tenants.register')}
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-h-[92vh] overflow-y-auto rounded-2xl bg-[#f8f9fd] sm:max-w-5xl [&_input]:bg-white [&_textarea]:bg-white">
+                                <DialogHeader>
+                                    <DialogTitle>
                                         {t('tenants.register')}
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent className="max-h-[92vh] overflow-y-auto rounded-2xl bg-[#f8f9fd] [&_input]:bg-white [&_textarea]:bg-white sm:max-w-5xl">
-                                    <DialogHeader>
-                                        <DialogTitle>
-                                            {t('tenants.register')}
-                                        </DialogTitle>
-                                        <DialogDescription>
-                                            {t('tenants.subtitle')}
-                                        </DialogDescription>
-                                    </DialogHeader>
-                                    <TenantForm
-                                        properties={properties}
-                                        currencies={currencies}
-                                        initialPropertyId={initialPropertyId}
-                                        onDone={() => setOpen(false)}
-                                    />
-                                </DialogContent>
-                            </Dialog>
-                        )}
+                                    </DialogTitle>
+                                    <DialogDescription>
+                                        {t('tenants.subtitle')}
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <TenantForm
+                                    properties={properties}
+                                    currencies={currencies}
+                                    initialPropertyId={initialPropertyId}
+                                    onDone={() => setOpen(false)}
+                                />
+                            </DialogContent>
+                        </Dialog>
+                    )}
                 </section>
 
                 <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
