@@ -1041,6 +1041,362 @@ function AddUnit({
         </Dialog>
     );
 }
+
+function EditFloor({
+    property,
+    floor,
+}: {
+    property: Property;
+    floor: PropertyFloor;
+}) {
+    const { t } = useLocalization();
+    const [open, setOpen] = useState(false);
+    const form = useForm({
+        name: floor.name,
+        level_number: String(floor.level_number),
+        area_sqm: String(floor.area_sqm ?? ''),
+        planned_units: String(floor.planned_units ?? ''),
+        usage_type: floor.usage_type ?? property.usage_type ?? 'commercial',
+        description: floor.description ?? '',
+    });
+    const submit = (event: FormEvent) => {
+        event.preventDefault();
+        form.put(`/properties/${property.id}/floors/${floor.id}`, {
+            preserveScroll: true,
+            onSuccess: () => setOpen(false),
+        });
+    };
+
+    return (
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+                <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    aria-label={t('propertyWorkspace.editFloor')}
+                >
+                    <Pencil className="size-4" />
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="bg-[#f8f9fd] [&_input]:bg-white [&_textarea]:bg-white sm:max-w-xl">
+                <DialogHeader>
+                    <DialogTitle>
+                        {t('propertyWorkspace.editFloor')}
+                    </DialogTitle>
+                    <DialogDescription>{floor.name}</DialogDescription>
+                </DialogHeader>
+                <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
+                    <Field
+                        label={t('propertyWorkspace.fields.floorName')}
+                        error={form.errors.name}
+                    >
+                        <Input
+                            value={form.data.name}
+                            onChange={(event) =>
+                                form.setData('name', event.target.value)
+                            }
+                        />
+                    </Field>
+                    <Field
+                        label={t('propertyWorkspace.fields.levelNumber')}
+                        error={form.errors.level_number}
+                    >
+                        <NumericInput
+                            value={form.data.level_number}
+                            onValueChange={(value) =>
+                                form.setData('level_number', value)
+                            }
+                            showControls={false}
+                        />
+                    </Field>
+                    <Field label={t('propertyWorkspace.fields.area')}>
+                        <NumericInput
+                            min="0"
+                            step="any"
+                            value={form.data.area_sqm}
+                            onValueChange={(value) =>
+                                form.setData('area_sqm', value)
+                            }
+                            showControls={false}
+                        />
+                    </Field>
+                    <Field label={t('propertyWorkspace.fields.plannedSpaces')}>
+                        <NumericInput
+                            min="0"
+                            value={form.data.planned_units}
+                            onValueChange={(value) =>
+                                form.setData('planned_units', value)
+                            }
+                            showControls={false}
+                        />
+                    </Field>
+                    <Field
+                        label={t('propertyWorkspace.fields.description')}
+                        className="sm:col-span-2"
+                    >
+                        <Textarea
+                            value={form.data.description}
+                            onChange={(event) =>
+                                form.setData('description', event.target.value)
+                            }
+                        />
+                    </Field>
+                    <div className="flex justify-end gap-2 sm:col-span-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setOpen(false)}
+                        >
+                            {t('common.cancel')}
+                        </Button>
+                        <Button type="submit" disabled={form.processing}>
+                            {t('propertyWorkspace.saveChanges')}
+                        </Button>
+                    </div>
+                </form>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+function EditUnit({
+    property,
+    floor,
+    unit,
+    isMarket,
+}: {
+    property: Property;
+    floor: PropertyFloor;
+    unit: PropertyUnit;
+    isMarket: boolean;
+}) {
+    const { t } = useLocalization();
+    const [open, setOpen] = useState(false);
+    const form = useForm({
+        unit_number: unit.unit_number,
+        area_sqm: String(unit.area_sqm ?? ''),
+        width_m: String(unit.width_m ?? ''),
+        length_m: String(unit.length_m ?? ''),
+        rooms_count: String(unit.rooms_count ?? ''),
+        kitchens_count: String(unit.kitchens_count ?? ''),
+        halls_count: String(unit.halls_count ?? ''),
+        bathrooms_count: String(unit.bathrooms_count ?? ''),
+        occupancy_status: unit.occupancy_status,
+        electricity_meter: unit.electricity_meter ?? '',
+        water_meter: unit.water_meter ?? '',
+        description: unit.description ?? '',
+    });
+    const submit = (event: FormEvent) => {
+        event.preventDefault();
+        form.put(
+            `/properties/${property.id}/floors/${floor.id}/units/${unit.id}`,
+            {
+                preserveScroll: true,
+                onSuccess: () => setOpen(false),
+            },
+        );
+    };
+    const editLabel = isMarket
+        ? t('propertyWorkspace.editShop')
+        : t('propertyWorkspace.editApartment');
+
+    return (
+        <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
+                <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    aria-label={editLabel}
+                >
+                    <Pencil className="size-4" />
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="max-h-[92vh] overflow-y-auto bg-[#f8f9fd] [&_input]:bg-white [&_textarea]:bg-white sm:max-w-2xl">
+                <DialogHeader>
+                    <DialogTitle>{editLabel}</DialogTitle>
+                    <DialogDescription>
+                        {floor.name} · {property.name}
+                    </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
+                    <Field
+                        label={t(
+                            isMarket
+                                ? 'propertyWorkspace.fields.shopNumber'
+                                : 'propertyWorkspace.fields.apartmentNumber',
+                        )}
+                        error={form.errors.unit_number}
+                    >
+                        <Input
+                            value={form.data.unit_number}
+                            onChange={(event) =>
+                                form.setData('unit_number', event.target.value)
+                            }
+                        />
+                    </Field>
+                    <Field label={t('propertyWorkspace.fields.area')}>
+                        <NumericInput
+                            min="0"
+                            step="any"
+                            value={form.data.area_sqm}
+                            onValueChange={(value) =>
+                                form.setData('area_sqm', value)
+                            }
+                            showControls={false}
+                        />
+                    </Field>
+                    {isMarket ? (
+                        <>
+                            <Field label={t('propertyWorkspace.fields.width')}>
+                                <NumericInput
+                                    min="0"
+                                    step="any"
+                                    value={form.data.width_m}
+                                    onValueChange={(value) =>
+                                        form.setData('width_m', value)
+                                    }
+                                    showControls={false}
+                                />
+                            </Field>
+                            <Field label={t('propertyWorkspace.fields.length')}>
+                                <NumericInput
+                                    min="0"
+                                    step="any"
+                                    value={form.data.length_m}
+                                    onValueChange={(value) =>
+                                        form.setData('length_m', value)
+                                    }
+                                    showControls={false}
+                                />
+                            </Field>
+                        </>
+                    ) : (
+                        <>
+                            <CountInput icon={BedDouble} label={t('propertyWorkspace.fields.rooms')} value={form.data.rooms_count} set={(value) => form.setData('rooms_count', value)} />
+                            <CountInput icon={ChefHat} label={t('propertyWorkspace.fields.kitchens')} value={form.data.kitchens_count} set={(value) => form.setData('kitchens_count', value)} />
+                            <CountInput icon={DoorOpen} label={t('propertyWorkspace.fields.halls')} value={form.data.halls_count} set={(value) => form.setData('halls_count', value)} />
+                            <CountInput icon={Bath} label={t('propertyWorkspace.fields.bathrooms')} value={form.data.bathrooms_count} set={(value) => form.setData('bathrooms_count', value)} />
+                        </>
+                    )}
+                    <Field label={t('propertyWorkspace.fields.occupancyStatus')}>
+                        <SearchableDropdown
+                            value={form.data.occupancy_status}
+                            onValueChange={(value) =>
+                                form.setData(
+                                    'occupancy_status',
+                                    value as PropertyUnit['occupancy_status'],
+                                )
+                            }
+                            placeholder={t(
+                                'propertyWorkspace.fields.occupancyStatus',
+                            )}
+                            options={[
+                                'vacant',
+                                'occupied',
+                                'reserved',
+                                'maintenance',
+                            ].map((value) => ({
+                                value,
+                                label: t(
+                                    `propertyWorkspace.occupancy.${value}`,
+                                ),
+                            }))}
+                        />
+                    </Field>
+                    <Field label={t('propertyWorkspace.fields.electricityMeter')}>
+                        <Input
+                            value={form.data.electricity_meter}
+                            onChange={(event) =>
+                                form.setData(
+                                    'electricity_meter',
+                                    event.target.value,
+                                )
+                            }
+                        />
+                    </Field>
+                    <Field label={t('propertyWorkspace.fields.waterMeter')}>
+                        <Input
+                            value={form.data.water_meter}
+                            onChange={(event) =>
+                                form.setData('water_meter', event.target.value)
+                            }
+                        />
+                    </Field>
+                    <Field
+                        label={t('propertyWorkspace.fields.description')}
+                        className="sm:col-span-2"
+                    >
+                        <Textarea
+                            value={form.data.description}
+                            onChange={(event) =>
+                                form.setData('description', event.target.value)
+                            }
+                        />
+                    </Field>
+                    <div className="flex justify-end gap-2 sm:col-span-2">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setOpen(false)}
+                        >
+                            {t('common.cancel')}
+                        </Button>
+                        <Button type="submit" disabled={form.processing}>
+                            {t('propertyWorkspace.saveChanges')}
+                        </Button>
+                    </div>
+                </form>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+function DeleteConfirmation({
+    title,
+    description,
+    confirmLabel,
+    onConfirm,
+}: {
+    title: string;
+    description: string;
+    confirmLabel: string;
+    onConfirm: () => void;
+}) {
+    const { t, isRtl } = useLocalization();
+
+    return (
+        <AlertDialog>
+            <AlertDialogTrigger asChild>
+                <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    aria-label={confirmLabel}
+                >
+                    <Trash2 className="size-4 text-destructive" />
+                </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent dir={isRtl ? 'rtl' : 'ltr'}>
+                <AlertDialogHeader
+                    className={isRtl ? 'text-right sm:text-right' : ''}
+                >
+                    <AlertDialogTitle>{title}</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        {description}
+                    </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+                    <AlertDialogAction variant="destructive" onClick={onConfirm}>
+                        {confirmLabel}
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
+    );
+}
 function Metric({
     icon: Icon,
     label,
