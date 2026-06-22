@@ -3,6 +3,17 @@ import { EditPropertyDialog } from '@/components/properties/edit-property-dialog
 import { NumericInput } from '@/components/shared/numeric-input';
 import { SearchableDropdown } from '@/components/shared/searchable-dropdown';
 import { Badge } from '@/components/ui/badge';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -24,6 +35,7 @@ import {
     Property,
     PropertyDocument,
     PropertyFloor,
+    PropertyUnit,
     Province,
 } from '@/types';
 import { formatNumber } from '@/utils/format';
@@ -39,6 +51,7 @@ import {
     HandCoins,
     Layers3,
     MapPin,
+    Pencil,
     Plus,
     ReceiptText,
     Ruler,
@@ -77,8 +90,8 @@ export default function PropertyShow({
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={property.name} />
-            <div className="space-y-6 [&_[data-slot=card]]:shadow-none">
-                <section className="relative min-h-64 overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-950 to-teal-700">
+            <div className="space-y-5 [&_[data-slot=card]]:rounded-2xl [&_[data-slot=card]]:border-slate-200/80 [&_[data-slot=card]]:bg-white [&_[data-slot=card]]:shadow-none">
+                <section className="relative min-h-64 overflow-hidden rounded-3xl border border-slate-200/80 bg-gradient-to-r from-emerald-950 to-teal-700 shadow-none">
                     {property.image_url && (
                         <img
                             src={property.image_url}
@@ -669,19 +682,18 @@ function FloorCard({
                         floor={floor}
                         isMarket={isMarket}
                     />
-                    <Button
-                        size="icon"
-                        variant="ghost"
-                        aria-label={t('propertyWorkspace.deleteFloor')}
-                        onClick={() =>
-                            confirm(t('propertyWorkspace.deleteFloor')) &&
+                    <EditFloor property={property} floor={floor} />
+                    <DeleteConfirmation
+                        title={t('propertyWorkspace.deleteFloorTitle')}
+                        description={t('propertyWorkspace.deleteFloor')}
+                        confirmLabel={t('propertyWorkspace.confirmDeleteFloor')}
+                        onConfirm={() =>
                             router.delete(
                                 `/properties/${property.id}/floors/${floor.id}`,
+                                { preserveScroll: true },
                             )
                         }
-                    >
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+                    />
                 </div>
             </CardHeader>
             <CardContent>
@@ -709,7 +721,10 @@ function FloorCard({
                                                     : 'secondary'
                                             }
                                         >
-                                            {unit.occupancy_status}
+                                            {t(
+                                                `propertyWorkspace.occupancy.${unit.occupancy_status}`,
+                                                unit.occupancy_status,
+                                            )}
                                         </Badge>
                                     </div>
                                     <p className="mt-1 text-xs text-muted-foreground">
@@ -720,20 +735,31 @@ function FloorCard({
                                             ` · ${unit.rooms_count ?? 0} ${t('propertyWorkspace.rooms')} · ${unit.bathrooms_count ?? 0} ${t('propertyWorkspace.bathrooms')}`}
                                     </p>
                                 </div>
-                                <Button
-                                    size="icon"
-                                    variant="ghost"
-                                    onClick={() =>
-                                        confirm(
-                                            t('propertyWorkspace.deleteSpace'),
-                                        ) &&
-                                        router.delete(
-                                            `/properties/${property.id}/floors/${floor.id}/units/${unit.id}`,
-                                        )
-                                    }
-                                >
-                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                </Button>
+                                <div className="flex shrink-0 gap-1">
+                                    <EditUnit
+                                        property={property}
+                                        floor={floor}
+                                        unit={unit}
+                                        isMarket={isMarket}
+                                    />
+                                    <DeleteConfirmation
+                                        title={t(
+                                            'propertyWorkspace.deleteSpaceTitle',
+                                        )}
+                                        description={t(
+                                            'propertyWorkspace.deleteSpace',
+                                        )}
+                                        confirmLabel={t(
+                                            'propertyWorkspace.confirmDeleteSpace',
+                                        )}
+                                        onConfirm={() =>
+                                            router.delete(
+                                                `/properties/${property.id}/floors/${floor.id}/units/${unit.id}`,
+                                                { preserveScroll: true },
+                                            )
+                                        }
+                                    />
+                                </div>
                             </div>
                         ))}
                     </div>
