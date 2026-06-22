@@ -861,7 +861,7 @@ function TenantForm({
               ...(property?.floors ?? []).flatMap((floor) =>
                   (floor.units ?? []).map((unit) => ({
                       value: String(unit.id),
-                      label: `${floor.name} · ${t(`tenants.lease.${unit.unit_type}`)} ${unit.unit_number}`,
+                      label: `${floor.name} - ${t(`tenants.lease.${unit.unit_type}`)} ${unit.unit_number}`,
                   })),
               ),
           ];

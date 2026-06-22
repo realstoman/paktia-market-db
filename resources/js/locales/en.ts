@@ -497,6 +497,10 @@ const en = {
             documents: 'Private documents',
             upload: 'Upload documents',
             privateHelp: 'Identity and license files are stored privately.',
+            deleteDocumentTitle: 'Delete document?',
+            deleteDocumentDescription:
+                'This will permanently remove :name from the tenant profile. This action cannot be undone.',
+            deleteDocumentConfirm: 'Delete document',
             finance: 'Rent & finances',
             financeHelp:
                 'The rent ledger, payments and balances will be connected in the next finance phase.',

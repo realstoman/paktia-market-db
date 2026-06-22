@@ -497,6 +497,10 @@ const ps = {
             documents: 'شخصي اسناد',
             upload: 'اسناد پورته کول',
             privateHelp: 'د هویت او جواز فایلونه په شخصي ډول ساتل کېږي.',
+            deleteDocumentTitle: 'سند حذف شي؟',
+            deleteDocumentDescription:
+                'د :name سند به د کرایه‌دار له پروفایل څخه د تل لپاره حذف شي. دا عمل بېرته نه راګرځي.',
+            deleteDocumentConfirm: 'سند حذف کړئ',
             finance: 'کرایه او مالي چارې',
             financeHelp:
                 'د کرایې حساب، تادیات او پاتې پیسې به په راتلونکي مالي پړاو کې ونښلول شي.',
