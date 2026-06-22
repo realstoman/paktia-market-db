@@ -106,8 +106,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('properties/{property}/disable', [PropertyController::class, 'disable'])->name('properties.disable');
         Route::patch('properties/{property}/order', [PropertyController::class, 'reorder'])->name('properties.order.update');
         Route::post('properties/{property}/floors', [PropertyController::class, 'storeFloor'])->name('properties.floors.store');
+        Route::put('properties/{property}/floors/{floor}', [PropertyController::class, 'updateFloor'])->name('properties.floors.update');
         Route::delete('properties/{property}/floors/{floor}', [PropertyController::class, 'destroyFloor'])->name('properties.floors.destroy');
         Route::post('properties/{property}/floors/{floor}/units', [PropertyController::class, 'storeUnit'])->name('properties.floors.units.store');
+        Route::put('properties/{property}/floors/{floor}/units/{unit}', [PropertyController::class, 'updateUnit'])->name('properties.floors.units.update');
         Route::delete('properties/{property}/floors/{floor}/units/{unit}', [PropertyController::class, 'destroyUnit'])->name('properties.floors.units.destroy');
         Route::post('properties/{property}/documents', [PropertyController::class, 'uploadDocuments'])->name('properties.documents.store');
         Route::get('properties/{property}/documents/{document}', [PropertyController::class, 'downloadDocument'])->name('properties.documents.download');

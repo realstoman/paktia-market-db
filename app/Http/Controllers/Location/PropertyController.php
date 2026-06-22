@@ -135,6 +135,25 @@ class PropertyController extends Controller
         return back()->with('success', __('properties.actions.floor_deleted'));
     }
 
+    public function updateFloor(Request $request, Property $property, PropertyFloor $floor)
+    {
+        abort_unless($floor->property_id === $property->id, 404);
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:100'],
+            'level_number' => [
+                'required', 'integer', 'between:-10,200',
+                Rule::unique('property_floors')->where('property_id', $property->id)->ignore($floor->id),
+            ],
+            'area_sqm' => ['nullable', 'numeric', 'min:0', 'max:9999999999'],
+            'planned_units' => ['nullable', 'integer', 'min:0', 'max:10000'],
+            'usage_type' => ['nullable', Rule::in(['commercial', 'residential', 'mixed', 'service', 'parking'])],
+            'description' => ['nullable', 'string', 'max:1000'],
+        ]);
+        $floor->update($validated);
+
+        return back()->with('success', __('properties.actions.floor_updated'));
+    }
+
     public function storeUnit(Request $request, Property $property, PropertyFloor $floor)
     {
         abort_unless($floor->property_id === $property->id, 404);
@@ -173,6 +192,31 @@ class PropertyController extends Controller
         $unit->delete();
 
         return back()->with('success', __('properties.actions.space_deleted'));
+    }
+
+    public function updateUnit(Request $request, Property $property, PropertyFloor $floor, PropertyUnit $unit)
+    {
+        abort_unless($floor->property_id === $property->id && $unit->property_floor_id === $floor->id, 404);
+        $validated = $request->validate([
+            'unit_number' => [
+                'required', 'string', 'max:50',
+                Rule::unique('property_units')->where('property_floor_id', $floor->id)->ignore($unit->id),
+            ],
+            'area_sqm' => ['nullable', 'numeric', 'min:0', 'max:99999999'],
+            'width_m' => ['nullable', 'numeric', 'min:0', 'max:999999'],
+            'length_m' => ['nullable', 'numeric', 'min:0', 'max:999999'],
+            'rooms_count' => ['nullable', 'integer', 'min:0', 'max:1000'],
+            'kitchens_count' => ['nullable', 'integer', 'min:0', 'max:100'],
+            'halls_count' => ['nullable', 'integer', 'min:0', 'max:100'],
+            'bathrooms_count' => ['nullable', 'integer', 'min:0', 'max:100'],
+            'occupancy_status' => ['required', Rule::in(['vacant', 'occupied', 'reserved', 'maintenance'])],
+            'electricity_meter' => ['nullable', 'string', 'max:100'],
+            'water_meter' => ['nullable', 'string', 'max:100'],
+            'description' => ['nullable', 'string', 'max:1000'],
+        ]);
+        $unit->update($validated);
+
+        return back()->with('success', __('properties.actions.space_updated'));
     }
 
     public function uploadDocuments(Request $request, Property $property)
