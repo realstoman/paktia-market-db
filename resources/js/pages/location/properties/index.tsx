@@ -1141,7 +1141,7 @@ function PropertyCard({ property }: { property: Property }) {
                                 : 'propertyWorkspace.inactive',
                         )}
                     </Badge>
-                    <span className="absolute end-3 bottom-3 inline-flex translate-y-1 items-center gap-2 rounded-lg bg-white px-3 py-2 text-sm font-medium text-primary opacity-0 shadow-sm transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100">
+                    <span className="absolute inset-e-3 bottom-3 inline-flex translate-y-1 items-center gap-2 rounded-lg bg-white px-3 py-2 text-sm font-medium text-primary opacity-0 shadow-sm transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100">
                         {t('propertyWorkspace.viewDetails')}
                         <ArrowUpRight className="size-4" />
                     </span>
