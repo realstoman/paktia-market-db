@@ -31,6 +31,7 @@ import {
 import {
     ArrowDown,
     ArrowUp,
+    ArrowUpRight,
     BriefcaseBusiness,
     Building2,
     CheckCircle2,
@@ -1105,8 +1106,11 @@ function PropertyCard({ property }: { property: Property }) {
             : t('propertyWorkspace.rooms');
 
     return (
-        <Link href={`/properties/${property.id}`} className="group">
-            <Card className="h-full overflow-hidden p-0 shadow-none transition hover:border-primary/30 hover:shadow-[0_4px_14px_rgba(15,23,42,0.05)]">
+        <Link
+            href={`/properties/${property.id}`}
+            className="group block h-full"
+        >
+            <Card className="flex h-full flex-col overflow-hidden p-0 shadow-none transition hover:border-primary/30 hover:shadow-[0_4px_14px_rgba(15,23,42,0.05)]">
                 <div className="relative h-64 overflow-hidden bg-muted">
                     {property.image_url ? (
                         <img
@@ -1119,31 +1123,70 @@ function PropertyCard({ property }: { property: Property }) {
                             <Icon className="h-12 w-12 text-slate-400" />
                         </div>
                     )}
+                    <div className="pointer-events-none absolute inset-0 bg-black/25 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100" />
+                    <Badge
+                        variant="outline"
+                        className={
+                            property.is_active
+                                ? 'absolute top-3 left-3 border-emerald-200 bg-emerald-50/95 text-emerald-700 backdrop-blur'
+                                : 'absolute top-3 left-3 border-slate-200 bg-slate-50/95 text-slate-500 backdrop-blur'
+                        }
+                    >
+                        {property.is_active && (
+                            <CheckCircle2 className="me-1 h-3.5 w-3.5 text-emerald-600" />
+                        )}
+                        {t(
+                            property.is_active
+                                ? 'propertyWorkspace.active'
+                                : 'propertyWorkspace.inactive',
+                        )}
+                    </Badge>
+                    <span className="absolute end-3 bottom-3 inline-flex translate-y-1 items-center gap-2 rounded-lg bg-white px-3 py-2 text-sm font-medium text-primary opacity-0 shadow-sm transition-all duration-200 group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100">
+                        {t('propertyWorkspace.viewDetails')}
+                        <ArrowUpRight className="size-4" />
+                    </span>
                 </div>
-                <CardContent className="space-y-4 p-5">
+                <CardContent className="flex flex-1 flex-col gap-4 px-5 pt-5 pb-3">
                     <div>
                         <div className="flex items-start justify-between gap-3">
-                            <h2 className="font-semibold">{property.name}</h2>
-                            <Badge variant="secondary">
-                                {t(`propertyWorkspace.types.${type}`)}
-                            </Badge>
-                        </div>
-                        {property.parent_property && (
-                            <p className="mt-1 text-xs font-medium text-primary">
-                                {t('propertyWorkspace.relatedTo').replace(
-                                    ':name',
-                                    property.parent_property.name,
+                            <div className="min-w-0 flex-1">
+                                <h2 className="truncate font-semibold">
+                                    {property.name}
+                                </h2>
+                                <p className="mt-0.5 flex items-center gap-1 text-sm text-muted-foreground">
+                                    <MapPin className="h-3.5 w-3.5 shrink-0" />
+                                    <span className="truncate">
+                                        {property.address ||
+                                            resolveLocationName(
+                                                property.province,
+                                            ) ||
+                                            '—'}
+                                    </span>
+                                </p>
+                                {property.parent_property && (
+                                    <p className="mt-1 text-xs font-medium text-primary">
+                                        {t(
+                                            'propertyWorkspace.relatedTo',
+                                        ).replace(
+                                            ':name',
+                                            property.parent_property.name,
+                                        )}
+                                    </p>
                                 )}
-                            </p>
-                        )}
-                        <p className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
-                            <MapPin className="h-3.5 w-3.5" />
-                            {property.address ||
-                                resolveLocationName(property.province) ||
-                                '—'}
-                        </p>
+                            </div>
+                            <div className="flex shrink-0 flex-col items-end gap-1.5">
+                                <Badge variant="secondary">
+                                    {t(`propertyWorkspace.types.${type}`)}
+                                </Badge>
+                                <Badge variant="outline">
+                                    {t(
+                                        `propertyWorkspace.usage.${property.usage_type}`,
+                                    )}
+                                </Badge>
+                            </div>
+                        </div>
                     </div>
-                    <div className="grid grid-cols-3 divide-x rounded-lg border bg-muted/30 py-3 text-center text-xs rtl:divide-x-reverse">
+                    <div className="mt-auto grid grid-cols-3 divide-x rounded-lg border bg-muted/30 py-3 text-center text-xs rtl:divide-x-reverse">
                         <Stat
                             value={
                                 type === 'commercial_unit'
@@ -1176,30 +1219,6 @@ function PropertyCard({ property }: { property: Property }) {
                             }
                             label={t('propertyWorkspace.building')}
                         />
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2 border-t pt-3">
-                        <Badge
-                            variant="outline"
-                            className={
-                                property.is_active
-                                    ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                                    : 'border-slate-200 bg-slate-50 text-slate-500'
-                            }
-                        >
-                            {property.is_active && (
-                                <CheckCircle2 className="me-1 h-3.5 w-3.5 text-emerald-600" />
-                            )}
-                            {t(
-                                property.is_active
-                                    ? 'propertyWorkspace.active'
-                                    : 'propertyWorkspace.inactive',
-                            )}
-                        </Badge>
-                        <Badge variant="secondary">
-                            {t(
-                                `propertyWorkspace.usage.${property.usage_type}`,
-                            )}
-                        </Badge>
                     </div>
                 </CardContent>
             </Card>

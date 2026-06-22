@@ -3216,6 +3216,7 @@ const en = {
         building: 'Building area (m²)',
         ready: 'Employees, expenses and reports ready',
         openWorkspace: 'Open workspace',
+        viewDetails: 'View details',
         profile: 'Property profile',
         countryProvince: 'Country / Province',
         landArea: 'Land area',

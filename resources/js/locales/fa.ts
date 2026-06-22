@@ -3198,6 +3198,7 @@ const fa = {
         building: 'مساحت تعمیر (متر مربع)',
         ready: 'آماده برای کارمندان، مصارف و گزارش‌ها',
         openWorkspace: 'باز کردن محیط کاری',
+        viewDetails: 'مشاهده جزئیات',
         profile: 'پروفایل جایداد',
         countryProvince: 'کشور / ولایت',
         landArea: 'مساحت زمین',
