@@ -3385,6 +3385,7 @@ const en = {
         register: 'Register shareholder',
         edit: 'Edit profile',
         manage: 'Manage ownership',
+        viewDetails: 'View details',
         searchPlaceholder: 'Search by name, NID or phone...',
         noResults: 'No shareholders match your search.',
         active: 'Active',
@@ -3397,9 +3398,14 @@ const en = {
         documentsHelp:
             'PDF, Word or image files. Stored privately and available only to authorized users.',
         upload: 'Upload documents',
+        uploadPhoto: 'Upload photo',
         download: 'Download',
         remove: 'Remove',
         noDocuments: 'No documents uploaded yet.',
+        deleteDocumentTitle: 'Remove shareholder document?',
+        deleteDocumentDescription:
+            'This will permanently remove :name from this shareholder profile.',
+        deleteDocumentConfirm: 'Remove document',
         ownership: 'Property ownership',
         ownershipHelp:
             'Percentages are effective for the selected dates and feed future P&L allocation.',
@@ -3454,6 +3460,17 @@ const en = {
         share: ':percentage% share',
         from: 'From :date',
         until: 'Until :date',
+        profile: {
+            ownerProfile: 'Shareholder profile',
+            back: 'Back to shareholders',
+            overview: 'Profile overview',
+            currentOwnership: 'Current ownership',
+            ownershipHistory: 'Ownership history',
+            takeouts: 'Takeouts',
+            takeoutsHelp:
+                'Shareholder withdrawals, profit distributions and capital takeouts will be managed from this profile.',
+            totalTakeouts: 'Total recorded takeouts',
+        },
     },
 
     paymentMethods: {

@@ -3361,6 +3361,7 @@ const fa = {
         register: 'ثبت سهمدار',
         edit: 'ویرایش مشخصات',
         manage: 'مدیریت سهم',
+        viewDetails: 'دیدن جزئیات',
         searchPlaceholder: 'جستجو با نام، تذکره یا شماره تماس...',
         noResults: 'هیچ سهمداری مطابق جستجو پیدا نشد.',
         active: 'فعال',
@@ -3373,9 +3374,14 @@ const fa = {
         documentsHelp:
             'فایل‌های PDF، ورد یا تصویر؛ اسناد به‌صورت محرمانه نگهداری می‌شوند.',
         upload: 'بارگذاری اسناد',
+        uploadPhoto: 'بارگذاری عکس',
         download: 'دانلود',
         remove: 'حذف',
         noDocuments: 'هنوز سندی بارگذاری نشده است.',
+        deleteDocumentTitle: 'سند سهمدار حذف شود؟',
+        deleteDocumentDescription:
+            'این عمل سند :name را به‌صورت دایمی از پروفایل سهمدار حذف می‌کند.',
+        deleteDocumentConfirm: 'حذف سند',
         ownership: 'مالکیت جایداد',
         ownershipHelp:
             'فیصدی سهم در تاریخ تعیین‌شده اعتبار دارد و بعداً برای محاسبه سود و زیان استفاده می‌شود.',
@@ -3430,6 +3436,17 @@ const fa = {
         share: 'سهم :percentage٪',
         from: 'از :date',
         until: 'تا :date',
+        profile: {
+            ownerProfile: 'پروفایل سهمدار',
+            back: 'برگشت به سهمداران',
+            overview: 'خلاصه پروفایل',
+            currentOwnership: 'سهم‌های فعلی',
+            ownershipHistory: 'تاریخچه سهم‌ها',
+            takeouts: 'برداشت‌ها',
+            takeoutsHelp:
+                'برداشت‌های سهمدار، توزیع سود و برداشت سرمایه از همین پروفایل مدیریت خواهد شد.',
+            totalTakeouts: 'مجموع برداشت‌های ثبت‌شده',
+        },
     },
 
     paymentMethods: {

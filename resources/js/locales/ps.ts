@@ -3350,6 +3350,7 @@ const ps = {
         register: 'شریک ثبت کړئ',
         edit: 'معلومات سمول',
         manage: 'ونډه مدیریت کړئ',
+        viewDetails: 'جزئیات وګورئ',
         searchPlaceholder: 'په نوم، پېژندپاڼه یا تلیفون ولټوئ...',
         noResults: 'ستاسو له لټون سره سم شریک ونه موندل شو.',
         active: 'فعال',
@@ -3362,9 +3363,14 @@ const ps = {
         documentsHelp:
             'PDF، Word یا انځورونه؛ اسناد یوازې واک لرونکو کاروونکو ته ښکاري.',
         upload: 'اسناد پورته کړئ',
+        uploadPhoto: 'انځور پورته کړئ',
         download: 'ښکته کول',
         remove: 'لرې کول',
         noDocuments: 'تر اوسه اسناد نشته.',
+        deleteDocumentTitle: 'د شریک سند لرې شي؟',
+        deleteDocumentDescription:
+            'دا عمل به :name د شریک له پروفایل څخه دایمي لرې کړي.',
+        deleteDocumentConfirm: 'سند لرې کړئ',
         ownership: 'د جایداد مالکیت',
         ownershipHelp:
             'د ونډې سلنه د ټاکل شوو نېټو لپاره اعتبار لري او د راتلونکي ګټې او زیان په محاسبه کې کارېږي.',
@@ -3419,6 +3425,17 @@ const ps = {
         share: ':percentage٪ ونډه',
         from: 'له :date',
         until: 'تر :date',
+        profile: {
+            ownerProfile: 'د شریک پروفایل',
+            back: 'شریکانو ته ستنېدل',
+            overview: 'د پروفایل لنډیز',
+            currentOwnership: 'اوسنۍ ونډې',
+            ownershipHistory: 'د ونډو تاریخچه',
+            takeouts: 'برداشتونه',
+            takeoutsHelp:
+                'د شریک برداشتونه، د ګټې وېش او د پانګې برداشت به له همدې پروفایل څخه مدیریت کېږي.',
+            totalTakeouts: 'ټول ثبت شوي برداشتونه',
+        },
     },
 
     paymentMethods: {
