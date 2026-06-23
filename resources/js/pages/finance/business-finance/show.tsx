@@ -21,7 +21,6 @@ import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import {
     ArrowLeft,
     BadgeDollarSign,
-    Banknote,
     CalendarDays,
     ChartNoAxesCombined,
     CircleDollarSign,
@@ -32,7 +31,7 @@ import {
     TrendingDown,
     TrendingUp,
 } from 'lucide-react';
-import { FormEvent } from 'react';
+import { FormEvent, ReactNode } from 'react';
 
 interface BusinessConfig {
     slug: string;
@@ -218,7 +217,10 @@ export default function BusinessFinanceShow({
                         )}
                         subtitle={
                             summary.latestValuationDate ??
-                            t('businessFinance.common.notRecorded', 'Not recorded')
+                            t(
+                                'businessFinance.common.notRecorded',
+                                'Not recorded',
+                            )
                         }
                         icon={<BadgeDollarSign className="h-5 w-5" />}
                     />
@@ -227,7 +229,10 @@ export default function BusinessFinanceShow({
                             'businessFinance.summary.monthSales',
                             'This month sales',
                         )}
-                        value={money(summary.monthSales, business.defaultCurrency)}
+                        value={money(
+                            summary.monthSales,
+                            business.defaultCurrency,
+                        )}
                         subtitle={t(
                             'businessFinance.summary.monthSalesHelp',
                             'Sales entered for the current month',
@@ -254,7 +259,10 @@ export default function BusinessFinanceShow({
                             'businessFinance.summary.totalNet',
                             'Total net',
                         )}
-                        value={money(summary.netIncome, business.defaultCurrency)}
+                        value={money(
+                            summary.netIncome,
+                            business.defaultCurrency,
+                        )}
                         subtitle={t(
                             'businessFinance.summary.totalNetHelp',
                             'Total income minus expenses from all entries',
@@ -394,9 +402,7 @@ export default function BusinessFinanceShow({
                                 <div className="flex justify-end">
                                     <Button
                                         type="submit"
-                                        disabled={
-                                            form.processing || !canManage
-                                        }
+                                        disabled={form.processing || !canManage}
                                         className="bg-[#002452] text-white hover:bg-[#002452]/90"
                                     >
                                         <Save className="me-2 h-4 w-4" />
@@ -486,7 +492,9 @@ export default function BusinessFinanceShow({
                                                         <TableCell>
                                                             <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
                                                                 <CalendarDays className="h-3.5 w-3.5 text-slate-400" />
-                                                                {entry.entry_date}
+                                                                {
+                                                                    entry.entry_date
+                                                                }
                                                             </span>
                                                         </TableCell>
                                                         <TableCell dir="ltr">
@@ -583,7 +591,7 @@ function Field({
 }: {
     label: string;
     error?: string;
-    children: React.ReactNode;
+    children: ReactNode;
 }) {
     return (
         <div className="min-w-0 space-y-2">
@@ -603,7 +611,7 @@ function MetricCard({
     title: string;
     value: string;
     subtitle: string;
-    icon: React.ReactNode;
+    icon: ReactNode;
 }) {
     return (
         <Card className="border-primary/10 bg-white shadow-none">
@@ -625,9 +633,9 @@ function MetricCard({
     );
 }
 
-function TableHead({ children }: { children: React.ReactNode }) {
+function TableHead({ children }: { children: ReactNode }) {
     return (
-        <th className="whitespace-nowrap px-4 py-3 text-start font-medium">
+        <th className="px-4 py-3 text-start font-medium whitespace-nowrap">
             {children}
         </th>
     );
@@ -638,7 +646,7 @@ function TableCell({
     className = '',
     dir,
 }: {
-    children: React.ReactNode;
+    children: ReactNode;
     className?: string;
     dir?: 'ltr' | 'rtl';
 }) {

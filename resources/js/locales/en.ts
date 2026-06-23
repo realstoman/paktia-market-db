@@ -102,6 +102,8 @@ const en = {
         tools: 'Other Sections',
         managementTools: 'Tools',
         toolInventory: 'Inventory',
+        toolDubaiRestaurant: 'Dubai Restaurant',
+        toolKabulSarafi: 'Kabul Gold & Sarafi',
         toolContracts: 'Contract Templates',
         toolEmployees: 'Employees',
         toolShareholders: 'Shareholders',
@@ -3472,6 +3474,76 @@ const en = {
             takeoutsHelp:
                 'Shareholder withdrawals, profit distributions and capital takeouts will be managed from this profile.',
             totalTakeouts: 'Total recorded takeouts',
+        },
+    },
+
+    businessFinance: {
+        common: {
+            notRecorded: 'Not recorded',
+        },
+        businesses: {
+            dubaiRestaurant: {
+                title: 'Dubai Restaurant',
+                location: 'Dubai, UAE',
+                description:
+                    'Record daily valuation, sales, income, and expenses for the group-owned restaurant business in Dubai.',
+                moduleDescription:
+                    'Daily restaurant valuation, sales, income, and expenses.',
+            },
+            kabulSarafi: {
+                title: 'Kabul Gold & Sarafi',
+                location: 'Kabul, Afghanistan',
+                description:
+                    'Record daily valuation, sales, income, and expenses for the gold and Sarafi business in Kabul.',
+                moduleDescription:
+                    'Daily gold and Sarafi valuation, sales, income, and expenses.',
+            },
+        },
+        actions: {
+            backToFinance: 'Back to Finance',
+            saveEntry: 'Save entry',
+        },
+        summary: {
+            latestValuation: 'Latest valuation',
+            monthSales: 'This month sales',
+            monthSalesHelp: 'Sales entered for the current month',
+            monthExpenses: 'This month expenses',
+            monthExpensesHelp: 'Expenses entered for the current month',
+            totalNet: 'Total net',
+            totalNetHelp: 'Total income minus expenses from all entries',
+            groupBusinessValuation: 'Business valuation',
+            groupBusinessValuationHelp:
+                'Latest recorded valuation from group-owned businesses; no FX conversion applied',
+            groupBusinessIncome: 'Business income',
+            groupBusinessIncomeHelp:
+                'Income entered for restaurant and Sarafi businesses; no FX conversion applied',
+            groupBusinessNet: 'Business net',
+            groupBusinessNetHelp:
+                'Business income minus business expenses; no FX conversion applied',
+        },
+        form: {
+            title: 'Daily finance entry',
+            description:
+                'Enter the daily valuation, sales, income, and expenses. Submitting the same date updates that date.',
+        },
+        fields: {
+            date: 'Date',
+            currency: 'Currency',
+            selectCurrency: 'Select currency',
+            valuation: 'Business valuation',
+            sales: 'Sales',
+            income: 'Income',
+            expenses: 'Expenses',
+            net: 'Net',
+            notes: 'Notes',
+            notesPlaceholder:
+                'Optional note about the day, source, correction, or finance detail…',
+        },
+        entries: {
+            title: 'Daily records',
+            description:
+                'Latest dated records for valuation, sales, income, and expenses.',
+            empty: 'No finance entries have been recorded yet.',
         },
     },
 

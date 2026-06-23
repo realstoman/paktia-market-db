@@ -102,6 +102,8 @@ const ps = {
         tools: 'نورې برخې',
         managementTools: 'د مدیریت توکي',
         toolInventory: 'ګدام',
+        toolDubaiRestaurant: 'د دوبۍ رستورانت',
+        toolKabulSarafi: 'د کابل طلا او صرافي',
         toolContracts: 'د قرارداد قالبونه',
         toolEmployees: 'کارکوونکي',
         toolShareholders: 'شریکان',
@@ -3437,6 +3439,76 @@ const ps = {
             takeoutsHelp:
                 'د شریک برداشتونه، د ګټې وېش او د پانګې برداشت به له همدې پروفایل څخه مدیریت کېږي.',
             totalTakeouts: 'ټول ثبت شوي برداشتونه',
+        },
+    },
+
+    businessFinance: {
+        common: {
+            notRecorded: 'ثبت شوی نه دی',
+        },
+        businesses: {
+            dubaiRestaurant: {
+                title: 'د دوبۍ رستورانت',
+                location: 'دوبۍ، متحده عربي امارات',
+                description:
+                    'د ګروپ اړوند د دوبۍ رستورانت لپاره ورځنی ارزښت، خرڅلاو، عاید او لګښتونه ثبت کړئ.',
+                moduleDescription:
+                    'د رستورانت ورځنی ارزښت، خرڅلاو، عاید او لګښتونه.',
+            },
+            kabulSarafi: {
+                title: 'د کابل طلا او صرافي',
+                location: 'کابل، افغانستان',
+                description:
+                    'په کابل کې د طلا او صرافي کاروبار لپاره ورځنی ارزښت، خرڅلاو، عاید او لګښتونه ثبت کړئ.',
+                moduleDescription:
+                    'د طلا او صرافي ورځنی ارزښت، خرڅلاو، عاید او لګښتونه.',
+            },
+        },
+        actions: {
+            backToFinance: 'مالي برخې ته ستنېدل',
+            saveEntry: 'رکورد خوندي کول',
+        },
+        summary: {
+            latestValuation: 'وروستۍ ارزونه',
+            monthSales: 'د دې میاشتې خرڅلاو',
+            monthSalesHelp: 'د روانې میاشتې ثبت شوی خرڅلاو',
+            monthExpenses: 'د دې میاشتې لګښتونه',
+            monthExpensesHelp: 'د روانې میاشتې ثبت شوي لګښتونه',
+            totalNet: 'ټول خالص',
+            totalNetHelp: 'ټول عاید منفي لګښتونه له ټولو رکوردونو څخه',
+            groupBusinessValuation: 'د کاروبارونو ارزښت',
+            groupBusinessValuationHelp:
+                'د ګروپ اړوند کاروبارونو وروستی ثبت شوی ارزښت؛ د اسعارو بدلون نه دی شوی',
+            groupBusinessIncome: 'د کاروبارونو عاید',
+            groupBusinessIncomeHelp:
+                'د رستورانت او صرافۍ لپاره ثبت شوی عاید؛ د اسعارو بدلون نه دی شوی',
+            groupBusinessNet: 'د کاروبارونو خالص',
+            groupBusinessNetHelp:
+                'د کاروبارونو عاید منفي د کاروبارونو لګښتونه؛ د اسعارو بدلون نه دی شوی',
+        },
+        form: {
+            title: 'ورځنی مالي رکورد',
+            description:
+                'ورځنی ارزښت، خرڅلاو، عاید او لګښتونه ولیکئ. د عین نېټې ثبتول هماغه ورځ تازه کوي.',
+        },
+        fields: {
+            date: 'نېټه',
+            currency: 'اسعار',
+            selectCurrency: 'اسعار وټاکئ',
+            valuation: 'د کاروبار ارزښت',
+            sales: 'خرڅلاو',
+            income: 'عاید',
+            expenses: 'لګښتونه',
+            net: 'خالص',
+            notes: 'یادښت',
+            notesPlaceholder:
+                'د ورځې، سرچینې، اصلاح یا مالي جزئیاتو په اړه اختیاري یادښت…',
+        },
+        entries: {
+            title: 'ورځني رکوردونه',
+            description:
+                'د ارزښت، خرڅلاو، عاید او لګښتونو وروستي نېټه‌لرونکي رکوردونه.',
+            empty: 'تر اوسه کوم مالي رکورد نه دی ثبت شوی.',
         },
     },
 

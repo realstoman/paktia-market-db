@@ -35,6 +35,7 @@ import {
     ClipboardList,
     ContactRound,
     FileSignature,
+    Gem,
     Globe2,
     Handshake,
     LayoutGrid,
@@ -42,6 +43,7 @@ import {
     Settings2,
     ShieldCheck,
     Users,
+    UtensilsCrossed,
     Warehouse,
 } from 'lucide-react';
 
@@ -114,6 +116,20 @@ const toolNavConfig: HeaderNavConfig[] = [
         href: '/inventory',
         icon: Warehouse,
         can: 'inventory.view',
+    },
+    {
+        titleKey: 'navigation.toolDubaiRestaurant',
+        fallbackTitle: 'Dubai Restaurant',
+        href: '/finance/dubai-restaurant',
+        icon: UtensilsCrossed,
+        can: 'finance.view',
+    },
+    {
+        titleKey: 'navigation.toolKabulSarafi',
+        fallbackTitle: 'Kabul Gold & Sarafi',
+        href: '/finance/kabul-sarafi',
+        icon: Gem,
+        can: 'finance.view',
     },
     {
         titleKey: 'navigation.toolEmployees',

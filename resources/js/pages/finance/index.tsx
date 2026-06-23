@@ -97,6 +97,11 @@ interface FinanceDashboardData {
         unpaidSalaries: number;
         inventoryValue: number;
         supplierBalances: number;
+        businessValuation: number;
+        businessSales: number;
+        businessIncome: number;
+        businessExpenses: number;
+        businessNet: number;
     };
     trend: Array<{
         date: string;
@@ -316,6 +321,14 @@ function localizeModuleName(
             'financeDashboard.modules.names.rentLeases',
             'Rent & Leases',
         ),
+        'Dubai Restaurant': t(
+            'businessFinance.businesses.dubaiRestaurant.title',
+            'Dubai Restaurant',
+        ),
+        'Kabul Gold & Sarafi': t(
+            'businessFinance.businesses.kabulSarafi.title',
+            'Kabul Gold & Sarafi',
+        ),
     };
 
     return nameMap[name] ?? name;
@@ -394,6 +407,14 @@ function localizeModuleDescription(
         'Tenant rent receipts, contract periods, and outstanding balances.': t(
             'financeDashboard.modules.descriptions.rentLeases',
             'Record tenant rent receipts and monitor contract obligations and outstanding balances.',
+        ),
+        'Daily restaurant valuation, sales, income, and expenses.': t(
+            'businessFinance.businesses.dubaiRestaurant.moduleDescription',
+            'Daily restaurant valuation, sales, income, and expenses.',
+        ),
+        'Daily gold and Sarafi valuation, sales, income, and expenses.': t(
+            'businessFinance.businesses.kabulSarafi.moduleDescription',
+            'Daily gold and Sarafi valuation, sales, income, and expenses.',
         ),
     };
 
@@ -550,6 +571,14 @@ function moduleHref(name: string): string | null {
 
     if (name === 'Rent & Leases') {
         return '/finance/rentals';
+    }
+
+    if (name === 'Dubai Restaurant') {
+        return '/finance/dubai-restaurant';
+    }
+
+    if (name === 'Kabul Gold & Sarafi') {
+        return '/finance/kabul-sarafi';
     }
 
     return null;
@@ -1146,6 +1175,44 @@ export default function FinancePage({
                             'Unpaid vendor balance from stock purchases',
                         )}
                         icon={<CreditCard className="h-5 w-5" />}
+                    />
+                    <SummaryCard
+                        title={t(
+                            'businessFinance.summary.groupBusinessValuation',
+                            'Business valuation',
+                        )}
+                        value={formatNumber(
+                            dashboard.summary.businessValuation,
+                        )}
+                        subtitle={t(
+                            'businessFinance.summary.groupBusinessValuationHelp',
+                            'Latest recorded valuation from group-owned businesses',
+                        )}
+                        icon={<Coins className="h-5 w-5" />}
+                    />
+                    <SummaryCard
+                        title={t(
+                            'businessFinance.summary.groupBusinessIncome',
+                            'Business income',
+                        )}
+                        value={formatNumber(dashboard.summary.businessIncome)}
+                        subtitle={t(
+                            'businessFinance.summary.groupBusinessIncomeHelp',
+                            'Income entered for restaurant and Sarafi businesses',
+                        )}
+                        icon={<Banknote className="h-5 w-5" />}
+                    />
+                    <SummaryCard
+                        title={t(
+                            'businessFinance.summary.groupBusinessNet',
+                            'Business net',
+                        )}
+                        value={formatNumber(dashboard.summary.businessNet)}
+                        subtitle={t(
+                            'businessFinance.summary.groupBusinessNetHelp',
+                            'Business income minus business expenses',
+                        )}
+                        icon={<ChartNoAxesCombined className="h-5 w-5" />}
                     />
                 </div>
 

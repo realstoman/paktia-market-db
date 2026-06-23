@@ -102,6 +102,8 @@ const fa = {
         tools: 'بخش های دیگر',
         managementTools: 'ابزارهای مدیریتی',
         toolInventory: 'گدام',
+        toolDubaiRestaurant: 'رستورانت دبی',
+        toolKabulSarafi: 'طلا و صرافی کابل',
         toolContracts: 'قالب‌های قرارداد',
         toolEmployees: 'کارمندان',
         toolShareholders: 'سهمداران',
@@ -3448,6 +3450,76 @@ const fa = {
             takeoutsHelp:
                 'برداشت‌های سهمدار، توزیع سود و برداشت سرمایه از همین پروفایل مدیریت خواهد شد.',
             totalTakeouts: 'مجموع برداشت‌های ثبت‌شده',
+        },
+    },
+
+    businessFinance: {
+        common: {
+            notRecorded: 'ثبت نشده',
+        },
+        businesses: {
+            dubaiRestaurant: {
+                title: 'رستورانت دبی',
+                location: 'دبی، امارات متحده عربی',
+                description:
+                    'ثبت ارزش روزانه، فروشات، عاید و مصارف برای رستورانت مربوط به گروپ در دبی.',
+                moduleDescription:
+                    'ارزش، فروشات، عاید و مصارف روزانه رستورانت.',
+            },
+            kabulSarafi: {
+                title: 'طلا و صرافی کابل',
+                location: 'کابل، افغانستان',
+                description:
+                    'ثبت ارزش روزانه، فروشات، عاید و مصارف برای کاروبار طلا و صرافی در کابل.',
+                moduleDescription:
+                    'ارزش، فروشات، عاید و مصارف روزانه طلا و صرافی.',
+            },
+        },
+        actions: {
+            backToFinance: 'برگشت به مالی',
+            saveEntry: 'ذخیره رکورد',
+        },
+        summary: {
+            latestValuation: 'آخرین ارزش‌گذاری',
+            monthSales: 'فروشات این ماه',
+            monthSalesHelp: 'فروشات ثبت‌شده برای ماه جاری',
+            monthExpenses: 'مصارف این ماه',
+            monthExpensesHelp: 'مصارف ثبت‌شده برای ماه جاری',
+            totalNet: 'خالص مجموعی',
+            totalNetHelp: 'مجموع عاید منهای مصارف از تمام رکوردها',
+            groupBusinessValuation: 'ارزش کاروبارها',
+            groupBusinessValuationHelp:
+                'آخرین ارزش ثبت‌شده کاروبارهای مربوط به گروپ؛ بدون تبدیل اسعار',
+            groupBusinessIncome: 'عاید کاروبارها',
+            groupBusinessIncomeHelp:
+                'عاید ثبت‌شده برای رستورانت و صرافی؛ بدون تبدیل اسعار',
+            groupBusinessNet: 'خالص کاروبارها',
+            groupBusinessNetHelp:
+                'عاید کاروبارها منهای مصارف کاروبارها؛ بدون تبدیل اسعار',
+        },
+        form: {
+            title: 'رکورد مالی روزانه',
+            description:
+                'ارزش روزانه، فروشات، عاید و مصارف را وارد کنید. ثبت عین تاریخ، همان روز را به‌روزرسانی می‌کند.',
+        },
+        fields: {
+            date: 'تاریخ',
+            currency: 'واحد پول',
+            selectCurrency: 'انتخاب واحد پول',
+            valuation: 'ارزش کاروبار',
+            sales: 'فروشات',
+            income: 'عاید',
+            expenses: 'مصارف',
+            net: 'خالص',
+            notes: 'یادداشت',
+            notesPlaceholder:
+                'یادداشت اختیاری درباره روز، منبع، اصلاح یا جزئیات مالی…',
+        },
+        entries: {
+            title: 'رکوردهای روزانه',
+            description:
+                'آخرین رکوردهای تاریخ‌دار برای ارزش، فروشات، عاید و مصارف.',
+            empty: 'هنوز هیچ رکورد مالی ثبت نشده است.',
         },
     },
 
