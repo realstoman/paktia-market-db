@@ -42,7 +42,6 @@ import {
     Phone,
     Plus,
     Search,
-    ShieldCheck,
     Trash2,
     Upload,
     UsersRound,
@@ -138,7 +137,7 @@ export default function ShareholdersPage({
     properties,
     currencies,
 }: Props) {
-    const { t } = useLocalization();
+    const { t, isRtl } = useLocalization();
     const { auth } = usePage<SharedData>().props;
     const canManage =
         auth.is_super_admin || auth.permissions.includes('shareholders.manage');
@@ -176,55 +175,48 @@ export default function ShareholdersPage({
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={t('shareholders.title', 'Shareholders')} />
-            <div className="mx-auto w-full max-w-[1600px] space-y-6">
-                <section className="relative overflow-hidden rounded-3xl border border-white/70 bg-gradient-to-br from-white via-white to-primary/8 p-6 shadow-sm sm:p-8 dark:border-neutral-800 dark:from-neutral-900 dark:via-neutral-900 dark:to-primary/10">
-                    <div className="pointer-events-none absolute -end-16 -top-20 h-56 w-56 rounded-full bg-primary/10 blur-3xl" />
-                    <div className="relative flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
-                        <div>
-                            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-3 py-1.5 text-sm font-medium text-primary">
-                                <ShieldCheck className="h-4 w-4" />
-                                {t(
-                                    'shareholders.identity',
-                                    'Identity & contact',
-                                )}
-                            </div>
-                            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-                                {t('shareholders.title', 'Shareholders')}
-                            </h1>
-                            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
-                                {t('shareholders.subtitle')}
-                            </p>
-                        </div>
-                        {canManage && (
-                            <Dialog
-                                open={createOpen}
-                                onOpenChange={setCreateOpen}
-                            >
-                                <DialogTrigger asChild>
-                                    <Button className="h-11 rounded-xl px-5 shadow-sm">
-                                        <Plus className="me-2 h-4 w-4" />
-                                        {t('shareholders.register')}
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent className="max-h-[92vh] overflow-y-auto rounded-2xl sm:max-w-5xl">
-                                    <DialogHeader>
-                                        <DialogTitle>
-                                            {t('shareholders.register')}
-                                        </DialogTitle>
-                                        <DialogDescription>
-                                            {t('shareholders.subtitle')}
-                                        </DialogDescription>
-                                    </DialogHeader>
-                                    <ShareholderForm
-                                        countries={countries}
-                                        properties={properties}
-                                        currencies={currencies}
-                                        onSuccess={() => setCreateOpen(false)}
-                                    />
-                                </DialogContent>
-                            </Dialog>
-                        )}
+            <div
+                className="mx-auto w-full max-w-[1600px] space-y-4 **:data-[slot=card]:shadow-none"
+                dir={isRtl ? 'rtl' : 'ltr'}
+            >
+                <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+                    <div className="max-w-2xl">
+                        <h1 className="text-2xl font-semibold tracking-tight">
+                            {t('shareholders.title', 'Shareholders')}
+                        </h1>
+                        <p className="mt-1 text-base text-muted-foreground">
+                            {t('shareholders.subtitle')}
+                        </p>
                     </div>
+                    {canManage && (
+                        <Dialog
+                            open={createOpen}
+                            onOpenChange={setCreateOpen}
+                        >
+                            <DialogTrigger asChild>
+                                <Button>
+                                    <Plus className="me-2 h-4 w-4" />
+                                    {t('shareholders.register')}
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-h-[92vh] overflow-x-hidden overflow-y-auto rounded-2xl bg-[#f8f9fd] sm:max-w-5xl [&_input]:bg-white [&_textarea]:bg-white">
+                                <DialogHeader>
+                                    <DialogTitle>
+                                        {t('shareholders.register')}
+                                    </DialogTitle>
+                                    <DialogDescription>
+                                        {t('shareholders.subtitle')}
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <ShareholderForm
+                                    countries={countries}
+                                    properties={properties}
+                                    currencies={currencies}
+                                    onSuccess={() => setCreateOpen(false)}
+                                />
+                            </DialogContent>
+                        </Dialog>
+                    )}
                 </section>
 
                 <div className="grid gap-3 sm:grid-cols-3">
@@ -249,26 +241,29 @@ export default function ShareholdersPage({
                     />
                 </div>
 
-                <div className="rounded-2xl border border-white/70 bg-white p-3 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                    <div className="relative max-w-xl">
-                        <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <section className="rounded-xl border border-primary/10 bg-card p-3 shadow-none">
+                    <div className="max-w-xl">
+                        <Label className="mb-2 flex items-center gap-2">
+                            <Search className="h-4 w-4" />
+                            {t('common.search', 'Search')}
+                        </Label>
                         <Input
                             value={search}
                             onChange={(event) => setSearch(event.target.value)}
                             placeholder={t('shareholders.searchPlaceholder')}
-                            className="h-11 rounded-xl bg-white ps-10 shadow-none dark:bg-neutral-950"
+                            className="bg-white dark:bg-neutral-950"
                         />
                     </div>
-                </div>
+                </section>
 
                 {visible.length === 0 ? (
-                    <Card className="border-dashed">
+                    <Card className="border-dashed shadow-none">
                         <CardContent className="py-16 text-center text-sm text-muted-foreground">
                             {t('shareholders.noResults')}
                         </CardContent>
                     </Card>
                 ) : (
-                    <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+                    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                         {visible.map((shareholder) => (
                             <ShareholderCard
                                 key={shareholder.id}
@@ -284,7 +279,7 @@ export default function ShareholdersPage({
 
             {editing && (
                 <Dialog open onOpenChange={(open) => !open && setEditing(null)}>
-                    <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-4xl">
+                    <DialogContent className="max-h-[92vh] overflow-x-hidden overflow-y-auto rounded-2xl bg-[#f8f9fd] sm:max-w-4xl [&_input]:bg-white [&_textarea]:bg-white">
                         <DialogHeader>
                             <DialogTitle>{t('shareholders.edit')}</DialogTitle>
                         </DialogHeader>
