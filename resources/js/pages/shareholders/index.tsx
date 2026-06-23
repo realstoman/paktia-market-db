@@ -29,14 +29,16 @@ import {
     Shareholder,
 } from '@/types';
 import { formatNumber } from '@/utils/format';
-import { Head, router, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import {
     Building2,
     CalendarDays,
     Download,
+    Eye,
     FileText,
     Handshake,
     IdCard,
+    Map as MapIcon,
     MoreHorizontal,
     Pencil,
     Phone,
@@ -46,7 +48,7 @@ import {
     Upload,
     UsersRound,
 } from 'lucide-react';
-import { FormEvent, ReactNode, useMemo, useState } from 'react';
+import { FormEvent, ReactNode, useEffect, useMemo, useState } from 'react';
 
 interface Props {
     shareholders: Shareholder[];
@@ -130,6 +132,14 @@ const cleanPercentage = (value: string | number) =>
     Number.parseFloat(String(value)).toLocaleString('en-US', {
         maximumFractionDigits: 4,
     });
+
+const initials = (name: string) =>
+    name
+        .split(/\s+/)
+        .slice(0, 2)
+        .map((part) => part[0])
+        .join('')
+        .toUpperCase();
 
 export default function ShareholdersPage({
     shareholders,
