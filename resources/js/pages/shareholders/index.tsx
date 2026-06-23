@@ -529,6 +529,27 @@ function ShareholderForm({
     );
     const options = (values: Record<string, string>) =>
         Object.entries(values).map(([value, label]) => ({ value, label }));
+    const photoInputId = `shareholder-photo-${shareholder?.id ?? 'create'}`;
+    const documentsInputId = `shareholder-documents-${shareholder?.id ?? 'create'}`;
+    const [photoPreview, setPhotoPreview] = useState<string | null>(
+        shareholder?.photo_url ?? null,
+    );
+
+    useEffect(
+        () => () => {
+            if (photoPreview?.startsWith('blob:')) {
+                URL.revokeObjectURL(photoPreview);
+            }
+        },
+        [photoPreview],
+    );
+
+    const selectPhoto = (photo: File | null) => {
+        form.setData('photo', photo);
+        setPhotoPreview(
+            photo ? URL.createObjectURL(photo) : (shareholder?.photo_url ?? null),
+        );
+    };
 
     const submit = (event: FormEvent) => {
         event.preventDefault();
@@ -549,8 +570,8 @@ function ShareholderForm({
     };
 
     return (
-        <form onSubmit={submit} className="space-y-6">
-            <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <form onSubmit={submit} className="min-w-0 space-y-6">
+            <section className="grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <Field
                     label={t('shareholders.fields.fullName')}
                     error={form.errors.full_name}
@@ -720,35 +741,92 @@ function ShareholderForm({
                         }
                     />
                 </Field>
-                <Field
-                    label={t('shareholders.fields.photo')}
-                    error={form.errors.photo}
-                >
-                    <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) =>
-                            form.setData('photo', e.target.files?.[0] ?? null)
-                        }
-                    />
-                </Field>
+                <div className="min-w-0 space-y-1.5 sm:col-span-2 lg:col-span-3">
+                    <Label htmlFor={photoInputId}>
+                        {t('shareholders.fields.photo')}
+                    </Label>
+                    <div className="flex min-w-0 flex-col gap-4 rounded-2xl border border-dashed border-[#002452]/20 bg-white p-4 sm:flex-row sm:items-center">
+                        <Avatar className="h-20 w-20 rounded-2xl border border-[#002452]/10">
+                            <AvatarImage
+                                src={photoPreview ?? undefined}
+                                className="h-full w-full object-cover object-center"
+                            />
+                            <AvatarFallback className="rounded-2xl bg-[#f1f5f9] text-xl text-[#002452]">
+                                {initials(
+                                    form.data.full_name ||
+                                        shareholder?.full_name ||
+                                        'SH',
+                                )}
+                            </AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-medium text-[#002452]">
+                                {form.data.photo?.name ??
+                                    t('shareholders.fields.photo')}
+                            </p>
+                            <label
+                                htmlFor={photoInputId}
+                                className="mt-3 inline-flex h-9 cursor-pointer items-center rounded-lg border border-[#002452]/20 bg-white px-3 text-sm font-medium text-[#002452] transition-colors hover:bg-[#002452]/5"
+                            >
+                                <Upload className="me-2 size-4" />
+                                {t('shareholders.uploadPhoto')}
+                            </label>
+                            <Input
+                                id={photoInputId}
+                                type="file"
+                                accept="image/*"
+                                className="sr-only"
+                                onChange={(event) =>
+                                    selectPhoto(event.target.files?.[0] ?? null)
+                                }
+                            />
+                        </div>
+                    </div>
+                    <InputError message={form.errors.photo} />
+                </div>
                 {!shareholder && (
-                    <Field
-                        label={t('shareholders.documents')}
-                        error={form.errors.documents}
-                    >
-                        <Input
-                            type="file"
-                            multiple
-                            accept=".pdf,.doc,.docx,image/*"
-                            onChange={(e) =>
-                                form.setData(
-                                    'documents',
-                                    Array.from(e.target.files ?? []),
-                                )
-                            }
-                        />
-                    </Field>
+                    <div className="min-w-0 space-y-1.5 sm:col-span-2 lg:col-span-3">
+                        <Label htmlFor={documentsInputId}>
+                            {t('shareholders.documents')}
+                        </Label>
+                        <div className="rounded-2xl border border-dashed border-[#002452]/20 bg-white p-4">
+                            <div className="flex min-w-0 flex-col justify-between gap-3 sm:flex-row sm:items-center">
+                                <div className="min-w-0">
+                                    <p className="truncate text-sm font-medium text-[#002452]">
+                                        {form.data.documents.length
+                                            ? form.data.documents
+                                                  .map((file) => file.name)
+                                                  .join(', ')
+                                            : t('shareholders.documents')}
+                                    </p>
+                                    <p className="mt-1 text-xs text-muted-foreground">
+                                        {t('shareholders.documentsHelp')}
+                                    </p>
+                                </div>
+                                <label
+                                    htmlFor={documentsInputId}
+                                    className="inline-flex h-9 shrink-0 cursor-pointer items-center rounded-lg border border-[#002452]/20 bg-white px-3 text-sm font-medium text-[#002452] transition-colors hover:bg-[#002452]/5"
+                                >
+                                    <Upload className="me-2 size-4" />
+                                    {t('shareholders.upload')}
+                                </label>
+                            </div>
+                            <Input
+                                id={documentsInputId}
+                                type="file"
+                                multiple
+                                accept=".pdf,.doc,.docx,image/*"
+                                className="sr-only"
+                                onChange={(event) =>
+                                    form.setData(
+                                        'documents',
+                                        Array.from(event.target.files ?? []),
+                                    )
+                                }
+                            />
+                        </div>
+                        <InputError message={form.errors.documents} />
+                    </div>
                 )}
                 <div className="sm:col-span-2 lg:col-span-3">
                     <Field

@@ -43,6 +43,26 @@ class ShareholderController extends Controller
         ]);
     }
 
+    public function show(Shareholder $shareholder)
+    {
+        $shareholder->load([
+            'countryOfBirth:id,name',
+            'citizenshipCountry:id,name',
+            'documents',
+            'shareholdings.property:id,name,name_translations,property_type,usage_type,address,address_translations',
+            'shareholdings.currency:id,code,symbol',
+        ]);
+
+        return Inertia::render('shareholders/show', [
+            'shareholder' => $shareholder,
+            'properties' => Property::query()
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get(['id', 'name', 'name_translations', 'property_type', 'address', 'address_translations']),
+            'currencies' => Currency::query()->where('is_active', true)->orderBy('code')->get(['id', 'code', 'symbol']),
+        ]);
+    }
+
     public function store(Request $request, PropertyOwnershipService $ownership)
     {
         $validated = $this->validateShareholder($request);

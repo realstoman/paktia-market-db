@@ -142,6 +142,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::middleware('can:'.PermissionEnum::SHAREHOLDERS_VIEW->value)->group(function () {
         Route::get('shareholders', [ShareholderController::class, 'index'])->name('shareholders.index');
+        Route::get('shareholders/{shareholder}', [ShareholderController::class, 'show'])->name('shareholders.show');
         Route::get('shareholders/{shareholder}/documents/{document}', [ShareholderController::class, 'downloadDocument'])
             ->name('shareholders.documents.download');
     });
