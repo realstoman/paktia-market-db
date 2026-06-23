@@ -244,7 +244,7 @@ export default function ShareholdersPage({
                 </div>
 
                 <section className="rounded-xl border border-primary/10 bg-card p-3 shadow-none">
-                    <div className="max-w-xl">
+                    <div className="w-full">
                         <Label className="mb-2 flex items-center gap-2">
                             <Search className="h-4 w-4" />
                             {t('common.search', 'Search')}
@@ -337,8 +337,8 @@ function ShareholderCard({
     const current = (shareholder.shareholdings ?? []).filter(isCurrent);
 
     return (
-        <Card className="group relative overflow-hidden border border-primary/10 bg-card shadow-none transition-colors hover:border-primary/20">
-            <CardContent className="space-y-4 p-4">
+        <Card className="group relative h-[360px] overflow-hidden border border-primary/10 bg-card shadow-none transition-colors hover:border-primary/20">
+            <CardContent className="flex h-full flex-col gap-4 p-4">
                 <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-3">
                         <Avatar className="h-14 w-14 border border-primary/10 bg-white">
@@ -367,12 +367,6 @@ function ShareholderCard({
                                             : 'shareholders.inactive',
                                     )}
                                 </Badge>
-                                <span className="text-xs text-muted-foreground">
-                                    {t(
-                                        `shareholders.nidTypes.${shareholder.nid_type}`,
-                                        shareholder.nid_type,
-                                    )}
-                                </span>
                             </div>
                         </div>
                     </div>
@@ -390,7 +384,7 @@ function ShareholderCard({
                         )}
                     </div>
                 </div>
-                <div className="grid gap-2 text-sm text-muted-foreground">
+                <div className="grid min-h-[72px] gap-2 text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
                         <IdCard className="h-4 w-4" />
                         <span dir="ltr">{shareholder.nid_number}</span>
@@ -409,7 +403,7 @@ function ShareholderCard({
                     )}
                 </div>
                 <Separator />
-                <div className="space-y-2">
+                <div className="min-h-0 flex-1 space-y-2">
                     <div className="flex items-center justify-between">
                         <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
                             {t('shareholders.ownership')}
@@ -419,34 +413,34 @@ function ShareholderCard({
                         </Badge>
                     </div>
                     {current.length ? (
-                        current.slice(0, 2).map((holding) => (
-                            <div
-                                key={holding.id}
-                                className="flex items-center justify-between rounded-xl border border-primary/10 bg-[#f8f9fd] px-3 py-2.5 text-sm transition-colors dark:bg-neutral-950/70"
-                            >
-                                <span className="truncate">
-                                    {holding.property?.name}
-                                </span>
-                                <span className="ms-3 font-semibold" dir="ltr">
-                                    {cleanPercentage(holding.percentage)}%
-                                </span>
-                            </div>
-                        ))
+                        <div className="max-h-[102px] space-y-2 overflow-y-auto pe-1">
+                            {current.map((holding) => (
+                                <div
+                                    key={holding.id}
+                                    className="flex items-center justify-between rounded-xl border border-primary/10 bg-[#f8f9fd] px-3 py-2.5 text-sm transition-colors dark:bg-neutral-950/70"
+                                >
+                                    <span className="truncate">
+                                        {holding.property?.name}
+                                    </span>
+                                    <span
+                                        className="ms-3 font-semibold"
+                                        dir="ltr"
+                                    >
+                                        {cleanPercentage(holding.percentage)}%
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
                     ) : (
-                        <p className="py-2 text-xs text-muted-foreground">
+                        <p className="rounded-xl border border-dashed border-primary/10 bg-[#f8f9fd] px-3 py-6 text-center text-xs text-muted-foreground">
                             {t('shareholders.noOwnership')}
-                        </p>
-                    )}
-                    {current.length > 2 && (
-                        <p className="text-center text-xs font-medium text-primary">
-                            +{formatNumber(current.length - 2)}
                         </p>
                     )}
                 </div>
                 <Button
                     asChild
                     variant="outline"
-                    className="h-10 w-full rounded-xl border-primary/15 bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary"
+                    className="mt-auto h-10 w-full rounded-xl border-primary/15 bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary"
                 >
                     <Link href={`/shareholders/${shareholder.id}`}>
                         <Eye className="me-2 h-4 w-4" />
