@@ -33,7 +33,6 @@ import { formatNumber } from '@/utils/format';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import {
     ArrowLeft,
-    Banknote,
     Building2,
     CalendarDays,
     Download,
@@ -44,7 +43,6 @@ import {
     Map as MapIcon,
     Phone,
     Plus,
-    ShieldCheck,
     Trash2,
     Upload,
     UserRound,
@@ -111,7 +109,8 @@ export default function ShareholderProfile({
         auth.is_super_admin || auth.permissions.includes('shareholders.manage');
     const currentHoldings = (shareholder.shareholdings ?? []).filter(isCurrent);
     const totalCurrentShare = currentHoldings.reduce(
-        (total, holding) => total + Number.parseFloat(String(holding.percentage)),
+        (total, holding) =>
+            total + Number.parseFloat(String(holding.percentage)),
         0,
     );
     const breadcrumbs: BreadcrumbItem[] = [
@@ -382,7 +381,9 @@ function OwnershipCard({
                             {cleanPercentage(holding.percentage)}%
                         </p>
                         <Badge
-                            variant={isCurrent(holding) ? 'default' : 'secondary'}
+                            variant={
+                                isCurrent(holding) ? 'default' : 'secondary'
+                            }
                         >
                             {t(
                                 isCurrent(holding)
@@ -527,8 +528,7 @@ function Documents({
                                                             router.delete(
                                                                 `/shareholders/${shareholder.id}/documents/${document.id}`,
                                                                 {
-                                                                    preserveScroll:
-                                                                        true,
+                                                                    preserveScroll: true,
                                                                 },
                                                             )
                                                         }

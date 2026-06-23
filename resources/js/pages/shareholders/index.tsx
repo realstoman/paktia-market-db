@@ -547,7 +547,9 @@ function ShareholderForm({
     const selectPhoto = (photo: File | null) => {
         form.setData('photo', photo);
         setPhotoPreview(
-            photo ? URL.createObjectURL(photo) : (shareholder?.photo_url ?? null),
+            photo
+                ? URL.createObjectURL(photo)
+                : (shareholder?.photo_url ?? null),
         );
     };
 
