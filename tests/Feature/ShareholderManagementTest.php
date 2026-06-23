@@ -167,6 +167,15 @@ test('finance users can view shareholders but cannot change them', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page->component('shareholders/index'));
 
+    $shareholder = shareholderRecord('NID-4000');
+
+    $this->actingAs($financeUser)
+        ->get(route('shareholders.show', $shareholder))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('shareholders/show')
+            ->where('shareholder.id', $shareholder->id));
+
     $this->actingAs($financeUser)
         ->post(route('shareholders.store'), [
             'full_name' => 'Restricted User',
