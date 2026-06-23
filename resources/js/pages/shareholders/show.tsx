@@ -41,6 +41,7 @@ import {
     IdCard,
     Mail,
     MapPin,
+    MessageCircle,
     Phone,
     Plus,
     Trash2,
@@ -89,6 +90,8 @@ const cleanPercentage = (value: string | number) =>
     Number.parseFloat(String(value)).toLocaleString('en-US', {
         maximumFractionDigits: 4,
     });
+
+const displayDate = (value?: string | null) => value?.slice(0, 10) ?? '—';
 
 const initials = (name: string) =>
     name
@@ -208,7 +211,7 @@ export default function ShareholderProfile({
                                 value={shareholder.phone}
                             />
                             <Info
-                                icon={Phone}
+                                icon={MessageCircle}
                                 label={t('shareholders.fields.whatsapp')}
                                 value={shareholder.whatsapp}
                             />
@@ -359,7 +362,7 @@ function OwnershipCard({
                     <p className="mt-1 text-sm text-muted-foreground">
                         <CalendarDays className="me-1 inline h-3.5 w-3.5" />
                         {t('shareholders.profile.partnershipStart')}:{' '}
-                        {holding.effective_from}
+                        {displayDate(holding.created_at)}
                     </p>
                     {holding.notes && (
                         <p className="mt-2 text-sm text-muted-foreground">
@@ -620,7 +623,7 @@ function OwnershipForm({
                     {t('shareholders.multipleOwnershipHelp')}
                 </p>
                 <form onSubmit={submit} className="space-y-4">
-                    <div className="grid gap-4 md:grid-cols-3">
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                         <OwnershipFields
                             data={form.data}
                             errors={form.errors}
@@ -717,46 +720,6 @@ function OwnershipFields({
                     placeholder={t('shareholders.select')}
                 />
             </Field>
-            <Field
-                label={t('shareholders.fields.effectiveFrom')}
-                error={errors.effective_from}
-            >
-                <Input
-                    type="date"
-                    value={data.effective_from}
-                    onChange={(event) =>
-                        setData('effective_from', event.target.value)
-                    }
-                    className="bg-white"
-                />
-            </Field>
-            <Field
-                label={t('shareholders.fields.effectiveTo')}
-                error={errors.effective_to}
-            >
-                <Input
-                    type="date"
-                    value={data.effective_to}
-                    onChange={(event) =>
-                        setData('effective_to', event.target.value)
-                    }
-                    className="bg-white"
-                />
-            </Field>
-            <div className="md:col-span-3">
-                <Field
-                    label={t('shareholders.fields.assignmentNotes')}
-                    error={errors.assignment_notes}
-                >
-                    <Textarea
-                        value={data.assignment_notes}
-                        onChange={(event) =>
-                            setData('assignment_notes', event.target.value)
-                        }
-                        className="min-h-24 bg-white"
-                    />
-                </Field>
-            </div>
         </>
     );
 }
@@ -774,8 +737,8 @@ function Info({
         <div className="flex gap-3">
             <Icon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
             <div>
-                <p className="text-xs text-muted-foreground">{label}</p>
-                <p className="mt-0.5 text-sm font-medium break-words">
+                <p className="text-[12px] text-muted-foreground">{label}</p>
+                <p className="mt-0.5 text-[14px] font-medium break-words">
                     {value || '—'}
                 </p>
             </div>

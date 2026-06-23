@@ -940,7 +940,7 @@ function ShareholderForm({
                                                         <Trash2 className="h-4 w-4" />
                                                     </Button>
                                                 </div>
-                                                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                                                     <OwnershipFields
                                                         data={assignment}
                                                         errors={nestedErrors}
@@ -1063,39 +1063,6 @@ function OwnershipFields({
                     placeholder={t('shareholders.select')}
                 />
             </Field>
-            <Field
-                label={t('shareholders.fields.effectiveFrom')}
-                error={errors.effective_from}
-            >
-                <Input
-                    type="date"
-                    value={data.effective_from}
-                    onChange={(e) => setData('effective_from', e.target.value)}
-                />
-            </Field>
-            <Field
-                label={t('shareholders.fields.effectiveTo')}
-                error={errors.effective_to}
-            >
-                <Input
-                    type="date"
-                    value={data.effective_to}
-                    onChange={(e) => setData('effective_to', e.target.value)}
-                />
-            </Field>
-            <div className="sm:col-span-2">
-                <Field
-                    label={t('shareholders.fields.assignmentNotes')}
-                    error={errors.assignment_notes}
-                >
-                    <Textarea
-                        value={data.assignment_notes}
-                        onChange={(e) =>
-                            setData('assignment_notes', e.target.value)
-                        }
-                    />
-                </Field>
-            </div>
         </>
     );
 }
