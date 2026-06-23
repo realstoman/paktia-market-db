@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\BannerController;
+use App\Http\Controllers\BusinessFinanceController;
 use App\Http\Controllers\CashBankController;
 use App\Http\Controllers\CashMovementTypeController;
 use App\Http\Controllers\ChartOfAccountController;
@@ -220,6 +221,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('finance/general-ledger', [FinanceController::class, 'generalLedger'])->name('finance.general-ledger.index');
         Route::get('finance/inventory-valuation', [FinanceController::class, 'inventoryValuation'])->name('finance.inventory-valuation.index');
         Route::get('finance/rentals', [RentPaymentController::class, 'index'])->name('finance.rentals.index');
+        Route::get('finance/{business}', [BusinessFinanceController::class, 'show'])
+            ->whereIn('business', ['dubai-restaurant', 'kabul-sarafi'])
+            ->name('finance.business-finance.show');
     });
     Route::middleware('can:'.PermissionEnum::PAYROLL_VIEW->value)->group(function () {
         Route::get('finance/payroll', [PayrollController::class, 'index'])->name('finance.payroll.index');
@@ -265,6 +269,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('can:'.PermissionEnum::FINANCE_MANAGE->value)->group(function () {
         Route::post('finance/rentals', [RentPaymentController::class, 'store'])->name('finance.rentals.store');
         Route::post('finance/rentals/{rentPayment}/void', [RentPaymentController::class, 'void'])->name('finance.rentals.void');
+        Route::post('finance/{business}', [BusinessFinanceController::class, 'store'])
+            ->whereIn('business', ['dubai-restaurant', 'kabul-sarafi'])
+            ->name('finance.business-finance.store');
         Route::get('finance/chart-of-accounts', [ChartOfAccountController::class, 'index'])->name('finance.chart-of-accounts.index');
         Route::post('finance/chart-of-accounts', [ChartOfAccountController::class, 'store'])->name('finance.chart-of-accounts.store');
         Route::put('finance/chart-of-accounts/{financeAccount}', [ChartOfAccountController::class, 'update'])->name('finance.chart-of-accounts.update');
