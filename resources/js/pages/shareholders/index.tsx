@@ -347,8 +347,8 @@ function ShareholderCard({
     const current = (shareholder.shareholdings ?? []).filter(isCurrent);
 
     return (
-        <Card className="group relative h-[400px] overflow-hidden border border-primary/10 bg-card shadow-none transition-colors hover:border-primary/20">
-            <CardContent className="flex h-full flex-col gap-4 p-4">
+        <Card className="group relative h-104 overflow-hidden border border-primary/10 bg-card shadow-none transition-colors hover:border-primary/20">
+            <CardContent className="flex h-full flex-col gap-4 px-6">
                 <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-3">
                         <Avatar className="h-14 w-14 border border-primary/10 bg-white">
@@ -394,7 +394,7 @@ function ShareholderCard({
                         )}
                     </div>
                 </div>
-                <div className="grid min-h-[72px] gap-2 text-sm text-muted-foreground">
+                <div className="grid min-h-18 gap-2 text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
                         <IdCard className="h-4 w-4" />
                         <span dir="ltr">{shareholder.nid_number}</span>
@@ -426,7 +426,7 @@ function ShareholderCard({
                         </Badge>
                     </div>
                     {current.length ? (
-                        <div className="max-h-[116px] space-y-2 overflow-y-auto pe-1">
+                        <div className="max-h-40 space-y-2 overflow-y-auto pe-1">
                             {current.map((holding) => (
                                 <div
                                     key={holding.id}

@@ -141,13 +141,13 @@ export default function ShareholderProfile({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={shareholder.full_name} />
             <div
-                className="mx-auto w-full max-w-[1500px] space-y-6 overflow-x-hidden **:data-[slot=card]:shadow-none"
+                className="mx-auto flex h-[calc(100dvh-13rem)] max-h-[calc(100dvh-13rem)] min-h-0 w-full max-w-[1500px] min-w-0 flex-col gap-3 overflow-hidden **:data-[slot=card]:max-w-full **:data-[slot=card]:shadow-none"
                 dir={isRtl ? 'rtl' : 'ltr'}
             >
-                <section className="min-w-0 overflow-hidden rounded-3xl border border-[#002452]/10 bg-[#f1f5f9] p-6 text-[#002452] shadow-none sm:p-8">
-                    <div className="flex min-w-0 flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-                        <div className="flex min-w-0 items-center gap-5">
-                            <Avatar className="h-24 w-24 rounded-3xl border-4 border-white shadow-none">
+                <section className="shrink-0 overflow-hidden rounded-3xl border border-[#002452]/10 bg-[#f1f5f9] p-4 text-[#002452] shadow-none sm:p-5">
+                    <div className="flex min-w-0 flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                        <div className="flex min-w-0 items-center gap-4">
+                            <Avatar className="h-18 w-18 rounded-3xl border-4 border-white shadow-none sm:h-20 sm:w-20">
                                 <AvatarImage
                                     src={shareholder.photo_url ?? undefined}
                                     className="h-full w-full object-cover object-center"
@@ -169,7 +169,7 @@ export default function ShareholderProfile({
                                         )}
                                     </Badge>
                                 </div>
-                                <h1 className="truncate text-3xl font-semibold tracking-tight">
+                                <h1 className="truncate text-2xl font-semibold tracking-tight">
                                     {shareholder.full_name}
                                 </h1>
                                 <p className="mt-1 text-[#002452]/70">
@@ -208,143 +208,156 @@ export default function ShareholderProfile({
                     </div>
                 </section>
 
-                <section className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)_minmax(0,0.9fr)]">
-                    <Card className="min-w-0 rounded-2xl border-primary/10">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2 text-lg">
-                                <UserRound className="h-5 w-5 text-primary" />
-                                {t('shareholders.profile.overview')}
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4 text-sm">
-                            <Info
-                                icon={Phone}
-                                label={t('shareholders.fields.phone')}
-                                value={shareholder.phone}
-                            />
-                            <Info
-                                icon={IconBrandWhatsapp}
-                                label={t('shareholders.fields.whatsapp')}
-                                value={shareholder.whatsapp}
-                            />
-                            <Info
-                                icon={Mail}
-                                label={t('shareholders.fields.email')}
-                                value={shareholder.email}
-                            />
-                            <Info
-                                icon={MapPin}
-                                label={t('shareholders.fields.citizenship')}
-                                value={countryName(
-                                    shareholder.citizenship_country,
-                                    locale,
-                                )}
-                            />
-                            <Info
-                                icon={MapPin}
-                                label={t('shareholders.fields.birthCountry')}
-                                value={countryName(
-                                    shareholder.country_of_birth,
-                                    locale,
-                                )}
-                            />
-                            <Info
-                                icon={MapPin}
-                                label={t('shareholders.fields.address')}
-                                value={shareholder.address}
-                            />
-                        </CardContent>
-                    </Card>
-
-                    <Card className="min-w-0 rounded-2xl border-primary/10">
-                        <CardHeader>
-                            <CardTitle className="flex items-center justify-between gap-2 text-lg">
-                                <span className="flex items-center gap-2">
-                                    <Building2 className="h-5 w-5 text-primary" />
-                                    {t('shareholders.profile.currentOwnership')}
-                                </span>
-                                <Badge variant="outline" dir="ltr">
-                                    {cleanPercentage(totalCurrentShare)}%
-                                </Badge>
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                            {currentHoldings.length ? (
-                                currentHoldings.map((holding) => (
-                                    <OwnershipCard
-                                        key={holding.id}
-                                        holding={holding}
-                                        canManage={canManage}
-                                        shareholder={shareholder}
-                                    />
-                                ))
-                            ) : (
-                                <EmptyState
-                                    icon={Building2}
-                                    text={t('shareholders.noOwnership')}
+                <section className="grid min-h-0 w-full max-w-full min-w-0 flex-1 gap-3 overflow-hidden xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.35fr)_minmax(0,1fr)]">
+                    <div className="grid min-h-0 gap-3 overflow-hidden xl:grid-rows-[minmax(0,1.25fr)_auto]">
+                        <Card className="min-h-0 min-w-0 gap-3 rounded-2xl border-primary/10 py-4">
+                            <CardHeader className="min-w-0 px-5">
+                                <CardTitle className="flex min-w-0 items-center gap-2 text-lg">
+                                    <UserRound className="h-5 w-5 text-primary" />
+                                    {t('shareholders.profile.overview')}
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="min-h-0 min-w-0 flex-1 [scrollbar-width:none] space-y-3 overflow-y-auto px-5 text-sm [&::-webkit-scrollbar]:hidden">
+                                <Info
+                                    icon={Phone}
+                                    label={t('shareholders.fields.phone')}
+                                    value={shareholder.phone}
                                 />
-                            )}
-                        </CardContent>
-                    </Card>
+                                <Info
+                                    icon={IconBrandWhatsapp}
+                                    label={t('shareholders.fields.whatsapp')}
+                                    value={shareholder.whatsapp}
+                                />
+                                <Info
+                                    icon={Mail}
+                                    label={t('shareholders.fields.email')}
+                                    value={shareholder.email}
+                                />
+                                <Info
+                                    icon={MapPin}
+                                    label={t('shareholders.fields.citizenship')}
+                                    value={countryName(
+                                        shareholder.citizenship_country,
+                                        locale,
+                                    )}
+                                />
+                                <Info
+                                    icon={MapPin}
+                                    label={t(
+                                        'shareholders.fields.birthCountry',
+                                    )}
+                                    value={countryName(
+                                        shareholder.country_of_birth,
+                                        locale,
+                                    )}
+                                />
+                                <Info
+                                    icon={MapPin}
+                                    label={t('shareholders.fields.address')}
+                                    value={shareholder.address}
+                                />
+                            </CardContent>
+                        </Card>
 
-                    <Card
-                        id="shareholder-takeouts"
-                        className="min-w-0 scroll-mt-24 rounded-2xl border-primary/10"
-                    >
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2 text-lg">
-                                <WalletCards className="h-5 w-5 text-primary" />
-                                {t('shareholders.profile.takeouts')}
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-sm leading-6 text-muted-foreground">
-                                {t('shareholders.profile.takeoutsHelp')}
-                            </p>
-                            <div className="mt-5 rounded-xl bg-muted/60 p-4">
-                                <p className="text-xs text-muted-foreground">
-                                    {t('shareholders.profile.totalTakeouts')}
+                        <Card
+                            id="shareholder-takeouts"
+                            className="min-w-0 scroll-mt-24 gap-3 rounded-2xl border-primary/10 py-4"
+                        >
+                            <CardHeader className="min-w-0 px-5">
+                                <CardTitle className="flex min-w-0 items-center gap-2 text-lg">
+                                    <WalletCards className="h-5 w-5 text-primary" />
+                                    {t('shareholders.profile.takeouts')}
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="min-w-0 px-5">
+                                <p className="text-sm leading-6 text-muted-foreground">
+                                    {t('shareholders.profile.takeoutsHelp')}
                                 </p>
-                                <p className="mt-1 text-2xl font-semibold">
-                                    {formatNumber(0)}
-                                </p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </section>
+                                <div className="mt-3 rounded-xl bg-muted/60 p-3">
+                                    <p className="text-xs text-muted-foreground">
+                                        {t(
+                                            'shareholders.profile.totalTakeouts',
+                                        )}
+                                    </p>
+                                    <p className="mt-1 text-xl font-semibold">
+                                        {formatNumber(0)}
+                                    </p>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
 
-                <section className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)]">
-                    <Card className="min-w-0 rounded-2xl border-primary/10">
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2 text-lg">
-                                <CalendarDays className="h-5 w-5 text-primary" />
-                                {t('shareholders.profile.ownershipHistory')}
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-3">
-                            {(shareholder.shareholdings ?? []).length ? (
-                                (shareholder.shareholdings ?? []).map(
-                                    (holding) => (
+                    <div className="grid min-h-0 gap-3 overflow-hidden xl:grid-rows-[minmax(0,1fr)_minmax(0,1fr)]">
+                        <Card className="min-h-0 min-w-0 gap-3 rounded-2xl border-primary/10 py-4">
+                            <CardHeader className="min-w-0 px-5">
+                                <CardTitle className="flex min-w-0 items-center justify-between gap-2 text-lg">
+                                    <span className="flex min-w-0 items-center gap-2">
+                                        <Building2 className="h-5 w-5 text-primary" />
+                                        <span className="truncate">
+                                            {t(
+                                                'shareholders.profile.currentOwnership',
+                                            )}
+                                        </span>
+                                    </span>
+                                    <Badge
+                                        variant="outline"
+                                        className="shrink-0"
+                                        dir="ltr"
+                                    >
+                                        {cleanPercentage(totalCurrentShare)}%
+                                    </Badge>
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="min-h-0 min-w-0 flex-1 [scrollbar-width:none] space-y-3 overflow-y-auto px-5 [&::-webkit-scrollbar]:hidden">
+                                {currentHoldings.length ? (
+                                    currentHoldings.map((holding) => (
                                         <OwnershipCard
                                             key={holding.id}
                                             holding={holding}
-                                            canManage={canManage}
-                                            shareholder={shareholder}
                                         />
-                                    ),
-                                )
-                            ) : (
-                                <EmptyState
-                                    icon={Handshake}
-                                    text={t('shareholders.noOwnership')}
-                                />
-                            )}
-                        </CardContent>
-                    </Card>
-                    <Documents
-                        shareholder={shareholder}
-                        canManage={canManage}
-                    />
+                                    ))
+                                ) : (
+                                    <EmptyState
+                                        icon={Building2}
+                                        text={t('shareholders.noOwnership')}
+                                    />
+                                )}
+                            </CardContent>
+                        </Card>
+
+                        <Card className="min-h-0 min-w-0 gap-3 rounded-2xl border-primary/10 py-4">
+                            <CardHeader className="min-w-0 px-5">
+                                <CardTitle className="flex min-w-0 items-center gap-2 text-lg">
+                                    <CalendarDays className="h-5 w-5 text-primary" />
+                                    {t('shareholders.profile.ownershipHistory')}
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="min-h-0 min-w-0 flex-1 [scrollbar-width:none] space-y-3 overflow-y-auto px-5 [&::-webkit-scrollbar]:hidden">
+                                {(shareholder.shareholdings ?? []).length ? (
+                                    (shareholder.shareholdings ?? []).map(
+                                        (holding) => (
+                                            <OwnershipCard
+                                                key={holding.id}
+                                                holding={holding}
+                                            />
+                                        ),
+                                    )
+                                ) : (
+                                    <EmptyState
+                                        icon={Handshake}
+                                        text={t('shareholders.noOwnership')}
+                                    />
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    <div className="grid min-h-0 gap-3 overflow-hidden">
+                        <Documents
+                            shareholder={shareholder}
+                            canManage={canManage}
+                        />
+                    </div>
                 </section>
 
                 {canManage && (
@@ -359,15 +372,7 @@ export default function ShareholderProfile({
     );
 }
 
-function OwnershipCard({
-    holding,
-    canManage,
-    shareholder,
-}: {
-    holding: PropertyShareholding;
-    canManage: boolean;
-    shareholder: Shareholder;
-}) {
+function OwnershipCard({ holding }: { holding: PropertyShareholding }) {
     const { t } = useLocalization();
 
     return (
@@ -388,39 +393,10 @@ function OwnershipCard({
                         </p>
                     )}
                 </div>
-                <div className="flex shrink-0 items-center gap-3">
-                    <div className="text-end">
-                        <p className="text-xl font-semibold" dir="ltr">
-                            {cleanPercentage(holding.percentage)}%
-                        </p>
-                        <Badge
-                            variant={
-                                isCurrent(holding) ? 'default' : 'secondary'
-                            }
-                        >
-                            {t(
-                                isCurrent(holding)
-                                    ? 'shareholders.current'
-                                    : 'shareholders.historical',
-                            )}
-                        </Badge>
-                    </div>
-                    {canManage && isCurrent(holding) && (
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="border-primary/15 bg-white text-primary hover:bg-primary/5 hover:text-primary"
-                            onClick={() =>
-                                router.post(
-                                    `/shareholders/${shareholder.id}/shareholdings/${holding.id}/close`,
-                                    { effective_to: localToday() },
-                                    { preserveScroll: true },
-                                )
-                            }
-                        >
-                            {t('shareholders.closeToday')}
-                        </Button>
-                    )}
+                <div className="shrink-0 rounded-xl border border-primary/10 bg-[#f8f9fd] px-4 py-2 text-end">
+                    <p className="text-xl font-semibold text-primary" dir="ltr">
+                        {cleanPercentage(holding.percentage)}%
+                    </p>
                 </div>
             </div>
             {holding.capital_contribution && (
@@ -456,18 +432,18 @@ function Documents({
     };
 
     return (
-        <Card className="rounded-2xl border-primary/10">
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
+        <Card className="min-h-0 min-w-0 gap-3 rounded-2xl border-primary/10 py-4">
+            <CardHeader className="min-w-0 shrink-0 px-5">
+                <CardTitle className="flex min-w-0 items-center gap-2 text-lg">
                     <FileText className="h-5 w-5 text-primary" />
                     {t('shareholders.documents')}
                 </CardTitle>
             </CardHeader>
-            <CardContent>
-                <p className="mb-4 text-sm text-muted-foreground">
+            <CardContent className="flex min-h-0 min-w-0 flex-1 flex-col px-5">
+                <p className="mb-3 shrink-0 text-sm text-muted-foreground">
                     {t('shareholders.documentsHelp')}
                 </p>
-                <div className="space-y-2">
+                <div className="min-h-0 flex-1 [scrollbar-width:none] space-y-2 overflow-y-auto [&::-webkit-scrollbar]:hidden">
                     {(shareholder.documents ?? []).length ? (
                         shareholder.documents?.map((document) => (
                             <div
@@ -556,8 +532,8 @@ function Documents({
                     )}
                 </div>
                 {canManage && (
-                    <form onSubmit={upload} className="mt-4 space-y-3">
-                        <div className="rounded-2xl border border-dashed border-[#002452]/20 bg-white p-4">
+                    <form onSubmit={upload} className="mt-3 shrink-0 space-y-2">
+                        <div className="rounded-2xl border border-dashed border-[#002452]/20 bg-white p-3">
                             <div className="flex min-w-0 flex-col justify-between gap-3 sm:flex-row sm:items-center">
                                 <p className="min-w-0 truncate text-sm font-medium text-[#002452]">
                                     {form.data.documents.length
@@ -628,20 +604,20 @@ function OwnershipForm({
     return (
         <Card
             id="shareholder-ownership-form"
-            className="scroll-mt-24 rounded-2xl border-primary/10"
+            className="min-w-0 shrink-0 scroll-mt-24 overflow-hidden rounded-2xl border-primary/10 py-5"
         >
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
+            <CardHeader className="min-w-0 px-6">
+                <CardTitle className="flex min-w-0 items-center gap-2 text-lg">
                     <Handshake className="h-5 w-5 text-primary" />
                     {t('shareholders.addPropertyShare')}
                 </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="min-w-0 px-6">
                 <p className="mb-5 text-sm text-muted-foreground">
                     {t('shareholders.multipleOwnershipHelp')}
                 </p>
                 <form onSubmit={submit} className="space-y-4">
-                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <div className="grid min-w-0 gap-4 md:grid-cols-2 xl:grid-cols-4">
                         <OwnershipFields
                             data={form.data}
                             errors={form.errors}
