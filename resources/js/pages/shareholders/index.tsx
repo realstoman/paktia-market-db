@@ -129,6 +129,16 @@ const cleanPercentage = (value: string | number) =>
         maximumFractionDigits: 4,
     });
 
+const countryName = (country: Country | null | undefined, locale: string) => {
+    if (!country) return '';
+
+    if (locale === 'fa' || locale === 'ps') {
+        return country.name_translations?.fa || country.name;
+    }
+
+    return country.name_translations?.en || country.name;
+};
+
 const initials = (name: string) =>
     name
         .split(/\s+/)
@@ -333,11 +343,11 @@ function ShareholderCard({
     canManage: boolean;
     onEdit: () => void;
 }) {
-    const { t } = useLocalization();
+    const { t, locale } = useLocalization();
     const current = (shareholder.shareholdings ?? []).filter(isCurrent);
 
     return (
-        <Card className="group relative h-[360px] overflow-hidden border border-primary/10 bg-card shadow-none transition-colors hover:border-primary/20">
+        <Card className="group relative h-[400px] overflow-hidden border border-primary/10 bg-card shadow-none transition-colors hover:border-primary/20">
             <CardContent className="flex h-full flex-col gap-4 p-4">
                 <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-3">
@@ -398,7 +408,10 @@ function ShareholderCard({
                     {shareholder.citizenship_country?.name && (
                         <div className="flex items-center gap-2">
                             <MapIcon className="h-4 w-4" />
-                            {shareholder.citizenship_country.name}
+                            {countryName(
+                                shareholder.citizenship_country,
+                                locale,
+                            )}
                         </div>
                     )}
                 </div>
@@ -413,7 +426,7 @@ function ShareholderCard({
                         </Badge>
                     </div>
                     {current.length ? (
-                        <div className="max-h-[102px] space-y-2 overflow-y-auto pe-1">
+                        <div className="max-h-[116px] space-y-2 overflow-y-auto pe-1">
                             {current.map((holding) => (
                                 <div
                                     key={holding.id}
@@ -465,7 +478,7 @@ function ShareholderForm({
     currencies: Currency[];
     onSuccess: () => void;
 }) {
-    const { t } = useLocalization();
+    const { t, locale } = useLocalization();
     const form = useForm<ShareholderFormData>(
         shareholder
             ? {
@@ -611,7 +624,7 @@ function ShareholderForm({
                         }
                         options={countries.map((c) => ({
                             value: String(c.id),
-                            label: c.name,
+                            label: countryName(c, locale),
                         }))}
                         placeholder={t('shareholders.select')}
                     />
@@ -627,7 +640,7 @@ function ShareholderForm({
                         }
                         options={countries.map((c) => ({
                             value: String(c.id),
-                            label: c.name,
+                            label: countryName(c, locale),
                         }))}
                         placeholder={t('shareholders.select')}
                     />

@@ -30,6 +30,7 @@ import {
 } from '@/types';
 import { formatNumber } from '@/utils/format';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { IconBrandWhatsapp } from '@tabler/icons-react';
 import {
     ArrowLeft,
     Building2,
@@ -40,7 +41,6 @@ import {
     IdCard,
     Mail,
     MapPin,
-    MessageCircle,
     Phone,
     Plus,
     Trash2,
@@ -48,7 +48,7 @@ import {
     UserRound,
     WalletCards,
 } from 'lucide-react';
-import { FormEvent } from 'react';
+import { ComponentType, FormEvent } from 'react';
 
 interface Props {
     shareholder: Shareholder;
@@ -92,6 +92,19 @@ const cleanPercentage = (value: string | number) =>
 
 const displayDate = (value?: string | null) => value?.slice(0, 10) ?? '—';
 
+const countryName = (
+    country: Shareholder['citizenship_country'] | undefined,
+    locale: string,
+) => {
+    if (!country) return '';
+
+    if (locale === 'fa' || locale === 'ps') {
+        return country.name_translations?.fa || country.name;
+    }
+
+    return country.name_translations?.en || country.name;
+};
+
 const initials = (name: string) =>
     name
         .split(/\s+/)
@@ -105,7 +118,7 @@ export default function ShareholderProfile({
     properties,
     currencies,
 }: Props) {
-    const { t, isRtl } = useLocalization();
+    const { t, isRtl, locale } = useLocalization();
     const { auth } = usePage<SharedData>().props;
     const canManage =
         auth.is_super_admin || auth.permissions.includes('shareholders.manage');
@@ -128,12 +141,12 @@ export default function ShareholderProfile({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={shareholder.full_name} />
             <div
-                className="mx-auto w-full max-w-[1500px] space-y-6 **:data-[slot=card]:shadow-none"
+                className="mx-auto w-full max-w-[1500px] space-y-6 overflow-x-hidden **:data-[slot=card]:shadow-none"
                 dir={isRtl ? 'rtl' : 'ltr'}
             >
-                <section className="overflow-hidden rounded-3xl border border-[#002452]/10 bg-[#f1f5f9] p-6 text-[#002452] shadow-none sm:p-8">
-                    <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-                        <div className="flex items-center gap-5">
+                <section className="min-w-0 overflow-hidden rounded-3xl border border-[#002452]/10 bg-[#f1f5f9] p-6 text-[#002452] shadow-none sm:p-8">
+                    <div className="flex min-w-0 flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+                        <div className="flex min-w-0 items-center gap-5">
                             <Avatar className="h-24 w-24 rounded-3xl border-4 border-white shadow-none">
                                 <AvatarImage
                                     src={shareholder.photo_url ?? undefined}
@@ -143,7 +156,7 @@ export default function ShareholderProfile({
                                     {initials(shareholder.full_name)}
                                 </AvatarFallback>
                             </Avatar>
-                            <div>
+                            <div className="min-w-0">
                                 <div className="mb-2 flex flex-wrap gap-2">
                                     <Badge
                                         variant="outline"
@@ -156,7 +169,7 @@ export default function ShareholderProfile({
                                         )}
                                     </Badge>
                                 </div>
-                                <h1 className="text-3xl font-semibold tracking-tight">
+                                <h1 className="truncate text-3xl font-semibold tracking-tight">
                                     {shareholder.full_name}
                                 </h1>
                                 <p className="mt-1 text-[#002452]/70">
@@ -169,7 +182,7 @@ export default function ShareholderProfile({
                                 </p>
                             </div>
                         </div>
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex shrink-0 flex-wrap gap-2">
                             <Button
                                 asChild
                                 variant="outline"
@@ -195,8 +208,8 @@ export default function ShareholderProfile({
                     </div>
                 </section>
 
-                <section className="grid gap-6 xl:grid-cols-[1fr_1.35fr_0.9fr]">
-                    <Card className="rounded-2xl border-primary/10">
+                <section className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)_minmax(0,0.9fr)]">
+                    <Card className="min-w-0 rounded-2xl border-primary/10">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2 text-lg">
                                 <UserRound className="h-5 w-5 text-primary" />
@@ -210,7 +223,7 @@ export default function ShareholderProfile({
                                 value={shareholder.phone}
                             />
                             <Info
-                                icon={MessageCircle}
+                                icon={IconBrandWhatsapp}
                                 label={t('shareholders.fields.whatsapp')}
                                 value={shareholder.whatsapp}
                             />
@@ -222,12 +235,18 @@ export default function ShareholderProfile({
                             <Info
                                 icon={MapPin}
                                 label={t('shareholders.fields.citizenship')}
-                                value={shareholder.citizenship_country?.name}
+                                value={countryName(
+                                    shareholder.citizenship_country,
+                                    locale,
+                                )}
                             />
                             <Info
                                 icon={MapPin}
                                 label={t('shareholders.fields.birthCountry')}
-                                value={shareholder.country_of_birth?.name}
+                                value={countryName(
+                                    shareholder.country_of_birth,
+                                    locale,
+                                )}
                             />
                             <Info
                                 icon={MapPin}
@@ -237,7 +256,7 @@ export default function ShareholderProfile({
                         </CardContent>
                     </Card>
 
-                    <Card className="rounded-2xl border-primary/10">
+                    <Card className="min-w-0 rounded-2xl border-primary/10">
                         <CardHeader>
                             <CardTitle className="flex items-center justify-between gap-2 text-lg">
                                 <span className="flex items-center gap-2">
@@ -270,7 +289,7 @@ export default function ShareholderProfile({
 
                     <Card
                         id="shareholder-takeouts"
-                        className="scroll-mt-24 rounded-2xl border-primary/10"
+                        className="min-w-0 scroll-mt-24 rounded-2xl border-primary/10"
                     >
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2 text-lg">
@@ -294,8 +313,8 @@ export default function ShareholderProfile({
                     </Card>
                 </section>
 
-                <section className="grid gap-6 xl:grid-cols-[1.45fr_1fr]">
-                    <Card className="rounded-2xl border-primary/10">
+                <section className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(0,1fr)]">
+                    <Card className="min-w-0 rounded-2xl border-primary/10">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2 text-lg">
                                 <CalendarDays className="h-5 w-5 text-primary" />
@@ -352,7 +371,7 @@ function OwnershipCard({
     const { t } = useLocalization();
 
     return (
-        <div className="rounded-xl border border-primary/10 bg-white p-4">
+        <div className="min-w-0 rounded-xl border border-primary/10 bg-white p-4">
             <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
                 <div className="min-w-0">
                     <p className="truncate font-medium">
@@ -728,7 +747,7 @@ function Info({
     label,
     value,
 }: {
-    icon: typeof Phone;
+    icon: ComponentType<{ className?: string }>;
     label: string;
     value?: string | null;
 }) {
