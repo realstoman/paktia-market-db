@@ -39,7 +39,6 @@ import {
     Handshake,
     IdCard,
     Map as MapIcon,
-    MoreHorizontal,
     Pencil,
     Phone,
     Plus,
@@ -356,11 +355,6 @@ function ShareholderCard({
 }) {
     const { t } = useLocalization();
     const current = (shareholder.shareholdings ?? []).filter(isCurrent);
-    const initials = shareholder.full_name
-        .split(/\s+/)
-        .slice(0, 2)
-        .map((part) => part[0])
-        .join('');
 
     return (
         <Card className="group relative overflow-hidden border border-primary/10 bg-card shadow-none transition-colors hover:border-primary/20">
@@ -372,7 +366,7 @@ function ShareholderCard({
                                 src={shareholder.photo_url ?? undefined}
                             />
                             <AvatarFallback className="font-semibold">
-                                {initials}
+                                {initials(shareholder.full_name)}
                             </AvatarFallback>
                         </Avatar>
                         <div className="min-w-0">
@@ -402,16 +396,30 @@ function ShareholderCard({
                             </div>
                         </div>
                     </div>
-                    {canManage && (
+                    <div className="flex shrink-0 items-center gap-1.5">
                         <Button
-                            variant="ghost"
+                            asChild
+                            variant="outline"
                             size="icon"
-                            onClick={onEdit}
-                            title={t('shareholders.edit')}
+                            className="h-8 w-8 border-primary/15 bg-white text-primary hover:bg-primary/5 hover:text-primary"
+                            title={t('shareholders.viewDetails')}
                         >
-                            <Pencil className="h-4 w-4" />
+                            <Link href={`/shareholders/${shareholder.id}`}>
+                                <Eye className="h-4 w-4" />
+                            </Link>
                         </Button>
-                    )}
+                        {canManage && (
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8 border-primary/15 bg-white text-primary hover:bg-primary/5 hover:text-primary"
+                                onClick={onEdit}
+                                title={t('shareholders.edit')}
+                            >
+                                <Pencil className="h-4 w-4" />
+                            </Button>
+                        )}
+                    </div>
                 </div>
                 <div className="grid gap-2 text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
@@ -426,7 +434,7 @@ function ShareholderCard({
                     )}
                     {shareholder.citizenship_country?.name && (
                         <div className="flex items-center gap-2">
-                            <MoreHorizontal className="h-4 w-4" />
+                            <MapIcon className="h-4 w-4" />
                             {shareholder.citizenship_country.name}
                         </div>
                     )}
