@@ -563,6 +563,8 @@ export interface PropertyShareholding {
     property?: Property;
     shareholder?: Shareholder;
     currency?: Currency | null;
+    created_at?: string;
+    updated_at?: string;
 }
 
 export interface PropertyFloor {
