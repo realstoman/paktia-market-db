@@ -189,10 +189,7 @@ export default function ShareholdersPage({
                         </p>
                     </div>
                     {canManage && (
-                        <Dialog
-                            open={createOpen}
-                            onOpenChange={setCreateOpen}
-                        >
+                        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
                             <DialogTrigger asChild>
                                 <Button>
                                     <Plus className="me-2 h-4 w-4" />
@@ -320,16 +317,16 @@ function Stat({
     value: number;
 }) {
     return (
-        <Card className="rounded-2xl border-white/70 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-            <CardContent className="flex items-center gap-4 p-5">
-                <div className="rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 p-3 text-primary">
+        <Card className="border border-primary/10 shadow-none">
+            <CardContent className="flex items-center gap-3 py-4">
+                <div className="rounded-lg bg-muted p-2.5 text-primary">
                     {icon}
                 </div>
                 <div>
-                    <p className="text-2xl font-semibold tracking-tight">
+                    <p className="text-2xl font-semibold">
                         {formatNumber(value)}
                     </p>
-                    <p className="text-xs text-muted-foreground">{label}</p>
+                    <p className="text-base text-muted-foreground">{label}</p>
                 </div>
             </CardContent>
         </Card>
@@ -356,12 +353,11 @@ function ShareholderCard({
         .join('');
 
     return (
-        <Card className="group relative overflow-hidden rounded-2xl border-white/80 bg-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 dark:border-neutral-800 dark:bg-neutral-900">
-            <div className="h-1 bg-gradient-to-r from-primary/80 via-primary/35 to-transparent" />
-            <CardContent className="space-y-5 p-5">
+        <Card className="group relative overflow-hidden border border-primary/10 bg-card shadow-none transition-colors hover:border-primary/20">
+            <CardContent className="space-y-4 p-4">
                 <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-3">
-                        <Avatar className="h-14 w-14 border-2 border-white shadow-md ring-1 ring-neutral-200 dark:border-neutral-900 dark:ring-neutral-700">
+                        <Avatar className="h-14 w-14 border border-primary/10 bg-white">
                             <AvatarImage
                                 src={shareholder.photo_url ?? undefined}
                             />
@@ -439,7 +435,7 @@ function ShareholderCard({
                         current.slice(0, 2).map((holding) => (
                             <div
                                 key={holding.id}
-                                className="flex items-center justify-between rounded-xl border border-transparent bg-slate-50 px-3 py-2.5 text-sm transition-colors group-hover:border-primary/10 dark:bg-neutral-950/70"
+                                className="flex items-center justify-between rounded-xl border border-primary/10 bg-[#f8f9fd] px-3 py-2.5 text-sm transition-colors dark:bg-neutral-950/70"
                             >
                                 <span className="truncate">
                                     {holding.property?.name}
