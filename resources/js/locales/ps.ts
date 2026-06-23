@@ -3431,6 +3431,8 @@ const ps = {
             overview: 'د پروفایل لنډیز',
             currentOwnership: 'اوسنۍ ونډې',
             ownershipHistory: 'د ونډو تاریخچه',
+            partnershipStart: 'د شراکت پیل',
+            investment: 'پانګونه',
             takeouts: 'برداشتونه',
             takeoutsHelp:
                 'د شریک برداشتونه، د ګټې وېش او د پانګې برداشت به له همدې پروفایل څخه مدیریت کېږي.',

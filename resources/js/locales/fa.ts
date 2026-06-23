@@ -3442,6 +3442,8 @@ const fa = {
             overview: 'خلاصه پروفایل',
             currentOwnership: 'سهم‌های فعلی',
             ownershipHistory: 'تاریخچه سهم‌ها',
+            partnershipStart: 'شروع شراکت',
+            investment: 'سرمایه‌گذاری',
             takeouts: 'برداشت‌ها',
             takeoutsHelp:
                 'برداشت‌های سهمدار، توزیع سود و برداشت سرمایه از همین پروفایل مدیریت خواهد شد.',

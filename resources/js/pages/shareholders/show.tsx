@@ -40,7 +40,7 @@ import {
     Handshake,
     IdCard,
     Mail,
-    Map as MapIcon,
+    MapPin,
     Phone,
     Plus,
     Trash2,
@@ -153,15 +153,6 @@ export default function ShareholderProfile({
                                                 : 'shareholders.inactive',
                                         )}
                                     </Badge>
-                                    <Badge
-                                        variant="outline"
-                                        className="border-[#002452]/15 bg-[#002452]/5 text-[#002452]"
-                                    >
-                                        {t(
-                                            `shareholders.nidTypes.${shareholder.nid_type}`,
-                                            shareholder.nid_type,
-                                        )}
-                                    </Badge>
                                 </div>
                                 <h1 className="text-3xl font-semibold tracking-tight">
                                     {shareholder.full_name}
@@ -227,17 +218,17 @@ export default function ShareholderProfile({
                                 value={shareholder.email}
                             />
                             <Info
-                                icon={MapIcon}
+                                icon={MapPin}
                                 label={t('shareholders.fields.citizenship')}
                                 value={shareholder.citizenship_country?.name}
                             />
                             <Info
-                                icon={MapIcon}
+                                icon={MapPin}
                                 label={t('shareholders.fields.birthCountry')}
                                 value={shareholder.country_of_birth?.name}
                             />
                             <Info
-                                icon={MapIcon}
+                                icon={MapPin}
                                 label={t('shareholders.fields.address')}
                                 value={shareholder.address}
                             />
@@ -367,7 +358,8 @@ function OwnershipCard({
                     </p>
                     <p className="mt-1 text-sm text-muted-foreground">
                         <CalendarDays className="me-1 inline h-3.5 w-3.5" />
-                        {holding.effective_from} — {holding.effective_to ?? '∞'}
+                        {t('shareholders.profile.partnershipStart')}:{' '}
+                        {holding.effective_from}
                     </p>
                     {holding.notes && (
                         <p className="mt-2 text-sm text-muted-foreground">
@@ -411,18 +403,10 @@ function OwnershipCard({
                 </div>
             </div>
             {holding.capital_contribution && (
-                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <div className="mt-3">
                     <Metric
-                        label={t('shareholders.fields.capital')}
+                        label={t('shareholders.profile.investment')}
                         value={`${formatNumber(holding.capital_contribution)} ${holding.currency?.code ?? ''}`}
-                    />
-                    <Metric
-                        label={t('shareholders.fields.currency')}
-                        value={
-                            holding.currency
-                                ? `${holding.currency.code} — ${holding.currency.symbol}`
-                                : '—'
-                        }
                     />
                 </div>
             )}
@@ -791,7 +775,9 @@ function Info({
             <Icon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
             <div>
                 <p className="text-xs text-muted-foreground">{label}</p>
-                <p className="mt-0.5 font-medium break-words">{value || '—'}</p>
+                <p className="mt-0.5 text-sm font-medium break-words">
+                    {value || '—'}
+                </p>
             </div>
         </div>
     );

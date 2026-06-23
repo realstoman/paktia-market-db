@@ -3466,6 +3466,8 @@ const en = {
             overview: 'Profile overview',
             currentOwnership: 'Current ownership',
             ownershipHistory: 'Ownership history',
+            partnershipStart: 'Partnership start',
+            investment: 'Investment',
             takeouts: 'Takeouts',
             takeoutsHelp:
                 'Shareholder withdrawals, profit distributions and capital takeouts will be managed from this profile.',
