@@ -249,20 +249,6 @@ export default function Dashboard({ data }: { data: DashboardData }) {
               },
           ]
         : [];
-    const occupancyPie = selectedProject
-        ? [
-              {
-                  name: t('propertyDashboard.occupied', 'Occupied'),
-                  value: selectedProject.occupiedShops,
-                  color: COLORS.green,
-              },
-              {
-                  name: t('propertyDashboard.available', 'Available'),
-                  value: selectedProject.availableShops,
-                  color: COLORS.mist,
-              },
-          ]
-        : [];
     const hasOverallChart = overallProjectChart.some(
         (item) => item.expenses !== 0 || item.cash !== 0,
     );
@@ -273,8 +259,6 @@ export default function Dashboard({ data }: { data: DashboardData }) {
     const hasProjectFinance = propertyFinanceChart.some(
         (item) => item.value !== 0,
     );
-    const hasOccupancy = occupancyPie.some((item) => item.value > 0);
-
     return (
         <AppLayout>
             <Head title={t('propertyDashboard.title', 'Property dashboard')} />
@@ -634,7 +618,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                     </div>
                 ) : selectedProject ? (
                     <div className="mt-5 space-y-5">
-                        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+                        <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                             <StatCard
                                 label={t('propertyDashboard.floors', 'Floors')}
                                 value={formatNumber(selectedProject.floors)}
@@ -668,55 +652,42 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                 icon={Building2}
                                 accent="coral"
                             />
-                            <StatCard
-                                label={t(
-                                    'propertyDashboard.tenants',
-                                    'Tenants',
-                                )}
-                                value={formatNumber(
-                                    selectedProject.registeredTenants,
-                                )}
-                                icon={UsersRound}
-                                accent="green"
-                            />
                         </section>
 
                         <section className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
-                            <MoneyCard
-                                title={t(
-                                    'propertyDashboard.collectedRentAfn',
-                                    'Collected rent in AFN',
+                            <StatCard
+                                label={t(
+                                    'propertyDashboard.totalCollectedRentThisMonth',
+                                    'Collected rent this month',
                                 )}
-                                collected={selectedProject.rent.collectedAfn}
-                                remaining={selectedProject.rent.remainingAfn}
-                                currency="؋"
-                                t={t}
-                            />
-                            <MoneyCard
-                                title={t(
-                                    'propertyDashboard.collectedRentUsd',
-                                    'Collected rent in USD',
-                                )}
-                                collected={selectedProject.rent.collectedUsd}
-                                remaining={selectedProject.rent.remainingUsd}
-                                currency="$"
-                                t={t}
+                                value={`${formatPrice(selectedProject.financeThisMonth.collectedRent)} ؋`}
+                                icon={Banknote}
+                                accent="green"
                             />
                             <StatCard
                                 label={t(
-                                    'propertyDashboard.expenses',
-                                    'Approved expenses',
+                                    'propertyDashboard.totalExpensesThisMonth',
+                                    'Expenses this month',
                                 )}
-                                value={`${formatPrice(selectedProject.expensesAfn)} ؋`}
+                                value={`${formatPrice(selectedProject.financeThisMonth.expenses)} ؋`}
                                 icon={ReceiptText}
                                 accent="coral"
                             />
                             <StatCard
                                 label={t(
-                                    'propertyDashboard.cashPosition',
-                                    'Cash position',
+                                    'propertyDashboard.totalShareholderTakeoutsThisMonth',
+                                    'Shareholder takeouts this month',
                                 )}
-                                value={`${formatPrice(selectedProject.cashPositionAfn)} ؋`}
+                                value={`${formatPrice(selectedProject.financeThisMonth.shareholderTakeouts)} ؋`}
+                                icon={UsersRound}
+                                accent="blue"
+                            />
+                            <StatCard
+                                label={t(
+                                    'propertyDashboard.totalAvailableCash',
+                                    'Available cash',
+                                )}
+                                value={`${formatPrice(selectedProject.financeThisMonth.availableCash)} ؋`}
                                 icon={CircleDollarSign}
                                 accent="teal"
                             />
@@ -726,23 +697,25 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                             <div className="rounded-2xl border border-[#dfe7e9] bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
                                 <h2 className="font-bold text-[#002452] dark:text-white">
                                     {t(
-                                        'propertyDashboard.rentCollection',
-                                        'Rent collection',
+                                        'propertyDashboard.monthlyFinanceChart',
+                                        'Monthly finance overview',
                                     )}
                                 </h2>
                                 <p className="mt-1 text-xs text-slate-500">
                                     {t(
-                                        'propertyDashboard.rentCollectionHelp',
-                                        'Collected and remaining rent for last month',
+                                        'propertyDashboard.monthlyFinanceChartHelp',
+                                        'Collected rent, expenses, shareholder takeouts and available cash for this month',
                                     )}
                                 </p>
                                 <div className="mt-5 h-80" dir="ltr">
-                                    {hasProjectRent ? (
+                                    {hasProjectFinance ? (
                                         <ResponsiveContainer
                                             width="100%"
                                             height="100%"
                                         >
-                                            <BarChart data={projectRentChart}>
+                                            <BarChart
+                                                data={propertyFinanceChart}
+                                            >
                                                 <CartesianGrid
                                                     vertical={false}
                                                     stroke="#edf1f4"
@@ -762,69 +735,15 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                                 <Tooltip
                                                     formatter={(
                                                         value: number,
-                                                    ) => formatPrice(value)}
-                                                />
-                                                <Legend />
-                                                <Bar
-                                                    name={t(
-                                                        'propertyDashboard.collected',
-                                                        'Collected',
-                                                    )}
-                                                    dataKey="collected"
-                                                    fill={COLORS.green}
-                                                    radius={[7, 7, 0, 0]}
+                                                    ) =>
+                                                        `${formatPrice(value)} ؋`
+                                                    }
                                                 />
                                                 <Bar
-                                                    name={t(
-                                                        'propertyDashboard.remaining',
-                                                        'Remaining',
-                                                    )}
-                                                    dataKey="remaining"
-                                                    fill={COLORS.coral}
-                                                    radius={[7, 7, 0, 0]}
-                                                />
-                                            </BarChart>
-                                        </ResponsiveContainer>
-                                    ) : (
-                                        <EmptyChart
-                                            label={t(
-                                                'propertyDashboard.noRentData',
-                                                'Rent records will appear after the lease module is added.',
-                                            )}
-                                        />
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="rounded-2xl border border-[#dfe7e9] bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
-                                <h2 className="font-bold text-[#002452] dark:text-white">
-                                    {t(
-                                        'propertyDashboard.shopOccupancy',
-                                        'Shop occupancy',
-                                    )}
-                                </h2>
-                                <p className="mt-1 text-xs text-slate-500">
-                                    {t(
-                                        'propertyDashboard.shopOccupancyHelp',
-                                        'Occupied and available shops',
-                                    )}
-                                </p>
-                                <div className="mt-5 h-80" dir="ltr">
-                                    {hasOccupancy ? (
-                                        <ResponsiveContainer
-                                            width="100%"
-                                            height="100%"
-                                        >
-                                            <PieChart>
-                                                <Pie
-                                                    data={occupancyPie}
                                                     dataKey="value"
-                                                    nameKey="name"
-                                                    innerRadius={60}
-                                                    outerRadius={100}
-                                                    paddingAngle={4}
+                                                    radius={[7, 7, 0, 0]}
                                                 >
-                                                    {occupancyPie.map(
+                                                    {propertyFinanceChart.map(
                                                         (item) => (
                                                             <Cell
                                                                 key={item.name}
@@ -834,14 +753,84 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                                             />
                                                         ),
                                                     )}
-                                                </Pie>
+                                                </Bar>
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    ) : (
+                                        <EmptyChart
+                                            label={t(
+                                                'propertyDashboard.noRentData',
+                                                'Rent records will appear after rent is collected.',
+                                            )}
+                                        />
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="rounded-2xl border border-[#dfe7e9] bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
+                                <h2 className="font-bold text-[#002452] dark:text-white">
+                                    {t(
+                                        'propertyDashboard.propertyStructureChart',
+                                        'Property structure',
+                                    )}
+                                </h2>
+                                <p className="mt-1 text-xs text-slate-500">
+                                    {t(
+                                        'propertyDashboard.propertyStructureChartHelp',
+                                        'Floors, shops, taken shops and empty shops',
+                                    )}
+                                </p>
+                                <div className="mt-5 h-80" dir="ltr">
+                                    {hasProjectCapacity ? (
+                                        <ResponsiveContainer
+                                            width="100%"
+                                            height="100%"
+                                        >
+                                            <BarChart
+                                                data={propertyCapacityChart}
+                                            >
+                                                <CartesianGrid
+                                                    vertical={false}
+                                                    stroke="#edf1f4"
+                                                />
+                                                <XAxis
+                                                    dataKey="name"
+                                                    tickLine={false}
+                                                    axisLine={false}
+                                                    tick={{
+                                                        fontSize: 11,
+                                                        fill: '#64748b',
+                                                    }}
+                                                />
+                                                <YAxis
+                                                    allowDecimals={false}
+                                                    tickLine={false}
+                                                    axisLine={false}
+                                                    tickFormatter={(value) =>
+                                                        formatNumber(value)
+                                                    }
+                                                />
                                                 <Tooltip
                                                     formatter={(
                                                         value: number,
                                                     ) => formatNumber(value)}
                                                 />
-                                                <Legend />
-                                            </PieChart>
+                                                <Bar
+                                                    dataKey="value"
+                                                    radius={[7, 7, 0, 0]}
+                                                >
+                                                    {propertyCapacityChart.map(
+                                                        (item) => (
+                                                            <Cell
+                                                                key={item.name}
+                                                                fill={
+                                                                    item.color
+                                                                }
+                                                            />
+                                                        ),
+                                                    )}
+                                                </Bar>
+                                            </BarChart>
                                         </ResponsiveContainer>
                                     ) : (
                                         <EmptyChart
@@ -860,18 +849,18 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                 <div>
                                     <h2 className="font-bold text-[#002452] dark:text-white">
                                         {t(
-                                            'propertyDashboard.marketExpenses',
-                                            'Market expenses',
+                                            'propertyDashboard.recentCollectedRent',
+                                            'Recent collected rent',
                                         )}
                                     </h2>
                                     <p className="mt-1 text-xs text-slate-500">
                                         {t(
-                                            'propertyDashboard.marketExpensesHelp',
-                                            'Electricity, maintenance and other approved costs',
+                                            'propertyDashboard.recentCollectedRentHelp',
+                                            'Latest rent payments collected from shops and rented spaces',
                                         )}
                                     </p>
                                 </div>
-                                <ReceiptText className="size-5 text-[#002452]" />
+                                <Banknote className="size-5 text-[#002452]" />
                             </div>
                             <div className="mt-4 overflow-x-auto">
                                 <table className="w-full min-w-170 text-sm">
@@ -879,8 +868,20 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                         <tr className="border-b border-[#edf1f2] text-slate-400 dark:border-neutral-800">
                                             <th className="px-3 py-3 text-start font-medium">
                                                 {t(
-                                                    'propertyDashboard.expense',
-                                                    'Expense',
+                                                    'propertyDashboard.receipt',
+                                                    'Receipt',
+                                                )}
+                                            </th>
+                                            <th className="px-3 py-3 text-start font-medium">
+                                                {t(
+                                                    'propertyDashboard.shop',
+                                                    'Shop',
+                                                )}
+                                            </th>
+                                            <th className="px-3 py-3 text-start font-medium">
+                                                {t(
+                                                    'propertyDashboard.tenant',
+                                                    'Tenant',
                                                 )}
                                             </th>
                                             <th className="px-3 py-3 text-start font-medium">
@@ -897,37 +898,61 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                             </th>
                                             <th className="px-3 py-3 text-start font-medium">
                                                 {t(
-                                                    'propertyDashboard.status',
-                                                    'Status',
+                                                    'propertyDashboard.period',
+                                                    'Period',
                                                 )}
                                             </th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {selectedProject.recentExpenses
+                                        {selectedProject.recentRentCollections
                                             .length ? (
-                                            selectedProject.recentExpenses.map(
-                                                (expense) => (
+                                            selectedProject.recentRentCollections.map(
+                                                (payment) => (
                                                     <tr
-                                                        key={expense.id}
+                                                        key={payment.id}
                                                         className="border-b border-[#f0f3f4] last:border-0 dark:border-neutral-800"
                                                     >
                                                         <td className="px-3 py-4 font-semibold">
-                                                            {expense.title}
+                                                            {
+                                                                payment.receiptNumber
+                                                            }
+                                                        </td>
+                                                        <td className="px-3 py-4">
+                                                            <strong>
+                                                                {
+                                                                    payment.shopNumber
+                                                                }
+                                                            </strong>
+                                                            {payment.floor ? (
+                                                                <p className="mt-1 text-xs text-slate-400">
+                                                                    {
+                                                                        payment.floor
+                                                                    }
+                                                                </p>
+                                                            ) : null}
                                                         </td>
                                                         <td className="px-3 py-4 text-slate-500">
-                                                            {expense.date}
+                                                            {payment.tenant ||
+                                                                '—'}
+                                                        </td>
+                                                        <td className="px-3 py-4 text-slate-500">
+                                                            {
+                                                                payment.paymentDate
+                                                            }
                                                         </td>
                                                         <td className="px-3 py-4 font-semibold">
                                                             {formatPrice(
-                                                                expense.amount,
+                                                                payment.amount,
                                                             )}{' '}
-                                                            ؋
+                                                            {payment.currency}
                                                         </td>
-                                                        <td className="px-3 py-4">
-                                                            <span className="rounded-full bg-[#edf1f4] px-3 py-1 text-xs font-semibold text-[#002452]">
-                                                                {expense.status}
-                                                            </span>
+                                                        <td className="px-3 py-4 text-slate-500">
+                                                            {payment.periodStart ||
+                                                                '—'}
+                                                            {payment.periodEnd
+                                                                ? ` - ${payment.periodEnd}`
+                                                                : ''}
                                                         </td>
                                                     </tr>
                                                 ),
@@ -935,12 +960,12 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                         ) : (
                                             <tr>
                                                 <td
-                                                    colSpan={4}
+                                                    colSpan={6}
                                                     className="py-12 text-center text-sm text-slate-400"
                                                 >
                                                     {t(
-                                                        'propertyDashboard.noExpenses',
-                                                        'No expenses have been recorded for this property.',
+                                                        'propertyDashboard.noRecentRent',
+                                                        'No rent has been collected for this property yet.',
                                                     )}
                                                 </td>
                                             </tr>
