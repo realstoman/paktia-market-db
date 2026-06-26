@@ -36,6 +36,21 @@ interface ExpenseRow {
     status: string;
 }
 
+interface RentCollectionRow {
+    id: number;
+    receiptNumber: string;
+    tenant?: string | null;
+    shopNumber?: string | null;
+    floor?: string | null;
+    amount: number;
+    currency: string;
+    currencyCode?: string | null;
+    paymentDate: string;
+    periodStart?: string | null;
+    periodEnd?: string | null;
+    paymentMethod: string;
+}
+
 interface PortfolioProject {
     id: number;
     name: string;
@@ -55,8 +70,15 @@ interface PortfolioProject {
         collectedUsd: number;
         remainingUsd: number;
     };
+    financeThisMonth: {
+        collectedRent: number;
+        expenses: number;
+        shareholderTakeouts: number;
+        availableCash: number;
+    };
     expensesAfn: number;
     cashPositionAfn: number;
+    recentRentCollections: RentCollectionRow[];
     recentExpenses: ExpenseRow[];
 }
 
@@ -124,44 +146,6 @@ function StatCard({
     );
 }
 
-function MoneyCard({
-    title,
-    collected,
-    remaining,
-    currency,
-    t,
-}: {
-    title: string;
-    collected: number;
-    remaining: number;
-    currency: string;
-    t: (key: string, fallback?: string) => string;
-}) {
-    return (
-        <div className="rounded-2xl border border-[#dfe7e9] bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
-            <div className="flex items-center justify-between">
-                <div>
-                    <p className="text-xs text-slate-500">{title}</p>
-                    <p className="mt-1 text-2xl font-bold text-[#002452] dark:text-white">
-                        {formatPrice(collected)} {currency}
-                    </p>
-                </div>
-                <div className="flex size-11 items-center justify-center rounded-xl bg-[#edf1f4] text-[#002452]">
-                    <Banknote className="size-5" />
-                </div>
-            </div>
-            <div className="mt-5 flex items-center justify-between border-t border-[#edf1f2] pt-4 text-sm dark:border-neutral-800">
-                <span className="text-slate-500">
-                    {t('propertyDashboard.remaining', 'Remaining')}
-                </span>
-                <strong className="text-[#ef786f]">
-                    {formatPrice(remaining)} {currency}
-                </strong>
-            </div>
-        </div>
-    );
-}
-
 function EmptyChart({ label }: { label: string }) {
     return (
         <div className="flex h-full items-center justify-center rounded-xl bg-[#edf1f4] text-sm text-slate-400 dark:bg-neutral-950">
@@ -205,17 +189,63 @@ export default function Dashboard({ data }: { data: DashboardData }) {
             color: COLORS.coral,
         },
     ];
-    const projectRentChart = selectedProject
+    const propertyCapacityChart = selectedProject
         ? [
               {
-                  name: t('propertyDashboard.afn', 'AFN'),
-                  collected: selectedProject.rent.collectedAfn,
-                  remaining: selectedProject.rent.remainingAfn,
+                  name: t('propertyDashboard.floors', 'Floors'),
+                  value: selectedProject.floors,
+                  color: COLORS.blue,
               },
               {
-                  name: t('propertyDashboard.usd', 'USD'),
-                  collected: selectedProject.rent.collectedUsd,
-                  remaining: selectedProject.rent.remainingUsd,
+                  name: t('propertyDashboard.shops', 'Shops'),
+                  value: selectedProject.shops,
+                  color: COLORS.teal,
+              },
+              {
+                  name: t('propertyDashboard.occupied', 'Occupied shops'),
+                  value: selectedProject.occupiedShops,
+                  color: COLORS.green,
+              },
+              {
+                  name: t('propertyDashboard.available', 'Available shops'),
+                  value: selectedProject.availableShops,
+                  color: COLORS.coral,
+              },
+          ]
+        : [];
+    const propertyFinanceChart = selectedProject
+        ? [
+              {
+                  name: t(
+                      'propertyDashboard.totalCollectedRentThisMonth',
+                      'Collected rent this month',
+                  ),
+                  value: selectedProject.financeThisMonth.collectedRent,
+                  color: COLORS.green,
+              },
+              {
+                  name: t(
+                      'propertyDashboard.totalExpensesThisMonth',
+                      'Expenses this month',
+                  ),
+                  value: selectedProject.financeThisMonth.expenses,
+                  color: COLORS.coral,
+              },
+              {
+                  name: t(
+                      'propertyDashboard.totalShareholderTakeoutsThisMonth',
+                      'Shareholder takeouts this month',
+                  ),
+                  value: selectedProject.financeThisMonth.shareholderTakeouts,
+                  color: COLORS.blue,
+              },
+              {
+                  name: t(
+                      'propertyDashboard.totalAvailableCash',
+                      'Available cash',
+                  ),
+                  value: selectedProject.financeThisMonth.availableCash,
+                  color: COLORS.teal,
               },
           ]
         : [];
@@ -237,8 +267,11 @@ export default function Dashboard({ data }: { data: DashboardData }) {
         (item) => item.expenses !== 0 || item.cash !== 0,
     );
     const hasOverallPie = overallPie.some((item) => item.value > 0);
-    const hasProjectRent = projectRentChart.some(
-        (item) => item.collected !== 0 || item.remaining !== 0,
+    const hasProjectCapacity = propertyCapacityChart.some(
+        (item) => item.value > 0,
+    );
+    const hasProjectFinance = propertyFinanceChart.some(
+        (item) => item.value !== 0,
     );
     const hasOccupancy = occupancyPie.some((item) => item.value > 0);
 
