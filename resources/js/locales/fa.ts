@@ -3327,7 +3327,7 @@ const fa = {
             shopNumber: 'نمبر دکان',
             apartmentNumber: 'نمبر آپارتمان',
             occupancyStatus: 'وضعیت اشغال',
-            hostMarketName: 'نام مارکیت بیرونی',
+            hostMarketName: 'نام مارکیت',
             externalUnitNumber: 'نمبر دکان / دفتر',
             externalFloor: 'منزل در داخل مارکیت',
             ownershipType: 'وضعیت مالکیت',
