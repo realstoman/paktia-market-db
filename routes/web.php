@@ -174,6 +174,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('tenants/{tenant}', [TenantController::class, 'update'])->name('tenants.update');
         Route::post('tenants/{tenant}/toggle', [TenantController::class, 'toggle'])->name('tenants.toggle');
         Route::post('tenants/{tenant}/leases', [TenantController::class, 'storeLease'])->name('tenants.leases.store');
+        Route::put('tenants/{tenant}/leases/{lease}', [TenantController::class, 'updateLease'])->name('tenants.leases.update');
         Route::post('tenants/{tenant}/documents', [TenantController::class, 'uploadDocuments'])->name('tenants.documents.store');
         Route::delete('tenants/{tenant}/documents/{document}', [TenantController::class, 'destroyDocument'])
             ->name('tenants.documents.destroy');

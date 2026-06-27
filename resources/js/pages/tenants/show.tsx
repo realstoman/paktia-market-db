@@ -125,6 +125,7 @@ export default function TenantProfile({
     const hasBusiness = Boolean(tenant.business_name?.trim());
     const displayName = tenant.business_name?.trim() || tenant.full_name;
     const [assignmentOpen, setAssignmentOpen] = useState(false);
+    const [editingLease, setEditingLease] = useState<Lease | null>(null);
     const [editOpen, setEditOpen] = useState(openEdit);
     const breadcrumbs: BreadcrumbItem[] = [
         { title: t('navigation.dashboard'), href: '/dashboard' },
@@ -261,6 +262,39 @@ export default function TenantProfile({
                                             />
                                         </DialogContent>
                                     </Dialog>
+                                    {editingLease && (
+                                        <Dialog
+                                            open
+                                            onOpenChange={(open) =>
+                                                !open && setEditingLease(null)
+                                            }
+                                        >
+                                            <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-4xl">
+                                                <DialogHeader>
+                                                    <DialogTitle>
+                                                        {t(
+                                                            'tenants.lease.edit',
+                                                            'Edit assignment',
+                                                        )}
+                                                    </DialogTitle>
+                                                    <DialogDescription>
+                                                        {
+                                                            editingLease.contract_number
+                                                        }
+                                                    </DialogDescription>
+                                                </DialogHeader>
+                                                <AssignmentForm
+                                                    tenant={tenant}
+                                                    lease={editingLease}
+                                                    properties={properties}
+                                                    currencies={currencies}
+                                                    onDone={() =>
+                                                        setEditingLease(null)
+                                                    }
+                                                />
+                                            </DialogContent>
+                                        </Dialog>
+                                    )}
                                 </>
                             )}
                             <Button
@@ -456,7 +490,24 @@ export default function TenantProfile({
                                                 {item.contract_number}
                                             </p>
                                         </div>
-                                        <div className="flex items-center gap-3">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            {canManage && (
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="icon"
+                                                    className="bg-white"
+                                                    title={t(
+                                                        'tenants.lease.edit',
+                                                        'Edit assignment',
+                                                    )}
+                                                    onClick={() =>
+                                                        setEditingLease(item)
+                                                    }
+                                                >
+                                                    <Pencil className="size-4" />
+                                                </Button>
+                                            )}
                                             <Button
                                                 asChild
                                                 variant="ghost"
@@ -469,6 +520,22 @@ export default function TenantProfile({
                                                     {t(
                                                         'leaseContract.tableAction',
                                                     )}
+                                                </Link>
+                                            </Button>
+                                            <Button
+                                                asChild
+                                                variant="outline"
+                                                size="icon"
+                                                className="bg-white"
+                                                title={t(
+                                                    'tenants.lease.printCard',
+                                                    'Print card',
+                                                )}
+                                            >
+                                                <Link
+                                                    href={`/tenants/${tenant.id}/card?lease_id=${item.id}`}
+                                                >
+                                                    <Printer className="size-4" />
                                                 </Link>
                                             </Button>
                                             <span className="font-medium">
@@ -710,28 +777,34 @@ function Documents({
 
 function AssignmentForm({
     tenant,
+    lease,
     properties,
     currencies,
     onDone,
 }: {
     tenant: Tenant;
+    lease?: Lease;
     properties: Property[];
     currencies: Currency[];
     onDone: () => void;
 }) {
     const { t } = useLocalization();
     const form = useForm<LeaseForm>({
-        property_id: '',
-        property_unit_id: '',
-        start_date: today(),
-        end_date: '',
-        rent_amount: '',
-        security_deposit: '',
-        currency_id: '',
-        payment_frequency: 'monthly',
-        status: 'active',
-        terms: '',
-        lease_notes: '',
+        property_id: lease ? String(lease.property_id) : '',
+        property_unit_id: lease?.property_unit_id
+            ? String(lease.property_unit_id)
+            : '',
+        start_date: lease?.start_date ?? today(),
+        end_date: lease?.end_date ?? '',
+        rent_amount: lease?.rent_amount ? String(lease.rent_amount) : '',
+        security_deposit: lease?.security_deposit
+            ? String(lease.security_deposit)
+            : '',
+        currency_id: lease?.currency_id ? String(lease.currency_id) : '',
+        payment_frequency: lease?.payment_frequency ?? 'monthly',
+        status: lease?.status ?? 'active',
+        terms: lease?.terms ?? '',
+        lease_notes: lease?.notes ?? '',
     });
     const property = properties.find(
         (item) => String(item.id) === form.data.property_id,
@@ -753,10 +826,23 @@ function AssignmentForm({
           ];
     const submit = (event: FormEvent) => {
         event.preventDefault();
-        form.post(`/tenants/${tenant.id}/leases`, {
+        const options = {
             preserveScroll: true,
-            onSuccess: onDone,
-        });
+            onSuccess: () => {
+                if (!lease) {
+                    form.reset();
+                }
+
+                onDone();
+            },
+        };
+
+        if (lease) {
+            form.put(`/tenants/${tenant.id}/leases/${lease.id}`, options);
+            return;
+        }
+
+        form.post(`/tenants/${tenant.id}/leases`, options);
     };
     return (
         <form onSubmit={submit} className="grid gap-4 md:grid-cols-2">
@@ -830,7 +916,10 @@ function AssignmentForm({
                 label={t('tenants.lease.status')}
                 value={form.data.status}
                 set={(value) => form.setData('status', value)}
-                options={['active', 'draft'].map((value) => ({
+                options={(lease
+                    ? ['active', 'draft', 'ended', 'terminated']
+                    : ['active', 'draft']
+                ).map((value) => ({
                     value,
                     label: t(`tenants.lease.${value}`),
                 }))}
@@ -847,7 +936,9 @@ function AssignmentForm({
             </div>
             <div className="flex justify-end md:col-span-2">
                 <Button disabled={form.processing}>
-                    {t('tenants.lease.add')}
+                    {lease
+                        ? t('tenants.lease.save', 'Save assignment')
+                        : t('tenants.lease.add')}
                 </Button>
             </div>
         </form>

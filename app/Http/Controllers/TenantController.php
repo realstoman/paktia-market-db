@@ -143,7 +143,7 @@ class TenantController extends Controller
         ]);
     }
 
-    public function card(Tenant $tenant)
+    public function card(Request $request, Tenant $tenant)
     {
         return Inertia::render('tenants/card', [
             'tenant' => $tenant->load([
@@ -151,6 +151,7 @@ class TenantController extends Controller
                 'leases.floor:id,name,level_number',
                 'leases.unit:id,unit_number,unit_type,property_floor_id',
             ]),
+            'selectedLeaseId' => $request->integer('lease_id') ?: null,
         ]);
     }
 
@@ -195,6 +196,16 @@ class TenantController extends Controller
         $leases->create([...$validated, 'tenant_id' => $tenant->id]);
 
         return back()->with('success', 'Property assignment created successfully.');
+    }
+
+    public function updateLease(Request $request, Tenant $tenant, Lease $lease, TenantLeaseService $leases)
+    {
+        abort_unless($lease->tenant_id === $tenant->id, 404);
+
+        $validated = $this->validateLease($request);
+        $leases->update($lease, [...$validated, 'tenant_id' => $tenant->id]);
+
+        return back()->with('success', 'Property assignment updated successfully.');
     }
 
     public function toggle(Tenant $tenant)
@@ -295,7 +306,7 @@ class TenantController extends Controller
             'security_deposit' => ['nullable', 'numeric', 'min:0'],
             'currency_id' => ['nullable', 'exists:currencies,id'],
             'payment_frequency' => ['required', Rule::in(['monthly', 'quarterly', 'yearly'])],
-            'status' => ['required', Rule::in(['draft', 'active'])],
+            'status' => ['required', Rule::in(['draft', 'active', 'ended', 'terminated'])],
             'terms' => ['nullable', 'string', 'max:5000'],
             'lease_notes' => ['nullable', 'string', 'max:2000'],
         ], attributes: [

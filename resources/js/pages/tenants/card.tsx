@@ -7,26 +7,35 @@ import { ArrowLeft, Building2, Printer, UserRound } from 'lucide-react';
 
 interface Props {
     tenant: Tenant;
+    selectedLeaseId?: number | null;
 }
 const today = () => new Date().toLocaleDateString('en-CA');
-const currentLease = (tenant: Tenant): Lease | undefined =>
-    (tenant.leases ?? []).find(
+const currentLeases = (tenant: Tenant): Lease[] =>
+    (tenant.leases ?? []).filter(
         (lease) =>
             lease.status === 'active' &&
             lease.start_date <= today() &&
             (!lease.end_date || lease.end_date >= today()),
     );
 
-export default function TenantCard({ tenant }: Props) {
+export default function TenantCard({ tenant, selectedLeaseId = null }: Props) {
     const { t, isRtl } = useLocalization();
     const { branding } = usePage<SharedData>().props;
-    const lease = currentLease(tenant);
-    const externalUnit =
-        lease?.property?.property_type === 'commercial_unit'
-            ? lease.property.external_unit_number
-            : null;
-    const location = lease
-        ? `${lease.property?.name ?? ''}${lease.unit ? ` - ${t(`tenants.lease.${lease.unit.unit_type}`)} ${lease.unit.unit_number}` : externalUnit ? ` - ${t('tenants.lease.shop')} ${externalUnit}` : ''}`
+    const selectedLease = selectedLeaseId
+        ? (tenant.leases ?? []).find((lease) => lease.id === selectedLeaseId)
+        : undefined;
+    const leases = selectedLease ? [selectedLease] : currentLeases(tenant);
+    const leaseLocation = (lease: Lease) => {
+        const externalUnit =
+            lease.property?.property_type === 'commercial_unit'
+                ? lease.property.external_unit_number
+                : null;
+
+        return `${lease.property?.name ?? ''}${lease.unit ? ` - ${t(`tenants.lease.${lease.unit.unit_type}`)} ${lease.unit.unit_number}` : externalUnit ? ` - ${t('tenants.lease.shop')} ${externalUnit}` : ''}`;
+    };
+    const locations = leases.map(leaseLocation).filter(Boolean);
+    const location = locations.length
+        ? `${locations.slice(0, 2).join(' | ')}${locations.length > 2 ? ` +${locations.length - 2}` : ''}`
         : t('tenants.lease.noAssignment');
 
     return (

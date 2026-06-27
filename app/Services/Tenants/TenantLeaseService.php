@@ -46,6 +46,41 @@ class TenantLeaseService
         });
     }
 
+    public function update(Lease $lease, array $data): Lease
+    {
+        return DB::transaction(function () use ($lease, $data): Lease {
+            $oldUnitId = $lease->property_unit_id;
+            $oldPropertyId = $lease->property_id;
+            $property = Property::query()->findOrFail($data['property_id']);
+            $unit = filled($data['property_unit_id'] ?? null)
+                ? PropertyUnit::query()->with('floor')->findOrFail($data['property_unit_id'])
+                : null;
+
+            $this->validateTarget($property, $unit);
+            $this->validateAvailability($property, $unit, $data, $lease->id);
+
+            $data['property_floor_id'] = $unit?->property_floor_id;
+            $data['property_unit_id'] = $unit?->id;
+            $data['leased_space_type'] = match ($property->property_type) {
+                'market', 'mall' => 'shop',
+                'commercial_unit' => 'shop',
+                'house' => 'house',
+                'block' => $unit ? 'apartment' : 'block',
+                default => $unit?->unit_type ?? 'property',
+            };
+
+            $lease->update($data);
+            $lease->refresh();
+
+            $this->refreshUnitOccupancy($oldUnitId);
+            $this->refreshUnitOccupancy($lease->property_unit_id);
+            $this->refreshCommercialUnitMode($oldPropertyId);
+            $this->refreshCommercialUnitMode($lease->property_id);
+
+            return $lease;
+        });
+    }
+
     private function validateTarget(Property $property, ?PropertyUnit $unit): void
     {
         if ($unit && $unit->floor?->property_id !== $property->id) {
@@ -83,7 +118,7 @@ class TenantLeaseService
         }
     }
 
-    private function validateAvailability(Property $property, ?PropertyUnit $unit, array $data): void
+    private function validateAvailability(Property $property, ?PropertyUnit $unit, array $data, ?int $ignoreLeaseId = null): void
     {
         $start = CarbonImmutable::parse($data['start_date']);
         $end = filled($data['end_date'] ?? null)
@@ -100,6 +135,7 @@ class TenantLeaseService
             ->where('property_id', $property->id)
             ->whereIn('status', ['active', 'draft'])
             ->whereDate('start_date', '<=', $end)
+            ->when($ignoreLeaseId, fn ($query) => $query->whereKeyNot($ignoreLeaseId))
             ->where(fn ($query) => $query
                 ->whereNull('end_date')
                 ->orWhereDate('end_date', '>=', $start))
@@ -119,5 +155,49 @@ class TenantLeaseService
                     : 'This property already has an active assignment for the selected period.',
             ]);
         }
+    }
+
+    private function refreshUnitOccupancy(?int $unitId): void
+    {
+        if (! $unitId) {
+            return;
+        }
+
+        $occupied = Lease::query()
+            ->where('property_unit_id', $unitId)
+            ->where('status', 'active')
+            ->whereDate('start_date', '<=', today())
+            ->where(fn ($period) => $period
+                ->whereNull('end_date')
+                ->orWhereDate('end_date', '>=', today()))
+            ->exists();
+
+        PropertyUnit::query()
+            ->whereKey($unitId)
+            ->update(['occupancy_status' => $occupied ? 'occupied' : 'vacant']);
+    }
+
+    private function refreshCommercialUnitMode(?int $propertyId): void
+    {
+        if (! $propertyId) {
+            return;
+        }
+
+        $property = Property::query()->find($propertyId);
+
+        if (! $property || $property->property_type !== 'commercial_unit') {
+            return;
+        }
+
+        $occupied = Lease::query()
+            ->where('property_id', $propertyId)
+            ->where('status', 'active')
+            ->whereDate('start_date', '<=', today())
+            ->where(fn ($period) => $period
+                ->whereNull('end_date')
+                ->orWhereDate('end_date', '>=', today()))
+            ->exists();
+
+        $property->update(['operating_mode' => $occupied ? 'rented' : 'vacant']);
     }
 }
