@@ -3279,9 +3279,11 @@ const ps = {
         commercialUnitRentalHelp:
             'د مالک د کارونې پر مهال کارکوونکي او لګښتونه همدې واحد ته وتړئ؛ د کرایې پر مهال ټول واحد یوه کرایه‌دار ته وسپارئ.',
         uploadPhoto: 'د جایداد انځور پورته کړئ',
-        uploadPhotoHelp: 'PNG، JPG یا WebP تر ۵ مېګابایټه پورې.',
+        uploadPhotoHelp:
+            'PNG، JPG یا WebP تر ۵ مېګابایټه پورې؛ هر انځور باید ۱۹۲۰×۱۰۸۰ وي.',
         choosePhoto: 'انځور وټاکئ',
         selectedPhoto: 'ټاکل شوی انځور',
+        selectedPhotos: ':count انځورونه ټاکل شوي',
         currentPhoto: 'د جایداد اوسنی انځور',
         fields: {
             name: 'نوم',
@@ -3316,7 +3318,7 @@ const ps = {
             occupancyStatus: 'د اشغال حالت',
             hostMarketName: 'د بهرني مارکېټ نوم',
             externalUnitNumber: 'د دوکان / دفتر نمبر',
-            externalFloor: 'په بهرني مارکېټ کې منزل',
+            externalFloor: 'منزل',
             ownershipType: 'د مالکیت حالت',
             operatingMode: 'د اوسني استعمال حالت',
             businessActivities: 'سوداګریز فعالیتونه',
@@ -3370,6 +3372,13 @@ const ps = {
                 ownership: 'د مالکیت ثبوت',
                 other: 'بل سند',
             },
+        },
+        images: {
+            title: 'د جایداد انځورونه',
+            help: 'تر ۱۰ پورې د ګالرۍ انځورونه پورته کړئ. هر انځور باید دقیقاً ۱۹۲۰×۱۰۸۰ وي.',
+            upload: 'انځورونه پورته کړئ',
+            empty: 'تر اوسه د دې جایداد کوم انځور نه دی پورته شوی.',
+            openLarge: 'لوی انځور وګورئ',
         },
         selectCountry: 'هېواد وټاکئ',
         selectProvince: 'ولایت وټاکئ',

@@ -17,5 +17,6 @@ return [
         'order_updated' => 'Property order updated successfully.',
         'documents_uploaded' => 'Property documents uploaded successfully.',
         'document_deleted' => 'Property document deleted successfully.',
+        'images_uploaded' => 'Property images uploaded successfully.',
     ],
 ];

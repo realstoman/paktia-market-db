@@ -3309,9 +3309,11 @@ const en = {
         commercialUnitRentalHelp:
             'Use this complete unit for employees and expenses while owner-operated, or assign it to one tenant when rented.',
         uploadPhoto: 'Upload a property photo',
-        uploadPhotoHelp: 'PNG, JPG or WebP, up to 5 MB.',
+        uploadPhotoHelp:
+            'PNG, JPG or WebP, up to 5 MB. Each image must be 1920×1080.',
         choosePhoto: 'Choose photo',
         selectedPhoto: 'Selected photo',
+        selectedPhotos: ':count images selected',
         currentPhoto: 'Current property photo',
         fields: {
             name: 'Name',
@@ -3346,7 +3348,7 @@ const en = {
             occupancyStatus: 'Occupancy status',
             hostMarketName: 'External market name',
             externalUnitNumber: 'Shop / office number',
-            externalFloor: 'Floor inside external market',
+            externalFloor: 'Floor',
             ownershipType: 'Ownership status',
             operatingMode: 'Current operating mode',
             businessActivities: 'Business activities',
@@ -3404,6 +3406,13 @@ const en = {
                 ownership: 'Ownership evidence',
                 other: 'Other document',
             },
+        },
+        images: {
+            title: 'Property images',
+            help: 'Upload up to 10 gallery images. Each image must be exactly 1920×1080.',
+            upload: 'Upload images',
+            empty: 'No property images have been uploaded.',
+            openLarge: 'Open large view',
         },
         selectCountry: 'Select country',
         selectProvince: 'Select province',

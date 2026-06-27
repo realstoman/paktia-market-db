@@ -3292,9 +3292,11 @@ const fa = {
         commercialUnitRentalHelp:
             'هنگام استفاده مالک، کارمندان و مصارف را به همین واحد وصل کنید؛ هنگام کرایه، تمام واحد را به یک مستأجر بسپارید.',
         uploadPhoto: 'تصویر جایداد را آپلود کنید',
-        uploadPhotoHelp: 'PNG، JPG یا WebP تا حجم ۵ مگابایت.',
+        uploadPhotoHelp:
+            'PNG، JPG یا WebP تا حجم ۵ مگابایت؛ اندازه هر تصویر باید ۱۹۲۰×۱۰۸۰ باشد.',
         choosePhoto: 'انتخاب تصویر',
         selectedPhoto: 'تصویر انتخاب‌شده',
+        selectedPhotos: ':count تصویر انتخاب شد',
         currentPhoto: 'تصویر فعلی جایداد',
         fields: {
             name: 'نام',
@@ -3329,7 +3331,7 @@ const fa = {
             occupancyStatus: 'وضعیت اشغال',
             hostMarketName: 'نام مارکیت',
             externalUnitNumber: 'نمبر دکان / دفتر',
-            externalFloor: 'منزل در داخل مارکیت',
+            externalFloor: 'منزل',
             ownershipType: 'وضعیت مالکیت',
             operatingMode: 'وضعیت فعلی استفاده',
             businessActivities: 'فعالیت‌های تجارتی',
@@ -3383,6 +3385,13 @@ const fa = {
                 ownership: 'سند اثبات مالکیت',
                 other: 'سند دیگر',
             },
+        },
+        images: {
+            title: 'تصاویر جایداد',
+            help: 'تا ۱۰ تصویر گالری بارگذاری کنید. اندازه هر تصویر باید دقیقاً ۱۹۲۰×۱۰۸۰ باشد.',
+            upload: 'بارگذاری تصاویر',
+            empty: 'هنوز تصویری برای این جایداد بارگذاری نشده است.',
+            openLarge: 'نمایش بزرگ تصویر',
         },
         selectCountry: 'کشور را انتخاب کنید',
         selectProvince: 'ولایت را انتخاب کنید',

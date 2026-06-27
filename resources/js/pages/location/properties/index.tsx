@@ -35,7 +35,6 @@ import {
     BriefcaseBusiness,
     Building2,
     CheckCircle2,
-    DoorOpen,
     Home,
     Layers3,
     ListOrdered,
@@ -267,8 +266,7 @@ export default function PropertiesPage({
                                             }}
                                             options={Object.keys(typeIcons)
                                                 .filter(
-                                                    (value) =>
-                                                        value !== 'mall',
+                                                    (value) => value !== 'mall',
                                                 )
                                                 .map((value) => ({
                                                     value,

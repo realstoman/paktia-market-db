@@ -645,6 +645,200 @@ function PropertyDocuments({
     );
 }
 
+function PropertyImageGallery({
+    property,
+    images,
+}: {
+    property: Property;
+    images: PropertyImage[];
+}) {
+    const { t, isRtl } = useLocalization();
+    const [activeIndex, setActiveIndex] = useState(0);
+    const [lightboxOpen, setLightboxOpen] = useState(false);
+    const form = useForm<{ images: File[] }>({ images: [] });
+    const activeImage = images[activeIndex] ?? images[0];
+
+    const submit = (event: FormEvent) => {
+        event.preventDefault();
+        form.post(`/properties/${property.id}/images`, {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => form.reset('images'),
+        });
+    };
+
+    const move = (direction: 'previous' | 'next') => {
+        if (!images.length) return;
+        setActiveIndex((current) => {
+            if (direction === 'previous') {
+                return current === 0 ? images.length - 1 : current - 1;
+            }
+
+            return current === images.length - 1 ? 0 : current + 1;
+        });
+    };
+
+    return (
+        <>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <ImageIcon className="size-5" />
+                        {t('propertyWorkspace.images.title', 'Property images')}
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                        {t(
+                            'propertyWorkspace.images.help',
+                            'Upload up to 10 gallery images. Each image must be exactly 1920×1080.',
+                        )}
+                    </p>
+                    <form
+                        onSubmit={submit}
+                        className="grid gap-3 rounded-xl border bg-muted/20 p-3"
+                    >
+                        <Input
+                            type="file"
+                            multiple
+                            accept="image/png,image/jpeg,image/webp"
+                            className="bg-white dark:bg-neutral-900"
+                            onChange={(event) =>
+                                form.setData(
+                                    'images',
+                                    Array.from(event.target.files ?? []).slice(
+                                        0,
+                                        10,
+                                    ),
+                                )
+                            }
+                        />
+                        <InputError message={form.errors.images} />
+                        <Button
+                            type="submit"
+                            disabled={
+                                form.processing || !form.data.images.length
+                            }
+                            className="w-fit gap-2"
+                        >
+                            <Upload className="size-4" />
+                            {t(
+                                'propertyWorkspace.images.upload',
+                                'Upload images',
+                            )}
+                        </Button>
+                    </form>
+
+                    {activeImage ? (
+                        <div className="space-y-3">
+                            <button
+                                type="button"
+                                className="group relative aspect-video w-full overflow-hidden rounded-2xl border bg-slate-100 text-start"
+                                onClick={() => setLightboxOpen(true)}
+                            >
+                                <img
+                                    src={activeImage.url}
+                                    alt={activeImage.original_name ?? ''}
+                                    className="h-full w-full object-cover"
+                                />
+                                <span className="absolute inset-0 flex items-center justify-center bg-black/0 text-sm font-semibold text-white opacity-0 transition group-hover:bg-black/35 group-hover:opacity-100">
+                                    {t(
+                                        'propertyWorkspace.images.openLarge',
+                                        'Open large view',
+                                    )}
+                                </span>
+                            </button>
+                            {images.length > 1 && (
+                                <div className="flex gap-2 overflow-x-auto pb-1">
+                                    {images.map((image, index) => (
+                                        <button
+                                            key={image.id}
+                                            type="button"
+                                            onClick={() =>
+                                                setActiveIndex(index)
+                                            }
+                                            className={`h-16 w-24 shrink-0 overflow-hidden rounded-xl border ${
+                                                index === activeIndex
+                                                    ? 'border-primary ring-2 ring-primary/20'
+                                                    : 'border-slate-200'
+                                            }`}
+                                        >
+                                            <img
+                                                src={image.url}
+                                                alt={image.original_name ?? ''}
+                                                className="h-full w-full object-cover"
+                                            />
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="rounded-xl border border-dashed py-10 text-center text-sm text-muted-foreground">
+                            <ImageIcon className="mx-auto mb-2 size-8 opacity-50" />
+                            {t(
+                                'propertyWorkspace.images.empty',
+                                'No property images have been uploaded.',
+                            )}
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+
+            <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
+                <DialogContent
+                    dir={isRtl ? 'rtl' : 'ltr'}
+                    className="max-w-6xl border-none bg-transparent p-0 shadow-none"
+                >
+                    <DialogTitle className="sr-only">
+                        {t('propertyWorkspace.images.title', 'Property images')}
+                    </DialogTitle>
+                    {activeImage && (
+                        <div className="relative overflow-hidden rounded-3xl bg-black">
+                            <img
+                                src={activeImage.url}
+                                alt={activeImage.original_name ?? ''}
+                                className="max-h-[82vh] w-full object-contain"
+                            />
+                            <Button
+                                type="button"
+                                size="icon"
+                                variant="secondary"
+                                className="absolute top-4 right-4 rounded-full bg-white/90"
+                                onClick={() => setLightboxOpen(false)}
+                            >
+                                <X className="size-4" />
+                            </Button>
+                            {images.length > 1 && (
+                                <>
+                                    <Button
+                                        type="button"
+                                        size="icon"
+                                        variant="secondary"
+                                        className="absolute top-1/2 left-4 -translate-y-1/2 rounded-full bg-white/90"
+                                        onClick={() => move('previous')}
+                                    >
+                                        <ChevronLeft className="size-5" />
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        size="icon"
+                                        variant="secondary"
+                                        className="absolute top-1/2 right-4 -translate-y-1/2 rounded-full bg-white/90"
+                                        onClick={() => move('next')}
+                                    >
+                                        <ChevronRight className="size-5" />
+                                    </Button>
+                                </>
+                            )}
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
+        </>
+    );
+}
+
 function FloorCard({
     property,
     floor,
@@ -1506,42 +1700,28 @@ function Metric({
         </Card>
     );
 }
-function WorkspaceCapability({
-    icon: Icon,
-    title,
-    description,
-    planned = false,
+
+function BannerAction({
     href,
+    icon: Icon,
+    label,
 }: {
     icon: typeof Store;
-    title: string;
-    description: string;
-    planned?: boolean;
-    href?: string;
+    href: string;
+    label: string;
 }) {
-    const { t } = useLocalization();
-    const content = (
-        <div className="flex h-full gap-3 rounded-xl border bg-muted/20 p-4 transition hover:border-primary/30 hover:bg-primary/5">
-            <div className="h-fit rounded-lg bg-primary/10 p-2 text-primary">
-                <Icon className="h-4 w-4" />
-            </div>
-            <div>
-                <div className="flex items-center gap-2">
-                    <p className="text-sm font-semibold">{title}</p>
-                    {planned && (
-                        <Badge variant="secondary">
-                            {t('propertyWorkspace.plannedLabel')}
-                        </Badge>
-                    )}
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">
-                    {description}
-                </p>
-            </div>
-        </div>
+    return (
+        <Button
+            asChild
+            variant="secondary"
+            className="bg-white/90 text-slate-900 hover:bg-white"
+        >
+            <Link href={href}>
+                <Icon className="me-2 size-4" />
+                {label}
+            </Link>
+        </Button>
     );
-
-    return href ? <Link href={href}>{content}</Link> : content;
 }
 function Detail({ label, value }: { label: string; value: React.ReactNode }) {
     return (
