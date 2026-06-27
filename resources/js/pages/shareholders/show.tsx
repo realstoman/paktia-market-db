@@ -28,7 +28,7 @@ import {
     SharedData,
     Shareholder,
 } from '@/types';
-import { formatNumber } from '@/utils/format';
+import { formatCurrencySymbol, formatNumber } from '@/utils/format';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { IconBrandWhatsapp } from '@tabler/icons-react';
 import {
@@ -403,7 +403,7 @@ function OwnershipCard({ holding }: { holding: PropertyShareholding }) {
                 <div className="mt-3">
                     <Metric
                         label={t('shareholders.profile.investment')}
-                        value={`${formatNumber(holding.capital_contribution)} ${holding.currency?.code ?? ''}`}
+                        value={`${formatNumber(holding.capital_contribution)} ${formatCurrencySymbol(holding.currency)}`}
                     />
                 </div>
             )}
@@ -709,7 +709,7 @@ function OwnershipFields({
                     onValueChange={(value) => setData('currency_id', value)}
                     options={currencies.map((currency) => ({
                         value: String(currency.id),
-                        label: `${currency.code} — ${currency.symbol}`,
+                        label: formatCurrencySymbol(currency),
                     }))}
                     placeholder={t('shareholders.select')}
                 />

@@ -1281,7 +1281,7 @@ function TenantForm({
                             placeholder={t('tenants.fields.select')}
                             options={currencies.map((currency) => ({
                                 value: String(currency.id),
-                                label: `${currency.code} · ${currencySymbol(currency)}`,
+                                label: currencySymbol(currency),
                             }))}
                         />
                     </div>

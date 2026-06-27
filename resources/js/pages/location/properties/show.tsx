@@ -147,11 +147,15 @@ export default function PropertyShow({
                                     icon={Users}
                                     label={t('propertyWorkspace.shareholders')}
                                 />
-                                <BannerAction
-                                    href={`/tenants?property_id=${property.id}`}
-                                    icon={DoorOpen}
-                                    label={t('propertyWorkspace.rentContracts')}
-                                />
+                                {!isCommercialUnit && (
+                                    <BannerAction
+                                        href={`/tenants?property_id=${property.id}`}
+                                        icon={DoorOpen}
+                                        label={t(
+                                            'propertyWorkspace.rentContracts',
+                                        )}
+                                    />
+                                )}
                                 <EditPropertyDialog
                                     property={property}
                                     countries={countries}
@@ -246,8 +250,14 @@ export default function PropertyShow({
                     />
                 </div>
 
-                <div className="grid gap-6 xl:grid-cols-[1fr_2fr]">
-                    <div className="space-y-6">
+                <div
+                    className={
+                        isCommercialUnit
+                            ? 'grid gap-6 lg:grid-cols-3'
+                            : 'grid gap-6 xl:grid-cols-[1fr_2fr]'
+                    }
+                >
+                    <div className={isCommercialUnit ? 'contents' : 'space-y-6'}>
                         <Card>
                             <CardHeader>
                                 <CardTitle>
@@ -394,7 +404,7 @@ export default function PropertyShow({
                                 </div>
                             </CardContent>
                         </Card>
-                        {property.related_locations?.length ? (
+                        {!isCommercialUnit && property.related_locations?.length ? (
                             <Card>
                                 <CardHeader>
                                     <CardTitle>
@@ -441,6 +451,7 @@ export default function PropertyShow({
                             images={property.images ?? []}
                         />
                     </div>
+                    {!isCommercialUnit && (
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
                             <div>
@@ -500,6 +511,7 @@ export default function PropertyShow({
                             </div>
                         )}
                     </div>
+                    )}
                 </div>
             </div>
         </AppLayout>

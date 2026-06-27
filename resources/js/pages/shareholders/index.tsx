@@ -28,7 +28,7 @@ import {
     SharedData,
     Shareholder,
 } from '@/types';
-import { formatNumber } from '@/utils/format';
+import { formatCurrencySymbol, formatNumber } from '@/utils/format';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import {
     Building2,
@@ -139,6 +139,19 @@ const countryName = (country: Country | null | undefined, locale: string) => {
     return country.name_translations?.en || country.name;
 };
 
+const propertyName = (
+    property: Property | null | undefined,
+    locale: string,
+) => {
+    if (!property) return '';
+
+    if (locale === 'fa' || locale === 'ps') {
+        return property.name_translations?.fa || property.name;
+    }
+
+    return property.name_translations?.en || property.name;
+};
+
 const initials = (name: string) =>
     name
         .split(/\s+/)
@@ -153,23 +166,33 @@ export default function ShareholdersPage({
     properties,
     currencies,
 }: Props) {
-    const { t, isRtl } = useLocalization();
+    const { t, isRtl, locale } = useLocalization();
     const { auth } = usePage<SharedData>().props;
     const canManage =
         auth.is_super_admin || auth.permissions.includes('shareholders.manage');
     const [search, setSearch] = useState('');
+    const [propertyFilter, setPropertyFilter] = useState('all');
     const [createOpen, setCreateOpen] = useState(false);
     const [editing, setEditing] = useState<Shareholder | null>(null);
 
     const visible = useMemo(() => {
         const query = search.trim().toLowerCase();
-        if (!query) return shareholders;
-        return shareholders.filter((shareholder) =>
-            `${shareholder.full_name} ${shareholder.nid_number} ${shareholder.phone ?? ''}`
+        return shareholders.filter((shareholder) => {
+            const matchesSearch =
+                !query ||
+                `${shareholder.full_name} ${shareholder.nid_number} ${shareholder.phone ?? ''}`
                 .toLowerCase()
-                .includes(query),
-        );
-    }, [search, shareholders]);
+                .includes(query);
+            const matchesProperty =
+                propertyFilter === 'all' ||
+                (shareholder.shareholdings ?? []).some(
+                    (holding) =>
+                        String(holding.property_id) === propertyFilter,
+                );
+
+            return matchesSearch && matchesProperty;
+        });
+    }, [propertyFilter, search, shareholders]);
 
     const representedProperties = new Set(
         shareholders.flatMap((shareholder) =>
@@ -211,7 +234,7 @@ export default function ShareholdersPage({
                                     {t('shareholders.register')}
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent className="max-h-[92vh] overflow-x-hidden overflow-y-auto rounded-2xl bg-[#f8f9fd] sm:max-w-5xl [&_input]:bg-white [&_textarea]:bg-white">
+                            <DialogContent className="max-h-[92vh] overflow-x-hidden overflow-y-auto rounded-2xl bg-[#f8f9fd] sm:max-w-6xl [&_input]:bg-white [&_textarea]:bg-white">
                                 <DialogHeader>
                                     <DialogTitle>
                                         {t('shareholders.register')}
@@ -254,7 +277,8 @@ export default function ShareholdersPage({
                 </div>
 
                 <section className="rounded-xl border border-primary/10 bg-card p-3 shadow-none">
-                    <div className="w-full">
+                    <div className="grid w-full gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(240px,320px)]">
+                        <div>
                         <Label className="mb-2 flex items-center gap-2">
                             <Search className="h-4 w-4" />
                             {t('common.search', 'Search')}
@@ -265,6 +289,31 @@ export default function ShareholdersPage({
                             placeholder={t('shareholders.searchPlaceholder')}
                             className="bg-white dark:bg-neutral-950"
                         />
+                        </div>
+                        <div>
+                            <Label className="mb-2 flex items-center gap-2">
+                                <Building2 className="h-4 w-4" />
+                                {t('shareholders.fields.property')}
+                            </Label>
+                            <SearchableDropdown
+                                value={propertyFilter}
+                                onValueChange={setPropertyFilter}
+                                placeholder={t('shareholders.select')}
+                                options={[
+                                    {
+                                        value: 'all',
+                                        label: t(
+                                            'common.all',
+                                            'All',
+                                        ),
+                                    },
+                                    ...properties.map((property) => ({
+                                        value: String(property.id),
+                                        label: propertyName(property, locale),
+                                    })),
+                                ]}
+                            />
+                        </div>
                     </div>
                 </section>
 
@@ -551,7 +600,7 @@ function ShareholderForm({
 
     return (
         <form onSubmit={submit} className="min-w-0 space-y-6">
-            <section className="grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <section className="grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <Field
                     label={t('shareholders.fields.fullName')}
                     error={form.errors.full_name}
@@ -596,7 +645,6 @@ function ShareholderForm({
                         options={options({
                             male: t('shareholders.genders.male'),
                             female: t('shareholders.genders.female'),
-                            other: t('shareholders.genders.other'),
                         })}
                         placeholder={t('shareholders.select')}
                     />
@@ -870,7 +918,7 @@ function ShareholderForm({
                         {form.data.shareholdings.length === 0 ? (
                             <button
                                 type="button"
-                                className="flex w-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed bg-muted/20 px-6 py-8 text-center transition-colors hover:border-primary/40 hover:bg-primary/5"
+                                className="flex w-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed bg-white px-6 py-8 text-center transition-colors hover:border-primary/40 hover:bg-primary/5"
                                 onClick={() =>
                                     form.setData('shareholdings', [
                                         emptyOwnership(),
@@ -914,7 +962,7 @@ function ShareholderForm({
                                         return (
                                             <div
                                                 key={index}
-                                                className="rounded-2xl border bg-muted/15 p-4"
+                                                className="rounded-2xl border bg-white p-4"
                                             >
                                                 <div className="mb-4 flex items-center justify-between">
                                                     <div className="flex items-center gap-2">
@@ -1016,7 +1064,7 @@ function OwnershipFields({
     properties: Property[];
     currencies: Currency[];
 }) {
-    const { t } = useLocalization();
+    const { t, locale } = useLocalization();
     return (
         <>
             <Field
@@ -1028,7 +1076,7 @@ function OwnershipFields({
                     onValueChange={(value) => setData('property_id', value)}
                     options={properties.map((p) => ({
                         value: String(p.id),
-                        label: p.name,
+                        label: propertyName(p, locale),
                     }))}
                     placeholder={t('shareholders.select')}
                 />
@@ -1071,7 +1119,7 @@ function OwnershipFields({
                     onValueChange={(value) => setData('currency_id', value)}
                     options={currencies.map((c) => ({
                         value: String(c.id),
-                        label: `${c.code} — ${c.symbol}`,
+                        label: formatCurrencySymbol(c),
                     }))}
                     placeholder={t('shareholders.select')}
                 />

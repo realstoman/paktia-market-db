@@ -37,7 +37,7 @@ import {
     SharedData,
     Tenant,
 } from '@/types';
-import { formatNumber } from '@/utils/format';
+import { formatCurrencySymbol, formatNumber } from '@/utils/format';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import {
     Banknote,
@@ -363,7 +363,7 @@ export default function TenantProfile({
                                             label={t('tenants.lease.rent')}
                                             value={
                                                 lease.rent_amount
-                                                    ? `${formatNumber(lease.rent_amount)} ${lease.currency?.symbol ?? lease.currency?.code ?? ''}`
+                                                    ? `${formatNumber(lease.rent_amount)} ${formatCurrencySymbol(lease.currency)}`
                                                     : '—'
                                             }
                                         />
@@ -371,7 +371,7 @@ export default function TenantProfile({
                                             label={t('tenants.lease.deposit')}
                                             value={
                                                 lease.security_deposit
-                                                    ? `${formatNumber(lease.security_deposit)} ${lease.currency?.symbol ?? ''}`
+                                                    ? `${formatNumber(lease.security_deposit)} ${formatCurrencySymbol(lease.currency)}`
                                                     : '—'
                                             }
                                         />
@@ -420,7 +420,9 @@ export default function TenantProfile({
                                             ? formatNumber(lease.rent_amount)
                                             : '—'}{' '}
                                         <span className="text-sm font-normal">
-                                            {lease.currency?.code}
+                                            {formatCurrencySymbol(
+                                                lease.currency,
+                                            )}
                                         </span>
                                     </p>
                                 </div>
@@ -475,7 +477,9 @@ export default function TenantProfile({
                                                           item.rent_amount,
                                                       )
                                                     : '—'}{' '}
-                                                {item.currency?.code}
+                                                {formatCurrencySymbol(
+                                                    item.currency,
+                                                )}
                                             </span>
                                             <Badge variant="outline">
                                                 {t(
@@ -808,7 +812,7 @@ function AssignmentForm({
                 set={(value) => form.setData('currency_id', value)}
                 options={currencies.map((item) => ({
                     value: String(item.id),
-                    label: `${item.code} · ${item.symbol}`,
+                    label: formatCurrencySymbol(item),
                 }))}
                 t={t}
             />
