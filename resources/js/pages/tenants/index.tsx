@@ -914,7 +914,7 @@ function TenantForm({
                     <UserRound className="h-4 w-4 text-primary" />
                     {t('tenants.identity')}
                 </h3>
-                <div className="grid min-w-0 gap-4 md:grid-cols-3">
+                <div className="grid min-w-0 gap-4 md:grid-cols-4">
                     <div className="min-w-0 space-y-1.5">
                         <Label>{t('tenants.fields.tenantType')}</Label>
                         <SearchableDropdown
@@ -1062,7 +1062,7 @@ function TenantForm({
                         {t('tenants.lease.optional')}
                     </p>
                 </div>
-                <div className="grid min-w-0 gap-4 md:grid-cols-3">
+                <div className="grid min-w-0 gap-4 md:grid-cols-4">
                     <div className="space-y-1.5">
                         <Label>{t('tenants.lease.property')}</Label>
                         <SearchableDropdown
@@ -1161,7 +1161,7 @@ function TenantForm({
                             }))}
                         />
                     </div>
-                    <div className="space-y-1.5 md:col-span-2 lg:col-span-3">
+                    <div className="space-y-1.5 md:col-span-2 lg:col-span-4">
                         <Label>{t('tenants.lease.terms')}</Label>
                         <Textarea
                             value={data.terms}
