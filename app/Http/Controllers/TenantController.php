@@ -35,11 +35,24 @@ class TenantController extends Controller
             : null;
 
         $search = trim((string) $request->input('search', ''));
+        $tenantKind = $request->input('tenant_kind');
+        $tenantKind = in_array($tenantKind, ['business', 'person'], true)
+            ? $tenantKind
+            : null;
         $tenantScope = Tenant::query()
             ->when($propertyId, fn ($query) => $query->whereHas(
                 'leases',
                 fn ($leases) => $leases->where('property_id', $propertyId),
-            ));
+            ))
+            ->when($tenantKind === 'business', fn ($query) => $query
+                ->where('tenant_type', 'company')
+                ->whereNotNull('business_name')
+                ->where('business_name', '!=', ''))
+            ->when($tenantKind === 'person', fn ($query) => $query
+                ->where('tenant_type', 'individual')
+                ->where(fn ($people) => $people
+                    ->whereNull('business_name')
+                    ->orWhere('business_name', '')));
         $summary = [
             'total' => (clone $tenantScope)->count(),
             'assigned' => (clone $tenantScope)->whereHas(
@@ -51,12 +64,23 @@ class TenantController extends Controller
                         ->whereNull('end_date')
                         ->orWhereDate('end_date', '>=', today())),
             )->count(),
+            'persons' => (clone $tenantScope)
+                ->where('tenant_type', 'individual')
+                ->where(fn ($people) => $people
+                    ->whereNull('business_name')
+                    ->orWhere('business_name', ''))
+                ->count(),
             'businesses' => (clone $tenantScope)
                 ->whereNotNull('business_name')
                 ->where('business_name', '!=', '')
                 ->count(),
             'properties' => Lease::query()
                 ->whereIn('tenant_id', (clone $tenantScope)->select('tenants.id'))
+                ->where('status', 'active')
+                ->whereDate('start_date', '<=', today())
+                ->where(fn ($period) => $period
+                    ->whereNull('end_date')
+                    ->orWhereDate('end_date', '>=', today()))
                 ->distinct('property_id')
                 ->count('property_id'),
         ];
@@ -89,7 +113,11 @@ class TenantController extends Controller
         return Inertia::render('tenants/index', [
             'tenants' => $tenants,
             'summary' => $summary,
-            'filters' => ['search' => $search],
+            'filters' => [
+                'search' => $search,
+                'property_id' => $propertyId,
+                'tenant_kind' => $tenantKind,
+            ],
             'properties' => $this->propertyOptions(),
             'currencies' => Currency::query()->where('is_active', true)->orderBy('code')->get(['id', 'code', 'symbol']),
             'initialPropertyId' => $propertyId,
@@ -180,10 +208,7 @@ class TenantController extends Controller
 
     public function uploadDocuments(Request $request, Tenant $tenant)
     {
-        $request->validate([
-            'documents' => ['required', 'array', 'min:1', 'max:10'],
-            'documents.*' => ['file', 'mimes:pdf,jpg,jpeg,png,webp,doc,docx', 'max:10240'],
-        ]);
+        $this->validateTenantDocuments($request, true);
         $this->storeDocuments($request, $tenant);
 
         return back()->with('success', 'Documents uploaded successfully.');
@@ -220,9 +245,30 @@ class TenantController extends Controller
             'address' => ['nullable', 'string', 'max:1000'],
             'notes' => ['nullable', 'string', 'max:2000'],
             'photo' => ['nullable', 'image', 'max:5120'],
-            'documents' => ['nullable', 'array', 'max:10'],
-            'documents.*' => ['file', 'mimes:pdf,jpg,jpeg,png,webp,doc,docx', 'max:10240'],
+            'documents' => ['nullable', 'array', 'max:5'],
+            'documents.*' => ['file', 'mimes:pdf,jpg,jpeg,png,webp,doc,docx', 'max:2048'],
         ]);
+
+        $this->validateTenantDocuments($request);
+
+        return $validated;
+    }
+
+    private function validateTenantDocuments(Request $request, bool $required = false): void
+    {
+        $request->validate([
+            'documents' => [$required ? 'required' : 'nullable', 'array', $required ? 'min:1' : 'nullable', 'max:5'],
+            'documents.*' => ['file', 'mimes:pdf,jpg,jpeg,png,webp,doc,docx', 'max:2048'],
+        ]);
+
+        $totalBytes = collect($request->file('documents', []))
+            ->sum(fn ($file) => $file->getSize());
+
+        if ($totalBytes > 2 * 1024 * 1024) {
+            validator([], [])->after(function ($validator): void {
+                $validator->errors()->add('documents', __('The selected documents must not exceed 2 MB in total.'));
+            })->validate();
+        }
     }
 
     private function validateOptionalLease(Request $request): ?array

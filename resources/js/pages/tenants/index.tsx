@@ -91,10 +91,15 @@ interface Props {
     summary: {
         total: number;
         assigned: number;
+        persons: number;
         businesses: number;
         properties: number;
     };
-    filters: { search?: string };
+    filters: {
+        search?: string;
+        property_id?: number | null;
+        tenant_kind?: 'business' | 'person' | null;
+    };
     properties: Property[];
     currencies: Currency[];
     initialPropertyId?: number | null;
@@ -127,6 +132,8 @@ interface FormData {
 }
 
 const today = () => new Date().toLocaleDateString('en-CA');
+const MAX_TENANT_DOCUMENTS = 5;
+const MAX_TENANT_DOCUMENT_BYTES = 2 * 1024 * 1024;
 const emptyForm = (): FormData => ({
     tenant_type: 'individual',
     full_name: '',
@@ -172,6 +179,14 @@ const shopNumber = (lease?: Lease) =>
     (lease?.property?.property_type === 'commercial_unit'
         ? lease.property.external_unit_number
         : null);
+const currencySymbol = (currency?: Currency | null) => {
+    const code = currency?.code?.toUpperCase();
+
+    if (code === 'AFN') return '؋';
+    if (code === 'USD') return '$';
+
+    return currency?.symbol || currency?.code || '';
+};
 
 function buildPageNumbers(currentPage: number, lastPage: number) {
     if (lastPage <= 7) {
@@ -204,27 +219,49 @@ export default function TenantsIndex({
     currencies,
     initialPropertyId,
 }: Props) {
-    const { t, isRtl } = useLocalization();
+    const { t, isRtl, locale } = useLocalization();
     const { auth } = usePage<SharedData>().props;
     const canManage =
         auth.is_super_admin || auth.permissions.includes('tenants.manage');
     const [search, setSearch] = useState(filters.search ?? '');
+    const [propertyFilter, setPropertyFilter] = useState(
+        filters.property_id ? String(filters.property_id) : 'all',
+    );
+    const [tenantKindFilter, setTenantKindFilter] = useState(
+        filters.tenant_kind ?? 'all',
+    );
     const [scan, setScan] = useState('');
     const [open, setOpen] = useState(false);
     const pageNumbers = useMemo(
         () => buildPageNumbers(tenants.current_page, tenants.last_page),
         [tenants.current_page, tenants.last_page],
     );
+    const propertyLabel = (property: Property) =>
+        property.name_translations?.[
+            locale as keyof NonNullable<Property['name_translations']>
+        ] || property.name;
+    const selectedPropertyId =
+        propertyFilter === 'all' ? undefined : propertyFilter;
+    const selectedTenantKind =
+        tenantKindFilter === 'all' ? undefined : tenantKindFilter;
 
     useEffect(() => {
-        if (search.trim() === (filters.search ?? '')) return;
+        if (
+            search.trim() === (filters.search ?? '') &&
+            (selectedPropertyId ?? null) ===
+                (filters.property_id ? String(filters.property_id) : null) &&
+            (selectedTenantKind ?? null) === (filters.tenant_kind ?? null)
+        ) {
+            return;
+        }
 
         const timeout = window.setTimeout(() => {
             router.get(
                 '/tenants',
                 {
                     search: search.trim() || undefined,
-                    property_id: initialPropertyId || undefined,
+                    property_id: selectedPropertyId,
+                    tenant_kind: selectedTenantKind,
                 },
                 {
                     preserveState: true,
@@ -236,7 +273,14 @@ export default function TenantsIndex({
         }, 350);
 
         return () => window.clearTimeout(timeout);
-    }, [filters.search, initialPropertyId, search]);
+    }, [
+        filters.property_id,
+        filters.search,
+        filters.tenant_kind,
+        search,
+        selectedPropertyId,
+        selectedTenantKind,
+    ]);
 
     const goToPage = (page: number) => {
         router.get(
@@ -244,7 +288,8 @@ export default function TenantsIndex({
             {
                 page,
                 search: search.trim() || undefined,
-                property_id: initialPropertyId || undefined,
+                property_id: selectedPropertyId,
+                tenant_kind: selectedTenantKind,
             },
             {
                 preserveState: true,
@@ -265,7 +310,8 @@ export default function TenantsIndex({
 
         router.get('/tenants', {
             scan: scan.trim(),
-            property_id: initialPropertyId || undefined,
+            property_id: selectedPropertyId,
+            tenant_kind: selectedTenantKind,
         });
     };
     const breadcrumbs: BreadcrumbItem[] = [
@@ -320,11 +366,10 @@ export default function TenantsIndex({
                 <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                     {[
                         [ContactRound, t('tenants.total'), summary.total],
-                        [IdCard, t('tenants.assigned'), summary.assigned],
-                        [Store, t('tenants.businesses'), summary.businesses],
+                        [IdCard, t('tenants.persons'), summary.persons],
                         [
                             Building2,
-                            t('tenants.properties'),
+                            t('tenants.rentedProperties'),
                             summary.properties,
                         ],
                     ].map(([Icon, label, value], index) => (
@@ -380,17 +425,69 @@ export default function TenantsIndex({
                             {t('tenants.scanHelp')}
                         </p>
                     </div>
-                    <div>
+                    <div className="min-w-0">
                         <Label className="mb-2 flex items-center gap-2">
                             <Search className="h-4 w-4" />
                             {t('common.search', 'Search')}
                         </Label>
-                        <Input
-                            className="bg-white dark:bg-neutral-950"
-                            value={search}
-                            onChange={(event) => setSearch(event.target.value)}
-                            placeholder={t('tenants.searchPlaceholder')}
-                        />
+                        <div className="grid min-w-0 gap-2 md:grid-cols-[minmax(0,1fr)_220px_190px]">
+                            <Input
+                                className="bg-white dark:bg-neutral-950"
+                                value={search}
+                                onChange={(event) =>
+                                    setSearch(event.target.value)
+                                }
+                                placeholder={t('tenants.searchPlaceholder')}
+                            />
+                            <SearchableDropdown
+                                value={propertyFilter}
+                                onValueChange={setPropertyFilter}
+                                placeholder={t('tenants.filters.property')}
+                                searchPlaceholder={t(
+                                    'tenants.filters.searchProperties',
+                                )}
+                                emptyText={t(
+                                    'tenants.filters.noPropertiesFound',
+                                )}
+                                options={[
+                                    {
+                                        value: 'all',
+                                        label: t(
+                                            'tenants.filters.allProperties',
+                                        ),
+                                    },
+                                    ...properties.map((property) => ({
+                                        value: String(property.id),
+                                        label: propertyLabel(property),
+                                    })),
+                                ]}
+                            />
+                            <SearchableDropdown
+                                value={tenantKindFilter}
+                                onValueChange={setTenantKindFilter}
+                                placeholder={t('tenants.filters.renterType')}
+                                searchPlaceholder={t(
+                                    'tenants.filters.searchRenterTypes',
+                                )}
+                                emptyText={t(
+                                    'tenants.filters.noRenterTypesFound',
+                                )}
+                                options={[
+                                    {
+                                        value: 'all',
+                                        label: t('tenants.filters.allRenters'),
+                                    },
+                                    {
+                                        value: 'business',
+                                        label: t('tenants.filters.business'),
+                                    },
+                                    {
+                                        value: 'person',
+                                        label: t('tenants.filters.person'),
+                                    },
+                                ]}
+                            />
+                        </div>
                     </div>
                 </section>
 
@@ -474,9 +571,25 @@ export default function TenantsIndex({
                                                             {tenant.full_name}
                                                         </p>
                                                         <p className="truncate text-xs text-muted-foreground">
-                                                            {tenant.phone} ·{' '}
-                                                            {tenant.card_code}
+                                                            {tenant.phone}
                                                         </p>
+                                                        {lease?.contract_number ? (
+                                                            <p className="truncate text-xs text-muted-foreground">
+                                                                {t(
+                                                                    'tenants.table.contractNumber',
+                                                                )}
+                                                                :{' '}
+                                                                {
+                                                                    lease.contract_number
+                                                                }
+                                                            </p>
+                                                        ) : (
+                                                            <p className="truncate text-xs text-muted-foreground">
+                                                                {
+                                                                    tenant.card_code
+                                                                }
+                                                            </p>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </TableCell>
@@ -516,10 +629,12 @@ export default function TenantsIndex({
                                                 <div className="max-w-60">
                                                     <p className="truncate font-medium">
                                                         {lease?.property
-                                                            ?.name ??
-                                                            t(
-                                                                'tenants.table.unassigned',
-                                                            )}
+                                                            ? propertyLabel(
+                                                                  lease.property,
+                                                              )
+                                                            : t(
+                                                                  'tenants.table.unassigned',
+                                                              )}
                                                     </p>
                                                     {lease?.floor && (
                                                         <p className="truncate text-xs text-muted-foreground">
@@ -538,9 +653,9 @@ export default function TenantsIndex({
                                                                   )
                                                                 : '—'}{' '}
                                                             <span className="text-xs font-normal text-muted-foreground">
-                                                                {lease.currency
-                                                                    ?.code ??
-                                                                    ''}
+                                                                {currencySymbol(
+                                                                    lease.currency,
+                                                                )}
                                                             </span>
                                                         </p>
                                                         <p className="text-xs text-muted-foreground">
