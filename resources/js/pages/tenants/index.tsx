@@ -70,7 +70,6 @@ import {
     ScanLine,
     Search,
     ShieldCheck,
-    Store,
     Upload,
     UserRound,
 } from 'lucide-react';
@@ -227,7 +226,7 @@ export default function TenantsIndex({
     const [propertyFilter, setPropertyFilter] = useState(
         filters.property_id ? String(filters.property_id) : 'all',
     );
-    const [tenantKindFilter, setTenantKindFilter] = useState(
+    const [tenantKindFilter, setTenantKindFilter] = useState<string>(
         filters.tenant_kind ?? 'all',
     );
     const [scan, setScan] = useState('');
@@ -964,6 +963,7 @@ function TenantForm({
     const { data, setData, post, processing, errors, reset } =
         useForm<FormData>(initial);
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+    const [documentError, setDocumentError] = useState<string | null>(null);
 
     useEffect(
         () => () => {
@@ -977,6 +977,33 @@ function TenantForm({
     const selectPhoto = (photo: File | null) => {
         setData('photo', photo);
         setPhotoPreview(photo ? URL.createObjectURL(photo) : null);
+    };
+    const selectDocuments = (files: FileList | null) => {
+        const selectedFiles = Array.from(files ?? []);
+        const totalBytes = selectedFiles.reduce(
+            (total, file) => total + file.size,
+            0,
+        );
+
+        if (selectedFiles.length > MAX_TENANT_DOCUMENTS) {
+            setDocumentError(
+                t('tenants.fields.documentsMaxFiles').replace(
+                    ':count',
+                    String(MAX_TENANT_DOCUMENTS),
+                ),
+            );
+            setData('documents', []);
+            return;
+        }
+
+        if (totalBytes > MAX_TENANT_DOCUMENT_BYTES) {
+            setDocumentError(t('tenants.fields.documentsMaxSize'));
+            setData('documents', []);
+            return;
+        }
+
+        setDocumentError(null);
+        setData('documents', selectedFiles);
     };
     const property = properties.find(
         (item) => String(item.id) === data.property_id,
@@ -1004,6 +1031,7 @@ function TenantForm({
             onSuccess: () => {
                 reset();
                 setPhotoPreview(null);
+                setDocumentError(null);
                 onDone();
             },
         });
@@ -1136,12 +1164,24 @@ function TenantForm({
                         {t('tenants.fields.documents')}
                     </Label>
                     <div className="min-w-0 rounded-2xl border border-dashed border-[#002452]/20 bg-white p-4">
-                        <p className="truncate text-sm font-medium text-[#002452]">
-                            {data.documents.length
-                                ? data.documents
-                                      .map((document) => document.name)
-                                      .join(', ')
-                                : t('tenants.fields.documents')}
+                        {data.documents.length ? (
+                            <div className="space-y-1">
+                                {data.documents.map((document) => (
+                                    <p
+                                        key={`${document.name}-${document.size}`}
+                                        className="truncate text-sm font-medium text-[#002452]"
+                                    >
+                                        {document.name}
+                                    </p>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="truncate text-sm font-medium text-[#002452]">
+                                {t('tenants.fields.documents')}
+                            </p>
+                        )}
+                        <p className="mt-1 text-xs text-muted-foreground">
+                            {t('tenants.fields.documentsHelp')}
                         </p>
                         <label
                             htmlFor="tenant-create-documents"
@@ -1157,14 +1197,11 @@ function TenantForm({
                             accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx"
                             className="sr-only"
                             onChange={(event) =>
-                                setData(
-                                    'documents',
-                                    Array.from(event.target.files ?? []),
-                                )
+                                selectDocuments(event.target.files)
                             }
                         />
                     </div>
-                    <InputError message={errors.documents} />
+                    <InputError message={documentError ?? errors.documents} />
                 </div>
             </section>
             <section className="space-y-4 rounded-2xl border bg-muted/25 p-4">
@@ -1244,7 +1281,7 @@ function TenantForm({
                             placeholder={t('tenants.fields.select')}
                             options={currencies.map((currency) => ({
                                 value: String(currency.id),
-                                label: `${currency.code} · ${currency.symbol}`,
+                                label: `${currency.code} · ${currencySymbol(currency)}`,
                             }))}
                         />
                     </div>

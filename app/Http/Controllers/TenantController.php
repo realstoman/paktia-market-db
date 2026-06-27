@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -232,7 +233,7 @@ class TenantController extends Controller
 
     private function validateTenant(Request $request, ?Tenant $tenant = null): array
     {
-        return $request->validate([
+        $validated = $request->validate([
             'tenant_type' => ['required', Rule::in(['individual', 'company'])],
             'full_name' => ['required', 'string', 'max:255'],
             'father_name' => ['nullable', 'string', 'max:255'],
@@ -257,7 +258,12 @@ class TenantController extends Controller
     private function validateTenantDocuments(Request $request, bool $required = false): void
     {
         $request->validate([
-            'documents' => [$required ? 'required' : 'nullable', 'array', $required ? 'min:1' : 'nullable', 'max:5'],
+            'documents' => array_values(array_filter([
+                $required ? 'required' : 'nullable',
+                'array',
+                $required ? 'min:1' : null,
+                'max:5',
+            ])),
             'documents.*' => ['file', 'mimes:pdf,jpg,jpeg,png,webp,doc,docx', 'max:2048'],
         ]);
 
@@ -265,9 +271,9 @@ class TenantController extends Controller
             ->sum(fn ($file) => $file->getSize());
 
         if ($totalBytes > 2 * 1024 * 1024) {
-            validator([], [])->after(function ($validator): void {
-                $validator->errors()->add('documents', __('The selected documents must not exceed 2 MB in total.'));
-            })->validate();
+            throw ValidationException::withMessages([
+                'documents' => __('The selected documents must not exceed 2 MB in total.'),
+            ]);
         }
     }
 
