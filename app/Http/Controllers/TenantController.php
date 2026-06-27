@@ -40,41 +40,35 @@ class TenantController extends Controller
         $tenantKind = in_array($tenantKind, ['business', 'person'], true)
             ? $tenantKind
             : null;
+        $businessTenant = fn ($query, $_ = null) => $query->where(fn ($businesses) => $businesses
+            ->where('tenant_type', 'company')
+            ->orWhere(fn ($namedBusiness) => $namedBusiness
+                ->whereNotNull('business_name')
+                ->where('business_name', '!=', '')));
+        $personTenant = fn ($query, $_ = null) => $query->where(fn ($people) => $people
+            ->whereNull('business_name')
+            ->orWhere('business_name', ''));
+        $activeLease = fn ($query, $_ = null) => $query
+            ->where('status', 'active')
+            ->whereDate('start_date', '<=', today())
+            ->where(fn ($period) => $period
+                ->whereNull('end_date')
+                ->orWhereDate('end_date', '>=', today()));
         $tenantScope = Tenant::query()
             ->when($propertyId, fn ($query) => $query->whereHas(
                 'leases',
                 fn ($leases) => $leases->where('property_id', $propertyId),
             ))
-            ->when($tenantKind === 'business', fn ($query) => $query
-                ->where('tenant_type', 'company')
-                ->whereNotNull('business_name')
-                ->where('business_name', '!=', ''))
-            ->when($tenantKind === 'person', fn ($query) => $query
-                ->where('tenant_type', 'individual')
-                ->where(fn ($people) => $people
-                    ->whereNull('business_name')
-                    ->orWhere('business_name', '')));
+            ->when($tenantKind === 'business', $businessTenant)
+            ->when($tenantKind === 'person', $personTenant);
         $summary = [
             'total' => (clone $tenantScope)->count(),
             'assigned' => (clone $tenantScope)->whereHas(
                 'leases',
-                fn ($leases) => $leases
-                    ->where('status', 'active')
-                    ->whereDate('start_date', '<=', today())
-                    ->where(fn ($period) => $period
-                        ->whereNull('end_date')
-                        ->orWhereDate('end_date', '>=', today())),
+                $activeLease,
             )->count(),
-            'persons' => (clone $tenantScope)
-                ->where('tenant_type', 'individual')
-                ->where(fn ($people) => $people
-                    ->whereNull('business_name')
-                    ->orWhere('business_name', ''))
-                ->count(),
-            'businesses' => (clone $tenantScope)
-                ->whereNotNull('business_name')
-                ->where('business_name', '!=', '')
-                ->count(),
+            'persons' => $personTenant(clone $tenantScope)->count(),
+            'businesses' => $businessTenant(clone $tenantScope)->count(),
             'properties' => Lease::query()
                 ->whereIn('tenant_id', (clone $tenantScope)->select('tenants.id'))
                 ->where('status', 'active')
@@ -82,8 +76,7 @@ class TenantController extends Controller
                 ->where(fn ($period) => $period
                     ->whereNull('end_date')
                     ->orWhereDate('end_date', '>=', today()))
-                ->distinct('property_id')
-                ->count('property_id'),
+                ->count(),
         ];
         $tenants = (clone $tenantScope)
             ->when($search !== '', fn ($query) => $query->where(function ($matches) use ($search): void {

@@ -362,9 +362,9 @@ export default function TenantsIndex({
                     )}
                 </section>
 
-                <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <section className="grid gap-3 md:grid-cols-3">
                     {[
-                        [ContactRound, t('tenants.total'), summary.total],
+                        [ContactRound, t('tenants.total'), summary.businesses],
                         [IdCard, t('tenants.persons'), summary.persons],
                         [
                             Building2,
