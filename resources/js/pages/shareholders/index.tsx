@@ -279,16 +279,20 @@ export default function ShareholdersPage({
                 <section className="rounded-xl border border-primary/10 bg-card p-3 shadow-none">
                     <div className="grid w-full gap-3 lg:grid-cols-[minmax(0,1fr)_minmax(240px,320px)]">
                         <div>
-                        <Label className="mb-2 flex items-center gap-2">
-                            <Search className="h-4 w-4" />
-                            {t('common.search', 'Search')}
-                        </Label>
-                        <Input
-                            value={search}
-                            onChange={(event) => setSearch(event.target.value)}
-                            placeholder={t('shareholders.searchPlaceholder')}
-                            className="bg-white dark:bg-neutral-950"
-                        />
+                            <Label className="mb-2 flex items-center gap-2">
+                                <Search className="h-4 w-4" />
+                                {t('common.search', 'Search')}
+                            </Label>
+                            <Input
+                                value={search}
+                                onChange={(event) =>
+                                    setSearch(event.target.value)
+                                }
+                                placeholder={t(
+                                    'shareholders.searchPlaceholder',
+                                )}
+                                className="bg-white dark:bg-neutral-950"
+                            />
                         </div>
                         <div>
                             <Label className="mb-2 flex items-center gap-2">
@@ -302,10 +306,7 @@ export default function ShareholdersPage({
                                 options={[
                                     {
                                         value: 'all',
-                                        label: t(
-                                            'common.all',
-                                            'All',
-                                        ),
+                                        label: t('common.all', 'All'),
                                     },
                                     ...properties.map((property) => ({
                                         value: String(property.id),
@@ -769,7 +770,7 @@ function ShareholderForm({
                         }
                     />
                 </Field>
-                <div className="min-w-0 space-y-1.5 sm:col-span-2 lg:col-span-3">
+                <div className="min-w-0 space-y-1.5 sm:col-span-2 lg:col-span-4">
                     <Label htmlFor={photoInputId}>
                         {t('shareholders.fields.photo')}
                     </Label>
@@ -813,7 +814,7 @@ function ShareholderForm({
                     <InputError message={form.errors.photo} />
                 </div>
                 {!shareholder && (
-                    <div className="min-w-0 space-y-1.5 sm:col-span-2 lg:col-span-3">
+                    <div className="min-w-0 space-y-1.5 sm:col-span-2 lg:col-span-4">
                         <Label htmlFor={documentsInputId}>
                             {t('shareholders.documents')}
                         </Label>
@@ -856,7 +857,7 @@ function ShareholderForm({
                         <InputError message={form.errors.documents} />
                     </div>
                 )}
-                <div className="sm:col-span-2 lg:col-span-3">
+                <div className="sm:col-span-2 lg:col-span-4">
                     <Field
                         label={t('shareholders.fields.address')}
                         error={form.errors.address}
@@ -869,7 +870,7 @@ function ShareholderForm({
                         />
                     </Field>
                 </div>
-                <div className="sm:col-span-2 lg:col-span-3">
+                <div className="sm:col-span-2 lg:col-span-4">
                     <Field
                         label={t('shareholders.fields.notes')}
                         error={form.errors.notes}

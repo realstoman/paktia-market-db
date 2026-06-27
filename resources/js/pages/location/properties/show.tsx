@@ -257,7 +257,9 @@ export default function PropertyShow({
                             : 'grid gap-6 xl:grid-cols-[1fr_2fr]'
                     }
                 >
-                    <div className={isCommercialUnit ? 'contents' : 'space-y-6'}>
+                    <div
+                        className={isCommercialUnit ? 'contents' : 'space-y-6'}
+                    >
                         <Card>
                             <CardHeader>
                                 <CardTitle>
@@ -404,7 +406,8 @@ export default function PropertyShow({
                                 </div>
                             </CardContent>
                         </Card>
-                        {!isCommercialUnit && property.related_locations?.length ? (
+                        {!isCommercialUnit &&
+                        property.related_locations?.length ? (
                             <Card>
                                 <CardHeader>
                                     <CardTitle>
@@ -452,65 +455,53 @@ export default function PropertyShow({
                         />
                     </div>
                     {!isCommercialUnit && (
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <h2 className="text-xl font-semibold">
-                                    {isCommercialUnit
-                                        ? t(
-                                              'propertyWorkspace.commercialUnitManagement',
-                                          )
-                                        : t(
-                                              'propertyWorkspace.floorsAndSpaces',
-                                          ).replace(
-                                              ':spaces',
-                                              isMarket
-                                                  ? t('propertyWorkspace.shops')
-                                                  : t(
-                                                        'propertyWorkspace.apartments',
-                                                    ),
-                                          )}
-                                </h2>
-                                <p className="text-sm text-muted-foreground">
-                                    {t(
-                                        isCommercialUnit
-                                            ? 'propertyWorkspace.commercialUnitRentalHelp'
-                                            : 'propertyWorkspace.basementHelp',
-                                    )}
-                                </p>
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h2 className="text-xl font-semibold">
+                                        {t(
+                                            'propertyWorkspace.floorsAndSpaces',
+                                        ).replace(
+                                            ':spaces',
+                                            isMarket
+                                                ? t('propertyWorkspace.shops')
+                                                : t(
+                                                      'propertyWorkspace.apartments',
+                                                  ),
+                                        )}
+                                    </h2>
+                                    <p className="text-sm text-muted-foreground">
+                                        {t(
+                                            'propertyWorkspace.basementHelp',
+                                        )}
+                                    </p>
+                                </div>
+                                {!['house', 'commercial_unit'].includes(
+                                    property.property_type ?? '',
+                                ) && <AddFloor property={property} />}
                             </div>
-                            {!['house', 'commercial_unit'].includes(
-                                property.property_type ?? '',
-                            ) && <AddFloor property={property} />}
+                            {property.property_type === 'house' ? (
+                                <Card>
+                                    <CardContent className="py-10 text-center text-muted-foreground">
+                                        <Building2 className="mx-auto mb-3 h-10 w-10" />
+                                        {t('propertyWorkspace.houseHelp')}
+                                    </CardContent>
+                                </Card>
+                            ) : floors.length ? (
+                                floors.map((floor) => (
+                                    <FloorCard
+                                        key={floor.id}
+                                        property={property}
+                                        floor={floor}
+                                        isMarket={isMarket}
+                                    />
+                                ))
+                            ) : (
+                                <div className="rounded-xl border border-dashed py-16 text-center text-muted-foreground">
+                                    {t('propertyWorkspace.noFloors')}
+                                </div>
+                            )}
                         </div>
-                        {['house', 'commercial_unit'].includes(
-                            property.property_type ?? '',
-                        ) ? (
-                            <Card>
-                                <CardContent className="py-10 text-center text-muted-foreground">
-                                    <Building2 className="mx-auto mb-3 h-10 w-10" />
-                                    {t(
-                                        isCommercialUnit
-                                            ? 'propertyWorkspace.commercialUnitHelp'
-                                            : 'propertyWorkspace.houseHelp',
-                                    )}
-                                </CardContent>
-                            </Card>
-                        ) : floors.length ? (
-                            floors.map((floor) => (
-                                <FloorCard
-                                    key={floor.id}
-                                    property={property}
-                                    floor={floor}
-                                    isMarket={isMarket}
-                                />
-                            ))
-                        ) : (
-                            <div className="rounded-xl border border-dashed py-16 text-center text-muted-foreground">
-                                {t('propertyWorkspace.noFloors')}
-                            </div>
-                        )}
-                    </div>
                     )}
                 </div>
             </div>

@@ -14,6 +14,9 @@ import { CellAction } from './cell-action';
 
 type TranslateFn = (key: string, fallback?: string) => string;
 
+const currencyLabel = (currency: string) =>
+    currency === 'USD' ? '$' : currency === 'AFN' ? '؋' : currency;
+
 const publicStorageUrl = (path?: string | null) => {
     if (!path) {
         return null;
@@ -159,7 +162,7 @@ export const buildColumns = (
                 return t('employees.common.empty', '—');
             }
 
-            return `${formatNumber(numericSalary)} ${row.original.salary_currency ?? 'AFN'}${row.original.contract_amount ? ` (${t('employees.common.contract', 'Contract')})` : ''}`;
+            return `${formatNumber(numericSalary)} ${currencyLabel(row.original.salary_currency ?? 'AFN')}${row.original.contract_amount ? ` (${t('employees.common.contract', 'Contract')})` : ''}`;
         },
     },
     {
