@@ -499,7 +499,10 @@ export function ExpenseClient({
                 type="date"
                 value={startDateFilter}
                 onChange={(event) => setStartDateFilter(event.target.value)}
-                aria-label={t('financeExpenses.filters.startDate', 'Start Date')}
+                aria-label={t(
+                    'financeExpenses.filters.startDate',
+                    'Start Date',
+                )}
                 className="h-10 w-[150px] bg-white dark:bg-neutral-900"
             />
             <Input
