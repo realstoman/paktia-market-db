@@ -673,7 +673,7 @@ const fa = {
         floors: 'منزل‌ها',
         occupied: 'دکان‌های کرایه‌شده',
         available: 'دکان‌های خالی',
-        totalCollectedRentThisMonth: 'مجموع کرایه جمع‌آوری‌شده این ماه',
+        totalCollectedRentThisMonth: 'مجموع کرایه جمع‌ آوری‌ شده این ماه',
         viewCollectedRents: 'مشاهده کرایه‌ها',
         totalExpensesThisMonth: 'مجموع مصارف این ماه',
         totalShareholderTakeoutsThisMonth: 'برداشت سهمداران این ماه',

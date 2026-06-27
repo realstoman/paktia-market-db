@@ -135,7 +135,11 @@ function StatCard({
     };
 
     return (
-        <div className="flex items-center gap-4 rounded-2xl border border-[#dfe7e9] bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+        <div
+            className={`relative flex items-center gap-4 rounded-2xl border border-[#dfe7e9] bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900 ${
+                actionHref ? 'pb-11' : ''
+            }`}
+        >
             <div className="flex min-w-0 flex-1 items-center gap-4">
                 <div
                     className={`flex size-11 shrink-0 items-center justify-center rounded-xl ${tones[accent]}`}
@@ -152,10 +156,12 @@ function StatCard({
             {actionHref && actionLabel ? (
                 <Link
                     href={actionHref}
-                    className="ms-auto inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-[#002452]/15 bg-[#002452] px-3 text-xs font-semibold text-white transition hover:bg-[#002452]/90"
+                    aria-label={actionLabel}
+                    title={actionLabel}
+                    className="absolute bottom-3 left-3 inline-flex size-8 items-center justify-center rounded-full border border-[#002452]/15 bg-[#002452] text-white transition hover:bg-[#002452]/90"
                 >
                     <ExternalLink className="size-3.5" />
-                    <span>{actionLabel}</span>
+                    <span className="sr-only">{actionLabel}</span>
                 </Link>
             ) : null}
         </div>
@@ -202,6 +208,13 @@ export default function Dashboard({ data }: { data: DashboardData }) {
               end_date: currentMonthFilters.endDate,
           }).toString()}`
         : '/finance/rentals';
+    const propertyExpensesHref = selectedProject
+        ? `/finance/expenses?${new URLSearchParams({
+              property_id: String(selectedProject.id),
+              start_date: currentMonthFilters.startDate,
+              end_date: currentMonthFilters.endDate,
+          }).toString()}`
+        : '/finance/expenses';
 
     const overallProjectChart = useMemo(
         () =>
@@ -718,6 +731,11 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                 value={`${formatPrice(selectedProject.financeThisMonth.expenses)} ؋`}
                                 icon={ReceiptText}
                                 accent="coral"
+                                actionHref={propertyExpensesHref}
+                                actionLabel={t(
+                                    'propertyDashboard.viewExpenses',
+                                    'View expenses',
+                                )}
                             />
                             <StatCard
                                 label={t(
