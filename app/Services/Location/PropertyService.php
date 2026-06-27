@@ -98,7 +98,7 @@ class PropertyService
 
     public function getIndexData(): array
     {
-        $properties = Property::with(['country', 'province', 'parentProperty:id,name,name_translations'])
+        $properties = Property::with(['country', 'province', 'parentProperty:id,name,name_translations', 'images'])
             ->withCount(['floors', 'units'])
             ->orderBy('display_order')
             ->orderBy('id')
@@ -119,7 +119,8 @@ class PropertyService
                 'operating_mode' => $property->operating_mode,
                 'business_activities' => $property->business_activities,
                 'title_deed_number' => $property->title_deed_number,
-                'image_url' => $property->image_url,
+                'image_url' => $property->images->first()?->url ?? $property->image_url,
+                'images' => $property->images,
                 'address' => $property->address,
                 'description' => $property->description,
                 'land_area_sqm' => $property->land_area_sqm,

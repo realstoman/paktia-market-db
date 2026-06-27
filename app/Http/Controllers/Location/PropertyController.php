@@ -38,7 +38,7 @@ class PropertyController extends Controller
             'property' => $property->load([
                 'country', 'province', 'parentProperty.country', 'parentProperty.province',
                 'relatedLocations.country', 'relatedLocations.province',
-                'documents',
+                'documents', 'images',
                 'floors' => fn ($query) => $query->with('units')->orderBy('level_number'),
             ]),
             'countries' => Country::orderBy('name')->get(),
@@ -58,6 +58,7 @@ class PropertyController extends Controller
         $validated = $this->storeImage($request, $validated, $property);
 
         $service->update($property, $validated);
+        $this->storeGalleryImages($request, $property);
 
         return redirect()->route('properties.show', $property)
             ->with('success', __('properties.actions.updated'));
@@ -69,7 +70,8 @@ class PropertyController extends Controller
         $validated = $this->prepareTranslations($validated);
         $validated = $this->storeImage($request, $validated);
 
-        $service->create($validated);
+        $property = $service->create($validated);
+        $this->storeGalleryImages($request, $property);
 
         return redirect()->route('properties.index')
             ->with('success', __('properties.actions.created'));
@@ -259,6 +261,14 @@ class PropertyController extends Controller
         return back()->with('success', __('properties.actions.document_deleted'));
     }
 
+    public function uploadImages(Request $request, Property $property)
+    {
+        $this->validateImages($request, $property);
+        $this->storeGalleryImages($request, $property);
+
+        return back()->with('success', __('properties.actions.images_uploaded'));
+    }
+
     private function validateProperty(Request $request): array
     {
         return $request->validate([
@@ -309,12 +319,24 @@ class PropertyController extends Controller
             'amenities.*' => ['string', 'max:100'],
             'notes' => ['nullable', 'string', 'max:3000'],
             'image' => ['nullable', 'image', 'max:5120'],
+            'images' => ['nullable', 'array', 'max:10'],
+            'images.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:width=1920,height=1080'],
+        ]);
+    }
+
+    private function validateImages(Request $request, Property $property): void
+    {
+        $remainingSlots = max(0, 10 - $property->images()->count());
+
+        $request->validate([
+            'images' => ['required', 'array', 'min:1', 'max:'.$remainingSlots],
+            'images.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:width=1920,height=1080'],
         ]);
     }
 
     private function storeImage(Request $request, array $validated, ?Property $property = null): array
     {
-        unset($validated['image']);
+        unset($validated['image'], $validated['images']);
 
         if ($request->hasFile('image')) {
             if ($property?->image_path) {
@@ -324,6 +346,31 @@ class PropertyController extends Controller
         }
 
         return $validated;
+    }
+
+    private function storeGalleryImages(Request $request, Property $property): void
+    {
+        $images = $request->file('images', []);
+        if (! count($images)) {
+            return;
+        }
+
+        $existingCount = $property->images()->count();
+        foreach (array_slice($images, 0, max(0, 10 - $existingCount)) as $index => $image) {
+            $path = $image->store("properties/{$property->id}/images", 'public');
+
+            $property->images()->create([
+                'path' => $path,
+                'original_name' => $image->getClientOriginalName(),
+                'mime_type' => $image->getMimeType(),
+                'size_bytes' => $image->getSize(),
+                'sort_order' => $existingCount + $index + 1,
+            ]);
+
+            if ($existingCount === 0 && $index === 0 && blank($property->image_path)) {
+                $property->forceFill(['image_path' => $path])->saveQuietly();
+            }
+        }
     }
 
     private function prepareTranslations(array $validated): array

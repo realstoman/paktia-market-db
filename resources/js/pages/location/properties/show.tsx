@@ -35,6 +35,7 @@ import {
     Property,
     PropertyDocument,
     PropertyFloor,
+    PropertyImage,
     PropertyUnit,
     Province,
 } from '@/types';
@@ -46,9 +47,11 @@ import {
     BriefcaseBusiness,
     Building2,
     ChefHat,
+    ChevronLeft,
+    ChevronRight,
     DoorOpen,
     FileText,
-    HandCoins,
+    Image as ImageIcon,
     Layers3,
     MapPin,
     Pencil,
@@ -60,6 +63,7 @@ import {
     Trash2,
     Upload,
     Users,
+    X,
 } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 
@@ -83,6 +87,7 @@ export default function PropertyShow({
         property.property_type ?? 'market',
     );
     const isCommercialUnit = property.property_type === 'commercial_unit';
+    const coverImageUrl = property.images?.[0]?.url ?? property.image_url;
     const breadcrumbs: BreadcrumbItem[] = [
         { title: t('propertyWorkspace.title'), href: '/properties' },
         { title: property.name, href: `/properties/${property.id}` },
@@ -93,9 +98,9 @@ export default function PropertyShow({
             <Head title={property.name} />
             <div className="[**:data-[slot=card]:border-slate-200/80 mx-auto w-full max-w-[1600px] space-y-5 **:data-[slot=card]:rounded-2xl **:data-[slot=card]:bg-white **:data-[slot=card]:shadow-none">
                 <section className="relative min-h-64 overflow-hidden rounded-3xl border border-slate-200/80 bg-linear-to-r from-emerald-950 to-teal-700 shadow-none">
-                    {property.image_url && (
+                    {coverImageUrl && (
                         <img
-                            src={property.image_url}
+                            src={coverImageUrl}
                             alt=""
                             className="absolute inset-0 h-full w-full object-cover opacity-45"
                         />
@@ -126,12 +131,34 @@ export default function PropertyShow({
                                     {property.address || '—'}
                                 </p>
                             </div>
-                            <EditPropertyDialog
-                                property={property}
-                                countries={countries}
-                                provinces={provinces}
-                                propertyOptions={propertyOptions}
-                            />
+                            <div className="flex flex-wrap items-center gap-2">
+                                <BannerAction
+                                    href={`/employees?property_id=${property.id}`}
+                                    icon={BriefcaseBusiness}
+                                    label={t('propertyWorkspace.employees')}
+                                />
+                                <BannerAction
+                                    href={`/finance/expenses?property_id=${property.id}`}
+                                    icon={ReceiptText}
+                                    label={t('propertyWorkspace.expenses')}
+                                />
+                                <BannerAction
+                                    href={`/shareholders?property_id=${property.id}`}
+                                    icon={Users}
+                                    label={t('propertyWorkspace.shareholders')}
+                                />
+                                <BannerAction
+                                    href={`/tenants?property_id=${property.id}`}
+                                    icon={DoorOpen}
+                                    label={t('propertyWorkspace.rentContracts')}
+                                />
+                                <EditPropertyDialog
+                                    property={property}
+                                    countries={countries}
+                                    provinces={provinces}
+                                    propertyOptions={propertyOptions}
+                                />
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -218,37 +245,6 @@ export default function PropertyShow({
                         }
                     />
                 </div>
-
-                <Card>
-                    <CardContent className="grid gap-3 py-5 sm:grid-cols-2 xl:grid-cols-4">
-                        <WorkspaceCapability
-                            icon={BriefcaseBusiness}
-                            title={t('propertyWorkspace.employees')}
-                            description={t('propertyWorkspace.employeesHelp')}
-                        />
-                        <WorkspaceCapability
-                            icon={ReceiptText}
-                            title={t('propertyWorkspace.expenses')}
-                            description={t('propertyWorkspace.expensesHelp')}
-                        />
-                        <WorkspaceCapability
-                            icon={Users}
-                            title={t('propertyWorkspace.shareholders')}
-                            description={t(
-                                'propertyWorkspace.shareholdersHelp',
-                            )}
-                            planned
-                        />
-                        <WorkspaceCapability
-                            icon={HandCoins}
-                            title={t('propertyWorkspace.rentContracts')}
-                            description={t(
-                                'propertyWorkspace.rentContractsHelp',
-                            )}
-                            href={'/tenants?property_id=' + property.id}
-                        />
-                    </CardContent>
-                </Card>
 
                 <div className="grid gap-6 xl:grid-cols-[1fr_2fr]">
                     <div className="space-y-6">
@@ -439,6 +435,10 @@ export default function PropertyShow({
                         <PropertyDocuments
                             property={property}
                             documents={property.documents ?? []}
+                        />
+                        <PropertyImageGallery
+                            property={property}
+                            images={property.images ?? []}
                         />
                     </div>
                     <div className="space-y-4">

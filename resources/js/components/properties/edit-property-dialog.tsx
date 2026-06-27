@@ -90,6 +90,7 @@ export function EditPropertyDialog({
         year_built: property.year_built ? String(property.year_built) : '',
         notes: property.notes ?? '',
         image: null as File | null,
+        images: [] as File[],
     });
     const provinceOptions = provinces.filter(
         (province) =>
@@ -196,7 +197,6 @@ export function EditPropertyDialog({
                                     'property_type',
                                     value as
                                         | 'market'
-                                        | 'mall'
                                         | 'block'
                                         | 'house'
                                         | 'commercial_unit',
@@ -208,7 +208,6 @@ export function EditPropertyDialog({
                             }}
                             options={[
                                 'market',
-                                'mall',
                                 'block',
                                 'house',
                                 'commercial_unit',
@@ -525,9 +524,7 @@ export function EditPropertyDialog({
                             />
                             <NumericField
                                 label={t(
-                                    ['market', 'mall'].includes(
-                                        form.data.property_type,
-                                    )
+                                    form.data.property_type === 'market'
                                         ? 'propertyWorkspace.fields.expectedShops'
                                         : 'propertyWorkspace.fields.expectedApartments',
                                 )}
@@ -564,13 +561,6 @@ export function EditPropertyDialog({
                                 }
                             />
                             <NumericField
-                                label={t('propertyWorkspace.fields.halls')}
-                                value={form.data.halls_count}
-                                set={(value) =>
-                                    form.setData('halls_count', value)
-                                }
-                            />
-                            <NumericField
                                 label={t('propertyWorkspace.fields.bathrooms')}
                                 value={form.data.bathrooms_count}
                                 set={(value) =>
@@ -581,8 +571,11 @@ export function EditPropertyDialog({
                     )}
                     <PropertyImageUpload
                         value={form.data.image}
-                        onChange={(file) => form.setData('image', file)}
-                        error={form.errors.image}
+                        onChange={() => undefined}
+                        multiple
+                        files={form.data.images}
+                        onFilesChange={(files) => form.setData('images', files)}
+                        error={form.errors.images ?? form.errors.image}
                         existingImageUrl={property.image_url}
                         className="sm:col-span-2 lg:col-span-3"
                     />

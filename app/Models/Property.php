@@ -171,4 +171,9 @@ class Property extends Model
     {
         return $this->hasMany(PropertyDocument::class)->latest();
     }
+
+    public function images()
+    {
+        return $this->hasMany(PropertyImage::class)->orderBy('sort_order')->orderBy('id');
+    }
 }

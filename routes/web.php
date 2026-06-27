@@ -115,6 +115,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('properties/{property}/documents', [PropertyController::class, 'uploadDocuments'])->name('properties.documents.store');
         Route::get('properties/{property}/documents/{document}', [PropertyController::class, 'downloadDocument'])->name('properties.documents.download');
         Route::delete('properties/{property}/documents/{document}', [PropertyController::class, 'destroyDocument'])->name('properties.documents.destroy');
+        Route::post('properties/{property}/images', [PropertyController::class, 'uploadImages'])->name('properties.images.store');
 
         Route::get('contract-templates', [ContractTemplateController::class, 'index'])->name('contract-templates.index');
         Route::post('contract-templates', [ContractTemplateController::class, 'store'])->name('contract-templates.store');

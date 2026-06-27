@@ -91,6 +91,7 @@ interface PropertyForm {
     year_built: string;
     notes: string;
     image: File | null;
+    images: File[];
 }
 
 type NumericPropertyField =
@@ -150,6 +151,7 @@ const emptyForm: PropertyForm = {
     year_built: '',
     notes: '',
     image: null,
+    images: [],
 };
 
 export default function PropertiesPage({
@@ -222,7 +224,7 @@ export default function PropertiesPage({
                                     {t('propertyWorkspace.register')}
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent className="max-h-[92vh] overflow-x-hidden overflow-y-auto rounded-2xl bg-[#f8f9fd] sm:max-w-4xl [&_input]:bg-white [&_textarea]:bg-white">
+                            <DialogContent className="max-h-[92vh] overflow-x-hidden overflow-y-auto rounded-2xl bg-[#f8f9fd] sm:max-w-6xl [&_input]:bg-white [&_textarea]:bg-white">
                                 <DialogHeader>
                                     <DialogTitle>
                                         {t('propertyWorkspace.registerTitle')}
@@ -233,7 +235,7 @@ export default function PropertiesPage({
                                 </DialogHeader>
                                 <form
                                     onSubmit={submit}
-                                    className="grid min-w-0 gap-4 md:grid-cols-3"
+                                    className="grid min-w-0 gap-4 lg:grid-cols-4"
                                 >
                                     <LocalizedFields form={form} />
 
@@ -263,12 +265,15 @@ export default function PropertiesPage({
                                                     );
                                                 }
                                             }}
-                                            options={Object.keys(typeIcons).map(
-                                                (value) => ({
+                                            options={Object.keys(typeIcons)
+                                                .filter(
+                                                    (value) =>
+                                                        value !== 'mall',
+                                                )
+                                                .map((value) => ({
                                                     value,
                                                     label: typeLabel(value),
-                                                }),
-                                            )}
+                                                }))}
                                             placeholder={t(
                                                 'propertyWorkspace.fields.type',
                                             )}
@@ -386,7 +391,7 @@ export default function PropertiesPage({
                                             label={t(
                                                 'propertyWorkspace.relatedLocation',
                                             )}
-                                            className="md:col-span-3"
+                                            className="lg:col-span-4"
                                             error={
                                                 form.errors.parent_property_id
                                             }
@@ -756,13 +761,6 @@ export default function PropertiesPage({
                                             />
                                             <NumberField
                                                 label={t(
-                                                    'propertyWorkspace.fields.halls',
-                                                )}
-                                                name="halls_count"
-                                                form={form}
-                                            />
-                                            <NumberField
-                                                label={t(
                                                     'propertyWorkspace.fields.bathrooms',
                                                 )}
                                                 name="bathrooms_count"
@@ -772,13 +770,19 @@ export default function PropertiesPage({
                                     )}
                                     <PropertyImageUpload
                                         value={form.data.image}
-                                        onChange={(file) =>
-                                            form.setData('image', file)
+                                        onChange={() => undefined}
+                                        multiple
+                                        files={form.data.images}
+                                        onFilesChange={(files) =>
+                                            form.setData('images', files)
                                         }
-                                        error={form.errors.image}
-                                        className="md:col-span-3"
+                                        error={
+                                            form.errors.images ??
+                                            form.errors.image
+                                        }
+                                        className="lg:col-span-4"
                                     />
-                                    <div className="flex justify-end gap-2 border-t border-[#002452]/10 pt-4 md:col-span-3">
+                                    <div className="flex justify-end gap-2 border-t border-[#002452]/10 pt-4 lg:col-span-4">
                                         <Button
                                             type="button"
                                             variant="ghost"
@@ -826,16 +830,14 @@ export default function PropertiesPage({
                         }
                     />
                     <PortfolioMetric
-                        icon={DoorOpen}
-                        label={t('propertyWorkspace.spaces')}
-                        value={properties.reduce(
-                            (total, item) =>
-                                total +
-                                (item.property_type === 'commercial_unit'
-                                    ? 1
-                                    : (item.units_count ?? 0)),
-                            0,
-                        )}
+                        icon={BriefcaseBusiness}
+                        label={t('propertyWorkspace.types.commercial_unit')}
+                        value={
+                            properties.filter(
+                                (item) =>
+                                    item.property_type === 'commercial_unit',
+                            ).length
+                        }
                     />
                 </div>
 
@@ -1001,8 +1003,8 @@ function LocalizedFields({ form }: { form: InertiaFormProps<PropertyForm> }) {
     const { t } = useLocalization();
 
     return (
-        <div className="grid min-w-0 gap-4 rounded-2xl border border-[#002452]/10 bg-white p-4 md:col-span-3 md:grid-cols-3">
-            <div className="space-y-1 border-b border-[#002452]/10 pb-3 md:col-span-3">
+        <div className="grid min-w-0 gap-4 rounded-2xl border border-[#002452]/10 bg-white p-4 lg:col-span-4 lg:grid-cols-4">
+            <div className="space-y-1 border-b border-[#002452]/10 pb-3 lg:col-span-4">
                 <p className="text-sm font-semibold text-[#002452]">
                     {t('propertyWorkspace.languages.fa')}
                 </p>

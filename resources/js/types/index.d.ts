@@ -464,6 +464,7 @@ export interface Property {
     property_type?: 'market' | 'mall' | 'block' | 'house' | 'commercial_unit';
     usage_type?: 'commercial' | 'residential' | 'mixed';
     image_url?: string | null;
+    images?: PropertyImage[];
     distance_from_city_km?: string | null;
     land_area_sqm?: string | null;
     building_area_sqm?: string | null;
@@ -496,6 +497,19 @@ export interface Property {
     created_at: string;
     updated_at: string;
     [key: string]: unknown;
+}
+
+export interface PropertyImage {
+    id: number;
+    property_id: number;
+    path: string;
+    original_name?: string | null;
+    mime_type?: string | null;
+    size_bytes?: number | null;
+    sort_order?: number;
+    url: string;
+    created_at: string;
+    updated_at: string;
 }
 
 export interface PropertyDocument {
