@@ -16,6 +16,7 @@ import {
     Building2,
     CircleDollarSign,
     FileSignature,
+    Gem,
     Globe2,
     Handshake,
     MapPinned,
@@ -23,6 +24,7 @@ import {
     Settings2,
     UserRoundCog,
     Users,
+    UtensilsCrossed,
 } from 'lucide-react';
 
 interface ToolConfig {
@@ -48,6 +50,20 @@ const tools: ToolConfig[] = [
         fallbackLabel: 'Inventory',
         icon: PackageSearch,
         can: 'inventory.view',
+    },
+    {
+        href: '/finance/dubai-restaurant',
+        labelKey: 'navigation.toolDubaiRestaurant',
+        fallbackLabel: 'Dubai Restaurant',
+        icon: UtensilsCrossed,
+        can: 'finance.view',
+    },
+    {
+        href: '/finance/kabul-sarafi',
+        labelKey: 'navigation.toolKabulSarafi',
+        fallbackLabel: 'Kabul Gold & Sarafi',
+        icon: Gem,
+        can: 'finance.view',
     },
     {
         href: '/employees',

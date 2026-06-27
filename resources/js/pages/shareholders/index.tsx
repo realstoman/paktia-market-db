@@ -29,25 +29,22 @@ import {
     Shareholder,
 } from '@/types';
 import { formatNumber } from '@/utils/format';
-import { Head, router, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import {
     Building2,
-    CalendarDays,
-    Download,
-    FileText,
+    Eye,
     Handshake,
     IdCard,
-    MoreHorizontal,
+    Map as MapIcon,
     Pencil,
     Phone,
     Plus,
     Search,
-    ShieldCheck,
     Trash2,
     Upload,
     UsersRound,
 } from 'lucide-react';
-import { FormEvent, ReactNode, useMemo, useState } from 'react';
+import { FormEvent, ReactNode, useEffect, useMemo, useState } from 'react';
 
 interface Props {
     shareholders: Shareholder[];
@@ -132,20 +129,37 @@ const cleanPercentage = (value: string | number) =>
         maximumFractionDigits: 4,
     });
 
+const countryName = (country: Country | null | undefined, locale: string) => {
+    if (!country) return '';
+
+    if (locale === 'fa' || locale === 'ps') {
+        return country.name_translations?.fa || country.name;
+    }
+
+    return country.name_translations?.en || country.name;
+};
+
+const initials = (name: string) =>
+    name
+        .split(/\s+/)
+        .slice(0, 2)
+        .map((part) => part[0])
+        .join('')
+        .toUpperCase();
+
 export default function ShareholdersPage({
     shareholders,
     countries,
     properties,
     currencies,
 }: Props) {
-    const { t } = useLocalization();
+    const { t, isRtl } = useLocalization();
     const { auth } = usePage<SharedData>().props;
     const canManage =
         auth.is_super_admin || auth.permissions.includes('shareholders.manage');
     const [search, setSearch] = useState('');
     const [createOpen, setCreateOpen] = useState(false);
     const [editing, setEditing] = useState<Shareholder | null>(null);
-    const [managing, setManaging] = useState<Shareholder | null>(null);
 
     const visible = useMemo(() => {
         const query = search.trim().toLowerCase();
@@ -176,55 +190,45 @@ export default function ShareholdersPage({
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={t('shareholders.title', 'Shareholders')} />
-            <div className="mx-auto w-full max-w-[1600px] space-y-6">
-                <section className="relative overflow-hidden rounded-3xl border border-white/70 bg-gradient-to-br from-white via-white to-primary/8 p-6 shadow-sm sm:p-8 dark:border-neutral-800 dark:from-neutral-900 dark:via-neutral-900 dark:to-primary/10">
-                    <div className="pointer-events-none absolute -end-16 -top-20 h-56 w-56 rounded-full bg-primary/10 blur-3xl" />
-                    <div className="relative flex flex-col justify-between gap-6 sm:flex-row sm:items-end">
-                        <div>
-                            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/5 px-3 py-1.5 text-sm font-medium text-primary">
-                                <ShieldCheck className="h-4 w-4" />
-                                {t(
-                                    'shareholders.identity',
-                                    'Identity & contact',
-                                )}
-                            </div>
-                            <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-                                {t('shareholders.title', 'Shareholders')}
-                            </h1>
-                            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
-                                {t('shareholders.subtitle')}
-                            </p>
-                        </div>
-                        {canManage && (
-                            <Dialog
-                                open={createOpen}
-                                onOpenChange={setCreateOpen}
-                            >
-                                <DialogTrigger asChild>
-                                    <Button className="h-11 rounded-xl px-5 shadow-sm">
-                                        <Plus className="me-2 h-4 w-4" />
-                                        {t('shareholders.register')}
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent className="max-h-[92vh] overflow-y-auto rounded-2xl sm:max-w-5xl">
-                                    <DialogHeader>
-                                        <DialogTitle>
-                                            {t('shareholders.register')}
-                                        </DialogTitle>
-                                        <DialogDescription>
-                                            {t('shareholders.subtitle')}
-                                        </DialogDescription>
-                                    </DialogHeader>
-                                    <ShareholderForm
-                                        countries={countries}
-                                        properties={properties}
-                                        currencies={currencies}
-                                        onSuccess={() => setCreateOpen(false)}
-                                    />
-                                </DialogContent>
-                            </Dialog>
-                        )}
+            <div
+                className="mx-auto w-full max-w-[1600px] space-y-4 **:data-[slot=card]:shadow-none"
+                dir={isRtl ? 'rtl' : 'ltr'}
+            >
+                <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+                    <div className="max-w-2xl">
+                        <h1 className="text-2xl font-semibold tracking-tight">
+                            {t('shareholders.title', 'Shareholders')}
+                        </h1>
+                        <p className="mt-1 text-base text-muted-foreground">
+                            {t('shareholders.subtitle')}
+                        </p>
                     </div>
+                    {canManage && (
+                        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+                            <DialogTrigger asChild>
+                                <Button>
+                                    <Plus className="me-2 h-4 w-4" />
+                                    {t('shareholders.register')}
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-h-[92vh] overflow-x-hidden overflow-y-auto rounded-2xl bg-[#f8f9fd] sm:max-w-5xl [&_input]:bg-white [&_textarea]:bg-white">
+                                <DialogHeader>
+                                    <DialogTitle>
+                                        {t('shareholders.register')}
+                                    </DialogTitle>
+                                    <DialogDescription>
+                                        {t('shareholders.subtitle')}
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <ShareholderForm
+                                    countries={countries}
+                                    properties={properties}
+                                    currencies={currencies}
+                                    onSuccess={() => setCreateOpen(false)}
+                                />
+                            </DialogContent>
+                        </Dialog>
+                    )}
                 </section>
 
                 <div className="grid gap-3 sm:grid-cols-3">
@@ -249,33 +253,35 @@ export default function ShareholdersPage({
                     />
                 </div>
 
-                <div className="rounded-2xl border border-white/70 bg-white p-3 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-                    <div className="relative max-w-xl">
-                        <Search className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <section className="rounded-xl border border-primary/10 bg-card p-3 shadow-none">
+                    <div className="w-full">
+                        <Label className="mb-2 flex items-center gap-2">
+                            <Search className="h-4 w-4" />
+                            {t('common.search', 'Search')}
+                        </Label>
                         <Input
                             value={search}
                             onChange={(event) => setSearch(event.target.value)}
                             placeholder={t('shareholders.searchPlaceholder')}
-                            className="h-11 rounded-xl bg-white ps-10 shadow-none dark:bg-neutral-950"
+                            className="bg-white dark:bg-neutral-950"
                         />
                     </div>
-                </div>
+                </section>
 
                 {visible.length === 0 ? (
-                    <Card className="border-dashed">
+                    <Card className="border-dashed shadow-none">
                         <CardContent className="py-16 text-center text-sm text-muted-foreground">
                             {t('shareholders.noResults')}
                         </CardContent>
                     </Card>
                 ) : (
-                    <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+                    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
                         {visible.map((shareholder) => (
                             <ShareholderCard
                                 key={shareholder.id}
                                 shareholder={shareholder}
                                 canManage={canManage}
                                 onEdit={() => setEditing(shareholder)}
-                                onManage={() => setManaging(shareholder)}
                             />
                         ))}
                     </div>
@@ -284,7 +290,7 @@ export default function ShareholdersPage({
 
             {editing && (
                 <Dialog open onOpenChange={(open) => !open && setEditing(null)}>
-                    <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-4xl">
+                    <DialogContent className="max-h-[92vh] overflow-x-hidden overflow-y-auto rounded-2xl bg-[#f8f9fd] sm:max-w-4xl [&_input]:bg-white [&_textarea]:bg-white">
                         <DialogHeader>
                             <DialogTitle>{t('shareholders.edit')}</DialogTitle>
                         </DialogHeader>
@@ -297,19 +303,6 @@ export default function ShareholdersPage({
                         />
                     </DialogContent>
                 </Dialog>
-            )}
-            {managing && (
-                <OwnershipDialog
-                    shareholder={
-                        shareholders.find(
-                            (shareholder) => shareholder.id === managing.id,
-                        ) ?? managing
-                    }
-                    properties={properties}
-                    currencies={currencies}
-                    canManage={canManage}
-                    onClose={() => setManaging(null)}
-                />
             )}
         </AppLayout>
     );
@@ -325,16 +318,16 @@ function Stat({
     value: number;
 }) {
     return (
-        <Card className="rounded-2xl border-white/70 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-            <CardContent className="flex items-center gap-4 p-5">
-                <div className="rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 p-3 text-primary">
+        <Card className="border border-primary/10 shadow-none">
+            <CardContent className="flex items-center gap-3 py-4">
+                <div className="rounded-lg bg-muted p-2.5 text-primary">
                     {icon}
                 </div>
                 <div>
-                    <p className="text-2xl font-semibold tracking-tight">
+                    <p className="text-2xl font-semibold">
                         {formatNumber(value)}
                     </p>
-                    <p className="text-xs text-muted-foreground">{label}</p>
+                    <p className="text-base text-muted-foreground">{label}</p>
                 </div>
             </CardContent>
         </Card>
@@ -345,33 +338,25 @@ function ShareholderCard({
     shareholder,
     canManage,
     onEdit,
-    onManage,
 }: {
     shareholder: Shareholder;
     canManage: boolean;
     onEdit: () => void;
-    onManage: () => void;
 }) {
-    const { t } = useLocalization();
+    const { t, locale } = useLocalization();
     const current = (shareholder.shareholdings ?? []).filter(isCurrent);
-    const initials = shareholder.full_name
-        .split(/\s+/)
-        .slice(0, 2)
-        .map((part) => part[0])
-        .join('');
 
     return (
-        <Card className="group relative overflow-hidden rounded-2xl border-white/80 bg-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5 dark:border-neutral-800 dark:bg-neutral-900">
-            <div className="h-1 bg-gradient-to-r from-primary/80 via-primary/35 to-transparent" />
-            <CardContent className="space-y-5 p-5">
+        <Card className="group relative h-104 overflow-hidden border border-primary/10 bg-card shadow-none transition-colors hover:border-primary/20">
+            <CardContent className="flex h-full flex-col gap-4 px-6">
                 <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-3">
-                        <Avatar className="h-14 w-14 border-2 border-white shadow-md ring-1 ring-neutral-200 dark:border-neutral-900 dark:ring-neutral-700">
+                        <Avatar className="h-14 w-14 border border-primary/10 bg-white">
                             <AvatarImage
                                 src={shareholder.photo_url ?? undefined}
                             />
                             <AvatarFallback className="font-semibold">
-                                {initials}
+                                {initials(shareholder.full_name)}
                             </AvatarFallback>
                         </Avatar>
                         <div className="min-w-0">
@@ -392,27 +377,24 @@ function ShareholderCard({
                                             : 'shareholders.inactive',
                                     )}
                                 </Badge>
-                                <span className="text-xs text-muted-foreground">
-                                    {t(
-                                        `shareholders.nidTypes.${shareholder.nid_type}`,
-                                        shareholder.nid_type,
-                                    )}
-                                </span>
                             </div>
                         </div>
                     </div>
-                    {canManage && (
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={onEdit}
-                            title={t('shareholders.edit')}
-                        >
-                            <Pencil className="h-4 w-4" />
-                        </Button>
-                    )}
+                    <div className="flex shrink-0 items-center gap-1.5">
+                        {canManage && (
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8 border-primary/15 bg-white text-primary hover:bg-primary/5 hover:text-primary"
+                                onClick={onEdit}
+                                title={t('shareholders.edit')}
+                            >
+                                <Pencil className="h-4 w-4" />
+                            </Button>
+                        )}
+                    </div>
                 </div>
-                <div className="grid gap-2 text-sm text-muted-foreground">
+                <div className="grid min-h-18 gap-2 text-sm text-muted-foreground">
                     <div className="flex items-center gap-2">
                         <IdCard className="h-4 w-4" />
                         <span dir="ltr">{shareholder.nid_number}</span>
@@ -425,13 +407,16 @@ function ShareholderCard({
                     )}
                     {shareholder.citizenship_country?.name && (
                         <div className="flex items-center gap-2">
-                            <MoreHorizontal className="h-4 w-4" />
-                            {shareholder.citizenship_country.name}
+                            <MapIcon className="h-4 w-4" />
+                            {countryName(
+                                shareholder.citizenship_country,
+                                locale,
+                            )}
                         </div>
                     )}
                 </div>
                 <Separator />
-                <div className="space-y-2">
+                <div className="min-h-0 flex-1 space-y-2">
                     <div className="flex items-center justify-between">
                         <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
                             {t('shareholders.ownership')}
@@ -441,37 +426,39 @@ function ShareholderCard({
                         </Badge>
                     </div>
                     {current.length ? (
-                        current.slice(0, 2).map((holding) => (
-                            <div
-                                key={holding.id}
-                                className="flex items-center justify-between rounded-xl border border-transparent bg-slate-50 px-3 py-2.5 text-sm transition-colors group-hover:border-primary/10 dark:bg-neutral-950/70"
-                            >
-                                <span className="truncate">
-                                    {holding.property?.name}
-                                </span>
-                                <span className="ms-3 font-semibold" dir="ltr">
-                                    {cleanPercentage(holding.percentage)}%
-                                </span>
-                            </div>
-                        ))
+                        <div className="max-h-40 space-y-2 overflow-y-auto pe-1">
+                            {current.map((holding) => (
+                                <div
+                                    key={holding.id}
+                                    className="flex items-center justify-between rounded-xl border border-primary/10 bg-[#f8f9fd] px-3 py-2.5 text-sm transition-colors dark:bg-neutral-950/70"
+                                >
+                                    <span className="truncate">
+                                        {holding.property?.name}
+                                    </span>
+                                    <span
+                                        className="ms-3 font-semibold"
+                                        dir="ltr"
+                                    >
+                                        {cleanPercentage(holding.percentage)}%
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
                     ) : (
-                        <p className="py-2 text-xs text-muted-foreground">
+                        <p className="rounded-xl border border-dashed border-primary/10 bg-[#f8f9fd] px-3 py-6 text-center text-xs text-muted-foreground">
                             {t('shareholders.noOwnership')}
-                        </p>
-                    )}
-                    {current.length > 2 && (
-                        <p className="text-center text-xs font-medium text-primary">
-                            +{formatNumber(current.length - 2)}
                         </p>
                     )}
                 </div>
                 <Button
+                    asChild
                     variant="outline"
-                    className="h-10 w-full rounded-xl border-primary/15 bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary"
-                    onClick={onManage}
+                    className="mt-auto h-10 w-full rounded-xl border-primary/15 bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary"
                 >
-                    <Handshake className="me-2 h-4 w-4" />
-                    {t('shareholders.manage')}
+                    <Link href={`/shareholders/${shareholder.id}`}>
+                        <Eye className="me-2 h-4 w-4" />
+                        {t('shareholders.viewDetails')}
+                    </Link>
                 </Button>
             </CardContent>
         </Card>
@@ -491,7 +478,7 @@ function ShareholderForm({
     currencies: Currency[];
     onSuccess: () => void;
 }) {
-    const { t } = useLocalization();
+    const { t, locale } = useLocalization();
     const form = useForm<ShareholderFormData>(
         shareholder
             ? {
@@ -520,6 +507,29 @@ function ShareholderForm({
     );
     const options = (values: Record<string, string>) =>
         Object.entries(values).map(([value, label]) => ({ value, label }));
+    const photoInputId = `shareholder-photo-${shareholder?.id ?? 'create'}`;
+    const documentsInputId = `shareholder-documents-${shareholder?.id ?? 'create'}`;
+    const [photoPreview, setPhotoPreview] = useState<string | null>(
+        shareholder?.photo_url ?? null,
+    );
+
+    useEffect(
+        () => () => {
+            if (photoPreview?.startsWith('blob:')) {
+                URL.revokeObjectURL(photoPreview);
+            }
+        },
+        [photoPreview],
+    );
+
+    const selectPhoto = (photo: File | null) => {
+        form.setData('photo', photo);
+        setPhotoPreview(
+            photo
+                ? URL.createObjectURL(photo)
+                : (shareholder?.photo_url ?? null),
+        );
+    };
 
     const submit = (event: FormEvent) => {
         event.preventDefault();
@@ -540,8 +550,8 @@ function ShareholderForm({
     };
 
     return (
-        <form onSubmit={submit} className="space-y-6">
-            <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <form onSubmit={submit} className="min-w-0 space-y-6">
+            <section className="grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <Field
                     label={t('shareholders.fields.fullName')}
                     error={form.errors.full_name}
@@ -614,7 +624,7 @@ function ShareholderForm({
                         }
                         options={countries.map((c) => ({
                             value: String(c.id),
-                            label: c.name,
+                            label: countryName(c, locale),
                         }))}
                         placeholder={t('shareholders.select')}
                     />
@@ -630,7 +640,7 @@ function ShareholderForm({
                         }
                         options={countries.map((c) => ({
                             value: String(c.id),
-                            label: c.name,
+                            label: countryName(c, locale),
                         }))}
                         placeholder={t('shareholders.select')}
                     />
@@ -711,35 +721,92 @@ function ShareholderForm({
                         }
                     />
                 </Field>
-                <Field
-                    label={t('shareholders.fields.photo')}
-                    error={form.errors.photo}
-                >
-                    <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) =>
-                            form.setData('photo', e.target.files?.[0] ?? null)
-                        }
-                    />
-                </Field>
+                <div className="min-w-0 space-y-1.5 sm:col-span-2 lg:col-span-3">
+                    <Label htmlFor={photoInputId}>
+                        {t('shareholders.fields.photo')}
+                    </Label>
+                    <div className="flex min-w-0 flex-col gap-4 rounded-2xl border border-dashed border-[#002452]/20 bg-white p-4 sm:flex-row sm:items-center">
+                        <Avatar className="h-20 w-20 rounded-2xl border border-[#002452]/10">
+                            <AvatarImage
+                                src={photoPreview ?? undefined}
+                                className="h-full w-full object-cover object-center"
+                            />
+                            <AvatarFallback className="rounded-2xl bg-[#f1f5f9] text-xl text-[#002452]">
+                                {initials(
+                                    form.data.full_name ||
+                                        shareholder?.full_name ||
+                                        'SH',
+                                )}
+                            </AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-medium text-[#002452]">
+                                {form.data.photo?.name ??
+                                    t('shareholders.fields.photo')}
+                            </p>
+                            <label
+                                htmlFor={photoInputId}
+                                className="mt-3 inline-flex h-9 cursor-pointer items-center rounded-lg border border-[#002452]/20 bg-white px-3 text-sm font-medium text-[#002452] transition-colors hover:bg-[#002452]/5"
+                            >
+                                <Upload className="me-2 size-4" />
+                                {t('shareholders.uploadPhoto')}
+                            </label>
+                            <Input
+                                id={photoInputId}
+                                type="file"
+                                accept="image/*"
+                                className="sr-only"
+                                onChange={(event) =>
+                                    selectPhoto(event.target.files?.[0] ?? null)
+                                }
+                            />
+                        </div>
+                    </div>
+                    <InputError message={form.errors.photo} />
+                </div>
                 {!shareholder && (
-                    <Field
-                        label={t('shareholders.documents')}
-                        error={form.errors.documents}
-                    >
-                        <Input
-                            type="file"
-                            multiple
-                            accept=".pdf,.doc,.docx,image/*"
-                            onChange={(e) =>
-                                form.setData(
-                                    'documents',
-                                    Array.from(e.target.files ?? []),
-                                )
-                            }
-                        />
-                    </Field>
+                    <div className="min-w-0 space-y-1.5 sm:col-span-2 lg:col-span-3">
+                        <Label htmlFor={documentsInputId}>
+                            {t('shareholders.documents')}
+                        </Label>
+                        <div className="rounded-2xl border border-dashed border-[#002452]/20 bg-white p-4">
+                            <div className="flex min-w-0 flex-col justify-between gap-3 sm:flex-row sm:items-center">
+                                <div className="min-w-0">
+                                    <p className="truncate text-sm font-medium text-[#002452]">
+                                        {form.data.documents.length
+                                            ? form.data.documents
+                                                  .map((file) => file.name)
+                                                  .join(', ')
+                                            : t('shareholders.documents')}
+                                    </p>
+                                    <p className="mt-1 text-xs text-muted-foreground">
+                                        {t('shareholders.documentsHelp')}
+                                    </p>
+                                </div>
+                                <label
+                                    htmlFor={documentsInputId}
+                                    className="inline-flex h-9 shrink-0 cursor-pointer items-center rounded-lg border border-[#002452]/20 bg-white px-3 text-sm font-medium text-[#002452] transition-colors hover:bg-[#002452]/5"
+                                >
+                                    <Upload className="me-2 size-4" />
+                                    {t('shareholders.upload')}
+                                </label>
+                            </div>
+                            <Input
+                                id={documentsInputId}
+                                type="file"
+                                multiple
+                                accept=".pdf,.doc,.docx,image/*"
+                                className="sr-only"
+                                onChange={(event) =>
+                                    form.setData(
+                                        'documents',
+                                        Array.from(event.target.files ?? []),
+                                    )
+                                }
+                            />
+                        </div>
+                        <InputError message={form.errors.documents} />
+                    </div>
                 )}
                 <div className="sm:col-span-2 lg:col-span-3">
                     <Field
@@ -886,7 +953,7 @@ function ShareholderForm({
                                                         <Trash2 className="h-4 w-4" />
                                                     </Button>
                                                 </div>
-                                                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                                                     <OwnershipFields
                                                         data={assignment}
                                                         errors={nestedErrors}
@@ -933,264 +1000,6 @@ function ShareholderForm({
                 </Button>
             </div>
         </form>
-    );
-}
-
-function OwnershipDialog({
-    shareholder,
-    properties,
-    currencies,
-    canManage,
-    onClose,
-}: {
-    shareholder: Shareholder;
-    properties: Property[];
-    currencies: Currency[];
-    canManage: boolean;
-    onClose: () => void;
-}) {
-    const { t } = useLocalization();
-    const form = useForm<OwnershipFormData>(emptyOwnership());
-    const docsForm = useForm<{ documents: File[] }>({ documents: [] });
-    const holdings = shareholder.shareholdings ?? [];
-
-    const assign = (event: FormEvent) => {
-        event.preventDefault();
-        form.post(`/shareholders/${shareholder.id}/shareholdings`, {
-            onSuccess: () => form.reset(),
-        });
-    };
-    const upload = (event: FormEvent) => {
-        event.preventDefault();
-        docsForm.post(`/shareholders/${shareholder.id}/documents`, {
-            forceFormData: true,
-            onSuccess: () => docsForm.reset(),
-        });
-    };
-    const closeHolding = (holding: PropertyShareholding) =>
-        router.post(
-            `/shareholders/${shareholder.id}/shareholdings/${holding.id}/close`,
-            { effective_to: localToday() },
-        );
-
-    return (
-        <Dialog open onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="max-h-[92vh] overflow-y-auto rounded-2xl sm:max-w-6xl">
-                <DialogHeader>
-                    <DialogTitle>{shareholder.full_name}</DialogTitle>
-                    <DialogDescription>
-                        {t('shareholders.ownershipHelp')}
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-6 lg:grid-cols-[1.5fr_1fr]">
-                    <section className="space-y-4">
-                        <h3 className="flex items-center gap-2 font-semibold">
-                            <Handshake className="h-4 w-4" />
-                            {t('shareholders.ownership')}
-                        </h3>
-                        {holdings.length ? (
-                            holdings.map((holding) => (
-                                <div
-                                    key={holding.id}
-                                    className="rounded-2xl border bg-white p-4 shadow-sm dark:bg-neutral-900"
-                                >
-                                    <div className="flex flex-wrap items-start justify-between gap-3">
-                                        <div>
-                                            <p className="font-medium">
-                                                {holding.property?.name}
-                                            </p>
-                                            <p className="mt-1 text-sm text-muted-foreground">
-                                                <CalendarDays className="me-1 inline h-3.5 w-3.5" />
-                                                {holding.effective_from} —{' '}
-                                                {holding.effective_to ?? '∞'}
-                                            </p>
-                                        </div>
-                                        <div className="text-end">
-                                            <p
-                                                className="text-xl font-semibold"
-                                                dir="ltr"
-                                            >
-                                                {cleanPercentage(
-                                                    holding.percentage,
-                                                )}
-                                                %
-                                            </p>
-                                            <Badge
-                                                variant={
-                                                    isCurrent(holding)
-                                                        ? 'default'
-                                                        : 'secondary'
-                                                }
-                                            >
-                                                {t(
-                                                    isCurrent(holding)
-                                                        ? 'shareholders.current'
-                                                        : 'shareholders.historical',
-                                                )}
-                                            </Badge>
-                                        </div>
-                                    </div>
-                                    {holding.capital_contribution && (
-                                        <p className="mt-3 text-sm text-muted-foreground">
-                                            {t('shareholders.fields.capital')}:{' '}
-                                            <span dir="ltr">
-                                                {formatNumber(
-                                                    holding.capital_contribution,
-                                                )}{' '}
-                                                {holding.currency?.code ?? ''}
-                                            </span>
-                                        </p>
-                                    )}
-                                    {canManage && isCurrent(holding) && (
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="mt-2"
-                                            onClick={() =>
-                                                closeHolding(holding)
-                                            }
-                                        >
-                                            {t('shareholders.closeToday')}
-                                        </Button>
-                                    )}
-                                </div>
-                            ))
-                        ) : (
-                            <div className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">
-                                {t('shareholders.noOwnership')}
-                            </div>
-                        )}
-
-                        {canManage && (
-                            <form
-                                onSubmit={assign}
-                                className="rounded-2xl border bg-slate-50/80 p-5 dark:bg-neutral-950/60"
-                            >
-                                <div className="mb-4">
-                                    <h4 className="font-medium">
-                                        {t('shareholders.addPropertyShare')}
-                                    </h4>
-                                    <p className="mt-1 text-xs text-muted-foreground">
-                                        {t(
-                                            'shareholders.multipleOwnershipHelp',
-                                        )}
-                                    </p>
-                                </div>
-                                <div className="grid gap-4 sm:grid-cols-2">
-                                    <OwnershipFields
-                                        data={form.data}
-                                        errors={form.errors}
-                                        setData={(field, value) =>
-                                            form.setData(field, value)
-                                        }
-                                        properties={properties}
-                                        currencies={currencies}
-                                    />
-                                </div>
-                                <Button
-                                    className="mt-4"
-                                    type="submit"
-                                    disabled={form.processing}
-                                >
-                                    {t('shareholders.addPropertyShare')}
-                                </Button>
-                            </form>
-                        )}
-                    </section>
-                    <section className="space-y-4">
-                        <div>
-                            <h3 className="flex items-center gap-2 font-semibold">
-                                <FileText className="h-4 w-4" />
-                                {t('shareholders.documents')}
-                            </h3>
-                            <p className="mt-1 text-xs text-muted-foreground">
-                                {t('shareholders.documentsHelp')}
-                            </p>
-                        </div>
-                        {(shareholder.documents ?? []).length ? (
-                            shareholder.documents?.map((document) => (
-                                <div
-                                    key={document.id}
-                                    className="flex items-center justify-between gap-2 rounded-lg border p-3"
-                                >
-                                    <div className="min-w-0">
-                                        <p className="truncate text-sm font-medium">
-                                            {document.title}
-                                        </p>
-                                        <p className="text-xs text-muted-foreground">
-                                            {document.mime_type}
-                                        </p>
-                                    </div>
-                                    <div className="flex">
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            asChild
-                                        >
-                                            <a
-                                                href={`/shareholders/${shareholder.id}/documents/${document.id}`}
-                                                title={t(
-                                                    'shareholders.download',
-                                                )}
-                                            >
-                                                <Download className="h-4 w-4" />
-                                            </a>
-                                        </Button>
-                                        {canManage && (
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() =>
-                                                    router.delete(
-                                                        `/shareholders/${shareholder.id}/documents/${document.id}`,
-                                                    )
-                                                }
-                                                title={t('shareholders.remove')}
-                                            >
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
-                                        )}
-                                    </div>
-                                </div>
-                            ))
-                        ) : (
-                            <p className="rounded-lg border border-dashed p-5 text-center text-xs text-muted-foreground">
-                                {t('shareholders.noDocuments')}
-                            </p>
-                        )}
-                        {canManage && (
-                            <form onSubmit={upload} className="space-y-3">
-                                <Input
-                                    type="file"
-                                    multiple
-                                    accept=".pdf,.doc,.docx,image/*"
-                                    onChange={(e) =>
-                                        docsForm.setData(
-                                            'documents',
-                                            Array.from(e.target.files ?? []),
-                                        )
-                                    }
-                                />
-                                <InputError
-                                    message={docsForm.errors.documents}
-                                />
-                                <Button
-                                    type="submit"
-                                    variant="outline"
-                                    disabled={
-                                        !docsForm.data.documents.length ||
-                                        docsForm.processing
-                                    }
-                                >
-                                    <Upload className="me-2 h-4 w-4" />
-                                    {t('shareholders.upload')}
-                                </Button>
-                            </form>
-                        )}
-                    </section>
-                </div>
-            </DialogContent>
-        </Dialog>
     );
 }
 
@@ -1267,39 +1076,6 @@ function OwnershipFields({
                     placeholder={t('shareholders.select')}
                 />
             </Field>
-            <Field
-                label={t('shareholders.fields.effectiveFrom')}
-                error={errors.effective_from}
-            >
-                <Input
-                    type="date"
-                    value={data.effective_from}
-                    onChange={(e) => setData('effective_from', e.target.value)}
-                />
-            </Field>
-            <Field
-                label={t('shareholders.fields.effectiveTo')}
-                error={errors.effective_to}
-            >
-                <Input
-                    type="date"
-                    value={data.effective_to}
-                    onChange={(e) => setData('effective_to', e.target.value)}
-                />
-            </Field>
-            <div className="sm:col-span-2">
-                <Field
-                    label={t('shareholders.fields.assignmentNotes')}
-                    error={errors.assignment_notes}
-                >
-                    <Textarea
-                        value={data.assignment_notes}
-                        onChange={(e) =>
-                            setData('assignment_notes', e.target.value)
-                        }
-                    />
-                </Field>
-            </div>
         </>
     );
 }

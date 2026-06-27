@@ -375,6 +375,7 @@ class FinanceController extends Controller
             ->get();
 
         $generalLedger = $this->buildMarketLedger($startDate, $endDate, $propertyId, $category, 12);
+        $businessTotals = BusinessFinanceController::financeDashboardTotals();
 
         return Inertia::render('finance/index', [
             'filters' => [
@@ -411,6 +412,11 @@ class FinanceController extends Controller
                     'unpaidSalaries' => $unpaidSalaries,
                     'inventoryValue' => $inventoryValue,
                     'supplierBalances' => $supplierBalances,
+                    'businessValuation' => $businessTotals['valuation'],
+                    'businessSales' => $businessTotals['sales'],
+                    'businessIncome' => $businessTotals['income'],
+                    'businessExpenses' => $businessTotals['expenses'],
+                    'businessNet' => $businessTotals['net'],
                 ],
                 'trend' => $trend,
                 'propertyRevenue' => $propertyRevenue,
@@ -437,6 +443,8 @@ class FinanceController extends Controller
                         ['label' => 'Outstanding', 'value' => max(0, $rentalSummary['expected'] - $rentReceived), 'format' => 'currency'],
                     ]],
                     ['name' => 'Inventory Valuation', 'description' => 'Stock valuation and inventory cost movements.', 'status' => 'Ready'],
+                    ['name' => 'Dubai Restaurant', 'description' => 'Daily restaurant valuation, sales, income, and expenses.', 'status' => 'Ready'],
+                    ['name' => 'Kabul Gold & Sarafi', 'description' => 'Daily gold and Sarafi valuation, sales, income, and expenses.', 'status' => 'Ready'],
                 ],
                 'notes' => [
                     'grossProfit' => 'Received rent before operating expenses.',

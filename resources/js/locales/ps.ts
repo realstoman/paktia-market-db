@@ -102,6 +102,8 @@ const ps = {
         tools: 'نورې برخې',
         managementTools: 'د مدیریت توکي',
         toolInventory: 'ګدام',
+        toolDubaiRestaurant: 'د دوبۍ رستورانت',
+        toolKabulSarafi: 'د کابل طلا او صرافي',
         toolContracts: 'د قرارداد قالبونه',
         toolEmployees: 'کارکوونکي',
         toolShareholders: 'شریکان',
@@ -671,6 +673,25 @@ const ps = {
         floors: 'منزلونه',
         occupied: 'کرایه شوي دوکانونه',
         available: 'خالي دوکانونه',
+        totalCollectedRentThisMonth: 'د دې میاشتې ټوله راټوله شوې کرایه',
+        viewCollectedRents: 'کرایې وګورئ',
+        totalExpensesThisMonth: 'د دې میاشتې ټول لګښتونه',
+        totalShareholderTakeoutsThisMonth: 'د دې میاشتې د شریکانو برداشتونه',
+        totalAvailableCash: 'شته نغدي پیسې',
+        monthlyFinanceChart: 'میاشتنی مالي لنډیز',
+        monthlyFinanceChartHelp:
+            'د دې میاشتې راټوله شوې کرایه، لګښتونه، د شریکانو برداشتونه او شته نغدي پیسې',
+        propertyStructureChart: 'د جایداد جوړښت',
+        propertyStructureChartHelp:
+            'منزلونه، دوکانونه، نیول شوي دوکانونه او خالي دوکانونه',
+        recentCollectedRent: 'وروستۍ راټوله شوې کرایه',
+        recentCollectedRentHelp:
+            'له دوکانونو او کرایه شوو ځایونو څخه وروستي د کرایې پرداختونه',
+        receipt: 'رسید',
+        shop: 'دوکان',
+        tenant: 'کرایه‌دار',
+        period: 'دوره',
+        noRecentRent: 'د دې جایداد لپاره لا کرایه نه ده راټوله شوې.',
         collectedRentAfn: 'په افغانۍ راټوله شوې کرایه',
         collectedRentUsd: 'په ډالر راټوله شوې کرایه',
         remaining: 'پاتې',
@@ -3350,6 +3371,7 @@ const ps = {
         register: 'شریک ثبت کړئ',
         edit: 'معلومات سمول',
         manage: 'ونډه مدیریت کړئ',
+        viewDetails: 'جزئیات وګورئ',
         searchPlaceholder: 'په نوم، پېژندپاڼه یا تلیفون ولټوئ...',
         noResults: 'ستاسو له لټون سره سم شریک ونه موندل شو.',
         active: 'فعال',
@@ -3362,9 +3384,14 @@ const ps = {
         documentsHelp:
             'PDF، Word یا انځورونه؛ اسناد یوازې واک لرونکو کاروونکو ته ښکاري.',
         upload: 'اسناد پورته کړئ',
+        uploadPhoto: 'انځور پورته کړئ',
         download: 'ښکته کول',
         remove: 'لرې کول',
         noDocuments: 'تر اوسه اسناد نشته.',
+        deleteDocumentTitle: 'د شریک سند لرې شي؟',
+        deleteDocumentDescription:
+            'دا عمل به :name د شریک له پروفایل څخه دایمي لرې کړي.',
+        deleteDocumentConfirm: 'سند لرې کړئ',
         ownership: 'د جایداد مالکیت',
         ownershipHelp:
             'د ونډې سلنه د ټاکل شوو نېټو لپاره اعتبار لري او د راتلونکي ګټې او زیان په محاسبه کې کارېږي.',
@@ -3419,6 +3446,89 @@ const ps = {
         share: ':percentage٪ ونډه',
         from: 'له :date',
         until: 'تر :date',
+        profile: {
+            ownerProfile: 'د شریک پروفایل',
+            back: 'شریکانو ته ستنېدل',
+            overview: 'د پروفایل لنډیز',
+            currentOwnership: 'اوسنۍ ونډې',
+            ownershipHistory: 'د ونډو تاریخچه',
+            partnershipStart: 'د شراکت پیل',
+            investment: 'پانګونه',
+            takeouts: 'برداشتونه',
+            takeoutsHelp:
+                'د شریک برداشتونه، د ګټې وېش او د پانګې برداشت به له همدې پروفایل څخه مدیریت کېږي.',
+            totalTakeouts: 'ټول ثبت شوي برداشتونه',
+        },
+    },
+
+    businessFinance: {
+        common: {
+            notRecorded: 'ثبت شوی نه دی',
+        },
+        businesses: {
+            dubaiRestaurant: {
+                title: 'د دوبۍ رستورانت',
+                location: 'دوبۍ، متحده عربي امارات',
+                description:
+                    'د ګروپ اړوند د دوبۍ رستورانت لپاره ورځنی ارزښت، خرڅلاو، عاید او لګښتونه ثبت کړئ.',
+                moduleDescription:
+                    'د رستورانت ورځنی ارزښت، خرڅلاو، عاید او لګښتونه.',
+            },
+            kabulSarafi: {
+                title: 'د کابل طلا او صرافي',
+                location: 'کابل، افغانستان',
+                description:
+                    'په کابل کې د طلا او صرافي کاروبار لپاره ورځنی ارزښت، خرڅلاو، عاید او لګښتونه ثبت کړئ.',
+                moduleDescription:
+                    'د طلا او صرافي ورځنی ارزښت، خرڅلاو، عاید او لګښتونه.',
+            },
+        },
+        actions: {
+            backToFinance: 'مالي برخې ته ستنېدل',
+            saveEntry: 'رکورد خوندي کول',
+        },
+        summary: {
+            latestValuation: 'وروستۍ ارزونه',
+            monthSales: 'د دې میاشتې خرڅلاو',
+            monthSalesHelp: 'د روانې میاشتې ثبت شوی خرڅلاو',
+            monthExpenses: 'د دې میاشتې لګښتونه',
+            monthExpensesHelp: 'د روانې میاشتې ثبت شوي لګښتونه',
+            totalNet: 'ټول خالص',
+            totalNetHelp: 'ټول عاید منفي لګښتونه له ټولو رکوردونو څخه',
+            groupBusinessValuation: 'د کاروبارونو ارزښت',
+            groupBusinessValuationHelp:
+                'د ګروپ اړوند کاروبارونو وروستی ثبت شوی ارزښت؛ د اسعارو بدلون نه دی شوی',
+            groupBusinessIncome: 'د کاروبارونو عاید',
+            groupBusinessIncomeHelp:
+                'د رستورانت او صرافۍ لپاره ثبت شوی عاید؛ د اسعارو بدلون نه دی شوی',
+            groupBusinessNet: 'د کاروبارونو خالص',
+            groupBusinessNetHelp:
+                'د کاروبارونو عاید منفي د کاروبارونو لګښتونه؛ د اسعارو بدلون نه دی شوی',
+        },
+        form: {
+            title: 'ورځنی مالي رکورد',
+            description:
+                'ورځنی ارزښت، خرڅلاو، عاید او لګښتونه ولیکئ. د عین نېټې ثبتول هماغه ورځ تازه کوي.',
+        },
+        fields: {
+            date: 'نېټه',
+            currency: 'اسعار',
+            selectCurrency: 'اسعار وټاکئ',
+            valuation: 'د کاروبار ارزښت',
+            sales: 'خرڅلاو',
+            income: 'عاید',
+            expenses: 'لګښتونه',
+            net: 'خالص',
+            notes: 'یادښت',
+            notesPlaceholder:
+                'د ورځې، سرچینې، اصلاح یا مالي جزئیاتو په اړه اختیاري یادښت…',
+        },
+        entries: {
+            title: 'ورځني رکوردونه',
+            description:
+                'د ارزښت، خرڅلاو، عاید او لګښتونو وروستي نېټه‌لرونکي رکوردونه.',
+            empty: 'تر اوسه کوم مالي رکورد نه دی ثبت شوی.',
+        },
     },
 
     paymentMethods: {
