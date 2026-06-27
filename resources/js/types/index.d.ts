@@ -447,6 +447,7 @@ export interface Property {
     parent_property?: Property | null;
     related_locations?: Property[];
     name: string;
+    name_translations?: Partial<Record<'fa' | 'ps' | 'en', string>> | null;
     country?: Country | string | null;
     country_id?: number | null;
     country_object?: Country | null;

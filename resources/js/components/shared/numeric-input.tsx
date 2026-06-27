@@ -203,7 +203,7 @@ export function NumericInput({
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 shrink-0 rounded-none border-r"
+                className="h-10 w-10 shrink-0 rounded-none border-r"
                 disabled={
                     props.disabled ||
                     (currentNumericValue !== null &&
@@ -222,14 +222,14 @@ export function NumericInput({
                 value={displayValue}
                 onChange={handleChange}
                 onBlur={handleBlur}
-                className="h-9 rounded-none border-0 text-center shadow-none focus-visible:ring-0"
+                className="h-10 rounded-none border-0 text-center shadow-none focus-visible:ring-0"
                 {...props}
             />
             <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 shrink-0 rounded-none border-l"
+                className="h-10 w-10 shrink-0 rounded-none border-l"
                 disabled={
                     props.disabled ||
                     (currentNumericValue !== null &&
