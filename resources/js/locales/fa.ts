@@ -3422,7 +3422,7 @@ const fa = {
         inactive: 'غیرفعال',
         total: 'مجموع سهمداران',
         assigned: 'دارای سهم',
-        properties: 'یااملاکی دارای سهمدار',
+        properties: 'املاک دارای سهمدار',
         identity: 'هویت و معلومات تماس',
         documents: 'اسناد محرمانه',
         documentsHelp:
