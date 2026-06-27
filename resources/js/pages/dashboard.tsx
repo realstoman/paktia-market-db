@@ -7,6 +7,7 @@ import {
     Building2,
     CircleDollarSign,
     DoorOpen,
+    ExternalLink,
     Layers3,
     Plus,
     ReceiptText,
@@ -116,11 +117,15 @@ function StatCard({
     value,
     icon: Icon,
     accent = 'teal',
+    actionHref,
+    actionLabel,
 }: {
     label: string;
     value: string;
     icon: typeof Building2;
     accent?: 'teal' | 'green' | 'coral' | 'blue';
+    actionHref?: string;
+    actionLabel?: string;
 }) {
     const tones = {
         teal: 'bg-[#edf1f4] text-[#002452]',
@@ -131,17 +136,28 @@ function StatCard({
 
     return (
         <div className="flex items-center gap-4 rounded-2xl border border-[#dfe7e9] bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
-            <div
-                className={`flex size-11 shrink-0 items-center justify-center rounded-xl ${tones[accent]}`}
-            >
-                <Icon className="size-5" />
+            <div className="flex min-w-0 flex-1 items-center gap-4">
+                <div
+                    className={`flex size-11 shrink-0 items-center justify-center rounded-xl ${tones[accent]}`}
+                >
+                    <Icon className="size-5" />
+                </div>
+                <div className="min-w-0">
+                    <p className="truncate text-xs text-slate-500">{label}</p>
+                    <p className="mt-1 text-xl font-bold text-slate-900 dark:text-white">
+                        {value}
+                    </p>
+                </div>
             </div>
-            <div className="min-w-0">
-                <p className="truncate text-xs text-slate-500">{label}</p>
-                <p className="mt-1 text-xl font-bold text-slate-900 dark:text-white">
-                    {value}
-                </p>
-            </div>
+            {actionHref && actionLabel ? (
+                <Link
+                    href={actionHref}
+                    className="ms-auto inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border border-[#002452]/15 bg-[#002452] px-3 text-xs font-semibold text-white transition hover:bg-[#002452]/90"
+                >
+                    <ExternalLink className="size-3.5" />
+                    <span>{actionLabel}</span>
+                </Link>
+            ) : null}
         </div>
     );
 }
@@ -154,6 +170,14 @@ function EmptyChart({ label }: { label: string }) {
     );
 }
 
+function formatDateForQuery(date: Date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+}
+
 export default function Dashboard({ data }: { data: DashboardData }) {
     const { t } = useLocalization();
     const [activeTab, setActiveTab] = useState<string>('overall');
@@ -161,6 +185,23 @@ export default function Dashboard({ data }: { data: DashboardData }) {
     const selectedProject = projects.find(
         (project) => String(project.id) === activeTab,
     );
+    const currentMonthFilters = useMemo(() => {
+        const now = new Date();
+        const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+        const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+        return {
+            startDate: formatDateForQuery(monthStart),
+            endDate: formatDateForQuery(monthEnd),
+        };
+    }, []);
+    const rentCollectionsHref = selectedProject
+        ? `/finance/rentals?${new URLSearchParams({
+              property_id: String(selectedProject.id),
+              start_date: currentMonthFilters.startDate,
+              end_date: currentMonthFilters.endDate,
+          }).toString()}`
+        : '/finance/rentals';
 
     const overallProjectChart = useMemo(
         () =>
@@ -663,6 +704,11 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                 value={`${formatPrice(selectedProject.financeThisMonth.collectedRent)} ؋`}
                                 icon={Banknote}
                                 accent="green"
+                                actionHref={rentCollectionsHref}
+                                actionLabel={t(
+                                    'propertyDashboard.viewCollectedRents',
+                                    'View rents',
+                                )}
                             />
                             <StatCard
                                 label={t(

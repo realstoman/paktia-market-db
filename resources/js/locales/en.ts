@@ -676,6 +676,7 @@ const en = {
         occupied: 'Occupied shops',
         available: 'Available shops',
         totalCollectedRentThisMonth: 'Collected rent this month',
+        viewCollectedRents: 'View rents',
         totalExpensesThisMonth: 'Expenses this month',
         totalShareholderTakeoutsThisMonth: 'Shareholder takeouts this month',
         totalAvailableCash: 'Available cash',

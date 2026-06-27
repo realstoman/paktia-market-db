@@ -674,6 +674,7 @@ const ps = {
         occupied: 'کرایه شوي دوکانونه',
         available: 'خالي دوکانونه',
         totalCollectedRentThisMonth: 'د دې میاشتې ټوله راټوله شوې کرایه',
+        viewCollectedRents: 'کرایې وګورئ',
         totalExpensesThisMonth: 'د دې میاشتې ټول لګښتونه',
         totalShareholderTakeoutsThisMonth: 'د دې میاشتې د شریکانو برداشتونه',
         totalAvailableCash: 'شته نغدي پیسې',
