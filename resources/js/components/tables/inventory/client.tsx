@@ -28,7 +28,12 @@ import {
     Unit,
     Vendor,
 } from '@/types';
-import { formatAfn, formatNumber, formatPrice } from '@/utils/format';
+import {
+    formatAfn,
+    formatCurrencySymbol,
+    formatNumber,
+    formatPrice,
+} from '@/utils/format';
 import { router, usePage } from '@inertiajs/react';
 import {
     Clock,
@@ -1684,7 +1689,8 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                     >
                                         <div>
                                             <p className="text-sm font-medium">
-                                                {currency.name} ({currency.code}
+                                                {currency.name} (
+                                                {formatCurrencySymbol(currency)}
                                                 )
                                             </p>
                                             <p className="text-xs text-muted-foreground">
@@ -2414,11 +2420,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
                                     onValueChange={setCurrencyCode}
                                     options={currencies.map((currency) => ({
                                         value: currency.code,
-                                        label:
-                                            currency.code +
-                                            ' (' +
-                                            currency.symbol +
-                                            ')',
+                                        label: `${formatCurrencySymbol(currency)} - ${currency.name}`,
                                     }))}
                                     placeholder={t(
                                         'inventory.common.selectCurrency',

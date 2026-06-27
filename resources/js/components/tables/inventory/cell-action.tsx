@@ -44,7 +44,7 @@ import {
     Unit,
     Vendor,
 } from '@/types';
-import { formatPrice } from '@/utils/format';
+import { formatCurrencySymbol, formatPrice } from '@/utils/format';
 import { router, usePage } from '@inertiajs/react';
 import {
     CalendarClock,
@@ -671,11 +671,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     onValueChange={setEditCurrencyCode}
                                     options={currencies.map((currency) => ({
                                         value: currency.code,
-                                        label:
-                                            currency.code +
-                                            ' (' +
-                                            currency.symbol +
-                                            ')',
+                                        label: `${formatCurrencySymbol(currency)} - ${currency.name}`,
                                     }))}
                                     placeholder={t(
                                         'inventory.common.selectCurrency',
@@ -1394,11 +1390,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                                         onValueChange={setRestockCurrencyCode}
                                         options={currencies.map((currency) => ({
                                             value: currency.code,
-                                            label:
-                                                currency.code +
-                                                ' (' +
-                                                currency.symbol +
-                                                ')',
+                                            label: `${formatCurrencySymbol(currency)} - ${currency.name}`,
                                         }))}
                                         placeholder={t(
                                             'inventory.common.selectCurrency',

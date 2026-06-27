@@ -74,6 +74,9 @@ const CURRENCIES = ['AFN', 'USD'];
 const MAX_ATTACHMENTS = 25;
 const FILTER_ALL = '__all__';
 
+const currencyLabel = (currency: string) =>
+    currency === 'USD' ? '$' : currency === 'AFN' ? '؋' : currency;
+
 const formatTimeTo12Hour = (time?: string | null) => {
     if (!time) {
         return '';
@@ -1773,7 +1776,7 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                                     onValueChange={setSalaryCurrency}
                                     options={CURRENCIES.map((currency) => ({
                                         value: currency,
-                                        label: currency,
+                                        label: currencyLabel(currency),
                                     }))}
                                     placeholder={t(
                                         'employees.form.selectCurrency',

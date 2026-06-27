@@ -87,6 +87,9 @@ const EMPLOYEE_STATUSES = ['active', 'inactive', 'suspended', 'terminated'];
 const CURRENCIES = ['AFN', 'USD'];
 const MAX_ATTACHMENTS = 25;
 
+const currencyLabel = (currency: string) =>
+    currency === 'USD' ? '$' : currency === 'AFN' ? '؋' : currency;
+
 const formatTimeTo12Hour = (time?: string | null) => {
     if (!time) {
         return '';
@@ -1368,7 +1371,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     }
                                     options={CURRENCIES.map((currency) => ({
                                         value: currency,
-                                        label: currency,
+                                        label: currencyLabel(currency),
                                     }))}
                                     placeholder={t(
                                         'employees.form.selectCurrency',

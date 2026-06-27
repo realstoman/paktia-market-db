@@ -16,7 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
 import { BreadcrumbItem, SharedData } from '@/types';
-import { formatNumber } from '@/utils/format';
+import { formatCurrencySymbol, formatNumber } from '@/utils/format';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import {
     ArrowLeft,
@@ -89,7 +89,7 @@ interface BusinessFormData {
 
 const currencyOptions = ['AED', 'AFN', 'USD', 'EUR'].map((currency) => ({
     value: currency,
-    label: currency,
+    label: formatCurrencySymbol({ code: currency }),
 }));
 
 const localToday = () => {
@@ -105,7 +105,7 @@ const money = (
         return '—';
     }
 
-    return `${formatNumber(Number(value))} ${currencyCode}`;
+    return `${formatNumber(Number(value))} ${formatCurrencySymbol({ code: currencyCode })}`;
 };
 
 export default function BusinessFinanceShow({
