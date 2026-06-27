@@ -197,6 +197,7 @@ export function EditPropertyDialog({
                                     'property_type',
                                     value as
                                         | 'market'
+                                        | 'mall'
                                         | 'block'
                                         | 'house'
                                         | 'commercial_unit',
@@ -208,6 +209,7 @@ export function EditPropertyDialog({
                             }}
                             options={[
                                 'market',
+                                'mall',
                                 'block',
                                 'house',
                                 'commercial_unit',
