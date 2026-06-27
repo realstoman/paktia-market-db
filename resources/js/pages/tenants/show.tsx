@@ -147,7 +147,7 @@ export default function TenantProfile({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={displayName} />
             <div
-                className="mx-auto w-full max-w-[1500px] space-y-6"
+                className="mx-auto w-full max-w-375 space-y-4"
                 dir={isRtl ? 'rtl' : 'ltr'}
             >
                 <section className="overflow-hidden rounded-3xl border border-[#002452]/10 bg-[#f1f5f9] p-6 text-[#002452] shadow-none sm:p-8">
@@ -290,7 +290,7 @@ export default function TenantProfile({
                     </div>
                 </section>
 
-                <section className="grid gap-6 xl:grid-cols-[1.1fr_1.4fr_0.9fr]">
+                <section className="grid gap-4 xl:grid-cols-[1.1fr_1.4fr_0.9fr]">
                     <Card className="rounded-2xl">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2 text-lg">
@@ -331,7 +331,7 @@ export default function TenantProfile({
                             />
                         </CardContent>
                     </Card>
-                    <Card className="rounded-2xl border-primary/20 bg-gradient-to-br from-card to-primary/5">
+                    <Card className="rounded-2xl">
                         <CardHeader>
                             <CardTitle className="flex items-center justify-between gap-2 text-lg">
                                 <span className="flex items-center gap-2">
@@ -429,7 +429,7 @@ export default function TenantProfile({
                     </Card>
                 </section>
 
-                <section className="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
+                <section className="grid gap-4 xl:grid-cols-[1.5fr_1fr]">
                     <Card className="rounded-2xl">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2 text-lg">
@@ -498,6 +498,7 @@ export default function TenantProfile({
                     <div className="flex justify-end">
                         <Button
                             variant="outline"
+                            className="bg-white"
                             onClick={() =>
                                 router.post(`/tenants/${tenant.id}/toggle`)
                             }
@@ -534,11 +535,14 @@ function Info({
             <Icon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
             <div>
                 <p className="text-xs text-muted-foreground">{label}</p>
-                <p className="mt-0.5 font-medium break-words">{value || '—'}</p>
+                <p className="mt-0.5 font-medium wrap-break-word">
+                    {value || '—'}
+                </p>
             </div>
         </div>
     );
 }
+
 function Metric({
     label,
     value,
