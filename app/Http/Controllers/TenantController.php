@@ -40,14 +40,23 @@ class TenantController extends Controller
         $tenantKind = in_array($tenantKind, ['business', 'person'], true)
             ? $tenantKind
             : null;
+        $noBusinessNames = ['', 'ندارد', 'نخیر', 'نه', 'no', 'none', 'n/a', 'na', '-'];
         $businessTenant = fn ($query, $_ = null) => $query->where(fn ($businesses) => $businesses
             ->where('tenant_type', 'company')
             ->orWhere(fn ($namedBusiness) => $namedBusiness
                 ->whereNotNull('business_name')
-                ->where('business_name', '!=', '')));
+                ->whereRaw(
+                    'LOWER(TRIM(business_name)) NOT IN ('.implode(',', array_fill(0, count($noBusinessNames), '?')).')',
+                    $noBusinessNames,
+                )));
         $personTenant = fn ($query, $_ = null) => $query->where(fn ($people) => $people
-            ->whereNull('business_name')
-            ->orWhere('business_name', ''));
+            ->where('tenant_type', 'individual')
+            ->where(fn ($withoutBusiness) => $withoutBusiness
+                ->whereNull('business_name')
+                ->orWhereRaw(
+                    'LOWER(TRIM(business_name)) IN ('.implode(',', array_fill(0, count($noBusinessNames), '?')).')',
+                    $noBusinessNames,
+                )));
         $activeLease = fn ($query, $_ = null) => $query
             ->where('status', 'active')
             ->whereDate('start_date', '<=', today())
