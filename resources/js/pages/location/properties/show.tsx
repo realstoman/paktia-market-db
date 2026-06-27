@@ -1016,7 +1016,6 @@ function AddFloor({ property }: { property: Property }) {
         name: '',
         level_number: '0',
         area_sqm: '',
-        planned_units: '',
         usage_type: property.usage_type ?? 'commercial',
         description: '',
     });
@@ -1075,16 +1074,6 @@ function AddFloor({ property }: { property: Property }) {
                             value={form.data.area_sqm}
                             onValueChange={(value) =>
                                 form.setData('area_sqm', value)
-                            }
-                            showControls={false}
-                        />
-                    </Field>
-                    <Field label={t('propertyWorkspace.fields.plannedSpaces')}>
-                        <NumericInput
-                            min="0"
-                            value={form.data.planned_units}
-                            onValueChange={(value) =>
-                                form.setData('planned_units', value)
                             }
                             showControls={false}
                         />
