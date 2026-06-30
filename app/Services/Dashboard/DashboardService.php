@@ -138,6 +138,10 @@ class DashboardService
                         ->where('status', 'received')
                         ->whereBetween('payment_date', [$monthStart->toDateString(), $monthEnd->toDateString()])
                         ->sum('amount');
+                    $totalCollectedRent = (float) RentPayment::query()
+                        ->where('property_id', $property->id)
+                        ->where('status', 'received')
+                        ->sum('amount');
                     $monthlyExpenses = (float) Expense::query()
                         ->where('property_id', $property->id)
                         ->where('approval_status', 'approved')
@@ -244,7 +248,7 @@ class DashboardService
                         'inventoryItems' => (int) $property->inventory_items_count,
                         'employees' => (int) $property->employees_count,
                         'rent' => [
-                            'collectedAfn' => $monthlyCollectedRent,
+                            'collectedAfn' => $totalCollectedRent,
                             'remainingAfn' => 0,
                             'collectedUsd' => 0,
                             'remainingUsd' => 0,

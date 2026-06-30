@@ -8,6 +8,8 @@ import {
     CircleDollarSign,
     DoorOpen,
     ExternalLink,
+    FileSpreadsheet,
+    FileText,
     Layers3,
     Plus,
     ReceiptText,
@@ -184,8 +186,30 @@ function formatDateForQuery(date: Date) {
     return `${year}-${month}-${day}`;
 }
 
+function escapeHtml(value: string): string {
+    return value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function downloadBlob(content: BlobPart, filename: string, type: string) {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+}
+
 export default function Dashboard({ data }: { data: DashboardData }) {
-    const { t } = useLocalization();
+    const { direction, t } = useLocalization();
     const [activeTab, setActiveTab] = useState<string>('overall');
     const projects = data.portfolio.projects;
     const selectedProject = projects.find(
@@ -313,6 +337,154 @@ export default function Dashboard({ data }: { data: DashboardData }) {
     const hasProjectFinance = propertyFinanceChart.some(
         (item) => item.value !== 0,
     );
+    const overviewRows = useMemo(
+        () =>
+            projects.map((project) => ({
+                id: project.id,
+                name: project.name,
+                address: project.address || '—',
+                recentMonthRent: project.financeThisMonth.collectedRent,
+                totalCollectedRent: project.rent.collectedAfn,
+                totalExpenses: project.expensesAfn,
+                status: project.isActive
+                    ? t('propertyDashboard.active', 'Active')
+                    : t('propertyDashboard.inactive', 'Inactive'),
+                isActive: project.isActive,
+            })),
+        [projects, t],
+    );
+    const overviewExportColumns = useMemo(
+        () => [
+            t('propertyDashboard.propertyName', 'Property Name'),
+            t('propertyDashboard.recentMonthRent', 'Recent month rent'),
+            t('propertyDashboard.totalCollectedRent', 'Total collected rent'),
+            t('propertyDashboard.totalExpenses', 'Total expenses'),
+            t('propertyDashboard.status', 'Status'),
+        ],
+        [t],
+    );
+    const exportOverviewExcel = () => {
+        const rows = overviewRows
+            .map(
+                (row) => `
+                    <tr>
+                        <td>${escapeHtml(row.name)}</td>
+                        <td>${formatPrice(row.recentMonthRent)} ؋</td>
+                        <td>${formatPrice(row.totalCollectedRent)} ؋</td>
+                        <td>${formatPrice(row.totalExpenses)} ؋</td>
+                        <td>${escapeHtml(row.status)}</td>
+                    </tr>`,
+            )
+            .join('');
+        const html = `
+            <html dir="${direction}">
+                <head>
+                    <meta charset="utf-8" />
+                </head>
+                <body>
+                    <table>
+                        <thead>
+                            <tr>
+                                ${overviewExportColumns.map((column) => `<th>${escapeHtml(column)}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </body>
+            </html>`;
+
+        downloadBlob(
+            html,
+            `properties-finance-overview-${formatDateForQuery(new Date())}.xls`,
+            'application/vnd.ms-excel;charset=utf-8;',
+        );
+    };
+    const exportOverviewPdf = () => {
+        const printWindow = window.open('', '_blank');
+
+        if (!printWindow) {
+            return;
+        }
+
+        const title = t(
+            'propertyDashboard.projectsFinanceOverview',
+            'Properties finance overview',
+        );
+        const rows = overviewRows
+            .map(
+                (row) => `
+                    <tr>
+                        <td>
+                            <strong>${escapeHtml(row.name)}</strong>
+                            <div class="muted">${escapeHtml(row.address)}</div>
+                        </td>
+                        <td>${formatPrice(row.recentMonthRent)} ؋</td>
+                        <td>${formatPrice(row.totalCollectedRent)} ؋</td>
+                        <td>${formatPrice(row.totalExpenses)} ؋</td>
+                        <td>${escapeHtml(row.status)}</td>
+                    </tr>`,
+            )
+            .join('');
+
+        printWindow.document.write(`
+            <!doctype html>
+            <html dir="${direction}">
+                <head>
+                    <meta charset="utf-8" />
+                    <title>${escapeHtml(title)}</title>
+                    <style>
+                        body {
+                            font-family: Arial, sans-serif;
+                            color: #002452;
+                            padding: 28px;
+                        }
+                        h1 {
+                            margin: 0 0 18px;
+                            font-size: 22px;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            font-size: 12px;
+                        }
+                        th, td {
+                            border: 1px solid #dfe7e9;
+                            padding: 10px;
+                            text-align: ${direction === 'rtl' ? 'right' : 'left'};
+                            vertical-align: top;
+                        }
+                        th {
+                            background: #edf1f4;
+                            font-weight: 700;
+                        }
+                        .muted {
+                            margin-top: 4px;
+                            color: #64748b;
+                            font-size: 11px;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h1>${escapeHtml(title)}</h1>
+                    <table>
+                        <thead>
+                            <tr>
+                                ${overviewExportColumns.map((column) => `<th>${escapeHtml(column)}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                    <script>
+                        window.onload = function () {
+                            window.print();
+                        };
+                    </script>
+                </body>
+            </html>
+        `);
+        printWindow.document.close();
+    };
+
     return (
         <AppLayout>
             <Head title={t('propertyDashboard.title', 'Property dashboard')} />
@@ -579,35 +751,72 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                         </section>
 
                         <section className="rounded-2xl border border-[#dfe7e9] bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
-                            <h2 className="font-bold text-[#002452] dark:text-white">
-                                {t('propertyDashboard.projects', 'Properties')}
-                            </h2>
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <h2 className="font-bold text-[#002452] dark:text-white">
+                                        {t(
+                                            'propertyDashboard.projectsFinanceOverview',
+                                            'Properties finance overview',
+                                        )}
+                                    </h2>
+                                    <p className="mt-1 text-xs text-slate-500">
+                                        {t(
+                                            'propertyDashboard.projectsFinanceOverviewHelp',
+                                            'Monthly rent, total collected rent, expenses, and status for each property.',
+                                        )}
+                                    </p>
+                                </div>
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={exportOverviewPdf}
+                                        className="inline-flex h-9 items-center gap-2 rounded-full border border-[#002452]/15 bg-white px-3 text-xs font-semibold text-[#002452] transition hover:bg-[#edf1f4] dark:bg-neutral-900 dark:text-white"
+                                    >
+                                        <FileText className="size-4" />
+                                        {t(
+                                            'propertyDashboard.downloadPdf',
+                                            'PDF',
+                                        )}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={exportOverviewExcel}
+                                        className="inline-flex h-9 items-center gap-2 rounded-full bg-[#002452] px-3 text-xs font-semibold text-white transition hover:bg-[#002452]/90"
+                                    >
+                                        <FileSpreadsheet className="size-4" />
+                                        {t(
+                                            'propertyDashboard.downloadExcel',
+                                            'Excel',
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
                             <div className="mt-4 overflow-x-auto">
                                 <table className="w-full min-w-190 text-sm">
                                     <thead className="text-slate-400">
                                         <tr className="border-b border-[#edf1f2] text-start dark:border-neutral-800">
                                             <th className="px-3 py-3 text-start font-medium">
                                                 {t(
-                                                    'propertyDashboard.project',
-                                                    'Property',
+                                                    'propertyDashboard.propertyName',
+                                                    'Property Name',
                                                 )}
                                             </th>
                                             <th className="px-3 py-3 text-start font-medium">
                                                 {t(
-                                                    'propertyDashboard.shops',
-                                                    'Shops',
+                                                    'propertyDashboard.recentMonthRent',
+                                                    'Recent month rent',
                                                 )}
                                             </th>
                                             <th className="px-3 py-3 text-start font-medium">
                                                 {t(
-                                                    'propertyDashboard.tenants',
-                                                    'Tenants',
+                                                    'propertyDashboard.totalCollectedRent',
+                                                    'Total collected rent',
                                                 )}
                                             </th>
                                             <th className="px-3 py-3 text-start font-medium">
                                                 {t(
-                                                    'propertyDashboard.expenses',
-                                                    'Expenses',
+                                                    'propertyDashboard.totalExpenses',
+                                                    'Total expenses',
                                                 )}
                                             </th>
                                             <th className="px-3 py-3 text-start font-medium">
@@ -619,7 +828,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {projects.map((project) => (
+                                        {overviewRows.map((project) => (
                                             <tr
                                                 key={project.id}
                                                 className="border-b border-[#f0f3f4] last:border-0 dark:border-neutral-800"
@@ -633,18 +842,20 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                                     </p>
                                                 </td>
                                                 <td className="px-3 py-4">
-                                                    {formatNumber(
-                                                        project.shops,
-                                                    )}
-                                                </td>
-                                                <td className="px-3 py-4">
-                                                    {formatNumber(
-                                                        project.registeredTenants,
-                                                    )}
+                                                    {formatPrice(
+                                                        project.recentMonthRent,
+                                                    )}{' '}
+                                                    ؋
                                                 </td>
                                                 <td className="px-3 py-4">
                                                     {formatPrice(
-                                                        project.expensesAfn,
+                                                        project.totalCollectedRent,
+                                                    )}
+                                                    ؋
+                                                </td>
+                                                <td className="px-3 py-4">
+                                                    {formatPrice(
+                                                        project.totalExpenses,
                                                     )}{' '}
                                                     ؋
                                                 </td>
@@ -652,15 +863,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                                     <span
                                                         className={`rounded-full px-3 py-1 text-xs font-semibold ${project.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'}`}
                                                     >
-                                                        {project.isActive
-                                                            ? t(
-                                                                  'propertyDashboard.active',
-                                                                  'Active',
-                                                              )
-                                                            : t(
-                                                                  'propertyDashboard.inactive',
-                                                                  'Inactive',
-                                                              )}
+                                                        {project.status}
                                                     </span>
                                                 </td>
                                             </tr>
