@@ -173,11 +173,16 @@ const initials = (name: string) =>
         .map((part) => part[0])
         .join('')
         .toUpperCase();
-const shopNumber = (lease?: Lease) =>
-    lease?.unit?.unit_number ??
-    (propertyBehavior(lease?.property) === 'commercial_unit'
-        ? lease.property.external_unit_number
-        : null);
+const shopNumber = (lease?: Lease) => {
+    if (!lease) return null;
+
+    return (
+        lease.unit?.unit_number ??
+        (propertyBehavior(lease.property) === 'commercial_unit'
+            ? (lease.property?.external_unit_number ?? null)
+            : null)
+    );
+};
 const propertyBehavior = (property?: Property | null) =>
     property?.type_definition?.behavior ??
     property?.property_type_behavior ??
@@ -367,15 +372,21 @@ export default function TenantsIndex({
                 </section>
 
                 <section className="grid gap-3 md:grid-cols-3">
-                    {[
-                        [ContactRound, t('tenants.total'), summary.businesses],
-                        [IdCard, t('tenants.persons'), summary.persons],
+                    {(
                         [
-                            Building2,
-                            t('tenants.rentedProperties'),
-                            summary.properties,
-                        ],
-                    ].map(([Icon, label, value], index) => (
+                            [
+                                ContactRound,
+                                t('tenants.total'),
+                                summary.businesses,
+                            ],
+                            [IdCard, t('tenants.persons'), summary.persons],
+                            [
+                                Building2,
+                                t('tenants.rentedProperties'),
+                                summary.properties,
+                            ],
+                        ] as [typeof ContactRound, string, number][]
+                    ).map(([Icon, label, value], index) => (
                         <Card
                             key={index}
                             className="border border-primary/10 shadow-none"

@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
-  <title id="title">Paktia Market</title>
-  <rect width="512" height="512" rx="112" fill="#102F33"/>
-  <path d="M112 214 256 104l144 110v42H112z" fill="#CC924B"/>
-  <path d="M160 244h192v168H160z" fill="#F8FAFD"/>
-  <path d="M206 412V282h61c52 0 83 25 83 67 0 43-31 68-83 68h-17v-43h16c24 0 37-8 37-25 0-16-13-24-37-24h-13v87z" fill="#102F33"/>
-</svg>
