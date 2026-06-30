@@ -77,4 +77,9 @@ class Employee extends Model
     {
         return $this->hasMany(EmployeeContract::class);
     }
+
+    public function inventoryAssignments(): HasMany
+    {
+        return $this->hasMany(InventoryAssignment::class);
+    }
 }

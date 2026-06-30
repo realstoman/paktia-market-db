@@ -20,6 +20,7 @@ import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
 import {
     Currency,
+    Employee,
     InventoryCategory,
     InventoryItem,
     InventoryType,
@@ -64,6 +65,7 @@ interface InventoryClientProps {
     units: Unit[];
     categories: InventoryCategory[];
     inventoryTypes: InventoryType[];
+    employees: Employee[];
     isLoading?: boolean;
 }
 
@@ -82,6 +84,7 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
     units,
     categories,
     inventoryTypes,
+    employees,
     isLoading = false,
 }) => {
     const { t } = useLocalization();
@@ -897,16 +900,26 @@ export const InventoryClient: React.FC<InventoryClientProps> = ({
 
     const tableColumns = useMemo(
         () =>
-            buildColumns(
-                properties,
-                vendors,
-                currencies,
-                units,
-                categories,
-                inventoryTypes,
-                t,
-            ),
-        [properties, vendors, currencies, units, categories, inventoryTypes, t],
+        buildColumns(
+            properties,
+            vendors,
+            currencies,
+            units,
+            categories,
+            inventoryTypes,
+            employees,
+            t,
+        ),
+        [
+            properties,
+            vendors,
+            currencies,
+            units,
+            categories,
+            inventoryTypes,
+            employees,
+            t,
+        ],
     );
 
     const availableTypes = useMemo(() => {

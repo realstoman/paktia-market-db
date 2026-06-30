@@ -376,6 +376,10 @@ class FinanceController extends Controller
 
         $generalLedger = $this->buildMarketLedger($startDate, $endDate, $propertyId, $category, 12);
         $businessTotals = BusinessFinanceController::financeDashboardTotals();
+        $businessCards = BusinessFinanceController::financeDashboardCards(
+            $startDate->toDateString(),
+            $endDate->toDateString(),
+        );
 
         return Inertia::render('finance/index', [
             'filters' => [
@@ -420,6 +424,7 @@ class FinanceController extends Controller
                 ],
                 'trend' => $trend,
                 'propertyRevenue' => $propertyRevenue,
+                'businessCards' => $businessCards,
                 'shareholderPnl' => $this->shareholderPnl->rows($startDate, $endDate, $propertyId),
                 'topExpenseCategories' => $topExpenseCategories,
                 'paymentBreakdown' => [],

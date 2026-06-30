@@ -114,6 +114,18 @@ interface FinanceDashboardData {
         property: string;
         revenue: number;
     }>;
+    businessCards: Array<{
+        slug: string;
+        key: string;
+        title: string;
+        titleKey: string;
+        valuation: number;
+        sales: number;
+        income: number;
+        expenses: number;
+        net: number;
+        currencyCode: string;
+    }>;
     shareholderPnl: Array<{
         id: number;
         shareholder: string;
@@ -636,6 +648,65 @@ function SummaryCard({
     );
 }
 
+function BusinessFinanceCard({
+    business,
+    t,
+}: {
+    business: FinanceDashboardData['businessCards'][number];
+    t: (key: string, fallback?: string) => string;
+}) {
+    const money = (value: number) =>
+        `${formatNumber(value)} ${business.currencyCode}`;
+
+    return (
+        <Card className="border-neutral-200/80 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
+            <CardContent className="space-y-4 p-5">
+                <div className="flex items-start justify-between gap-3">
+                    <div>
+                        <p className="text-xs font-medium tracking-[0.22em] text-neutral-500 uppercase">
+                            {t('financeDashboard.businessCards.title', 'Business finance')}
+                        </p>
+                        <h3 className="mt-1 text-lg font-semibold text-neutral-950 dark:text-neutral-50">
+                            {t(business.titleKey, business.title)}
+                        </h3>
+                    </div>
+                    <Button asChild variant="outline" size="sm">
+                        <Link href={`/finance/${business.slug}`}>
+                            <ExternalLink className="h-4 w-4" />
+                        </Link>
+                    </Button>
+                </div>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="rounded-xl bg-neutral-50 p-3 dark:bg-neutral-950">
+                        <p className="text-xs text-neutral-500">
+                            {t('financeDashboard.businessCards.valuation', 'Valuation')}
+                        </p>
+                        <p className="font-semibold">{money(business.valuation)}</p>
+                    </div>
+                    <div className="rounded-xl bg-neutral-50 p-3 dark:bg-neutral-950">
+                        <p className="text-xs text-neutral-500">
+                            {t('financeDashboard.businessCards.income', 'Income')}
+                        </p>
+                        <p className="font-semibold">{money(business.income)}</p>
+                    </div>
+                    <div className="rounded-xl bg-neutral-50 p-3 dark:bg-neutral-950">
+                        <p className="text-xs text-neutral-500">
+                            {t('financeDashboard.businessCards.expenses', 'Expenses')}
+                        </p>
+                        <p className="font-semibold">{money(business.expenses)}</p>
+                    </div>
+                    <div className="rounded-xl bg-neutral-50 p-3 dark:bg-neutral-950">
+                        <p className="text-xs text-neutral-500">
+                            {t('financeDashboard.businessCards.net', 'Net')}
+                        </p>
+                        <p className="font-semibold">{money(business.net)}</p>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
 export default function FinancePage({
     properties,
     filters,
@@ -1041,11 +1112,14 @@ export default function FinancePage({
 
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                     <SummaryCard
-                        title={t('financeDashboard.summary.sales', 'Sales')}
-                        value={formatAfn(dashboard.summary.sales)}
+                        title={t(
+                            'financeDashboard.summary.rentReceived',
+                            'Received Rent',
+                        )}
+                        value={formatAfn(dashboard.summary.rentReceived)}
                         subtitle={t(
-                            'financeDashboard.summary.salesSubtitle',
-                            'Completed order revenue in selected period',
+                            'financeDashboard.summary.rentReceivedSubtitle',
+                            'Rent collected for the selected property and period',
                         )}
                         icon={<Banknote className="h-5 w-5" />}
                     />
@@ -1155,12 +1229,12 @@ export default function FinancePage({
                     <SummaryCard
                         title={t(
                             'financeDashboard.summary.inventoryValue',
-                            'Inventory Value',
+                            'Valuation',
                         )}
                         value={formatAfn(dashboard.summary.inventoryValue)}
                         subtitle={t(
                             'financeDashboard.summary.inventoryValueSubtitle',
-                            'Current stock value from quantity and unit cost',
+                            'Current item and stock valuation for this scope',
                         )}
                         icon={<Package className="h-5 w-5" />}
                     />
@@ -1176,44 +1250,16 @@ export default function FinancePage({
                         )}
                         icon={<CreditCard className="h-5 w-5" />}
                     />
-                    <SummaryCard
-                        title={t(
-                            'businessFinance.summary.groupBusinessValuation',
-                            'Business valuation',
-                        )}
-                        value={formatNumber(
-                            dashboard.summary.businessValuation,
-                        )}
-                        subtitle={t(
-                            'businessFinance.summary.groupBusinessValuationHelp',
-                            'Latest recorded valuation from group-owned businesses',
-                        )}
-                        icon={<Coins className="h-5 w-5" />}
-                    />
-                    <SummaryCard
-                        title={t(
-                            'businessFinance.summary.groupBusinessIncome',
-                            'Business income',
-                        )}
-                        value={formatNumber(dashboard.summary.businessIncome)}
-                        subtitle={t(
-                            'businessFinance.summary.groupBusinessIncomeHelp',
-                            'Income entered for restaurant and Sarafi businesses',
-                        )}
-                        icon={<Banknote className="h-5 w-5" />}
-                    />
-                    <SummaryCard
-                        title={t(
-                            'businessFinance.summary.groupBusinessNet',
-                            'Business net',
-                        )}
-                        value={formatNumber(dashboard.summary.businessNet)}
-                        subtitle={t(
-                            'businessFinance.summary.groupBusinessNetHelp',
-                            'Business income minus business expenses',
-                        )}
-                        icon={<ChartNoAxesCombined className="h-5 w-5" />}
-                    />
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                    {dashboard.businessCards.map((business) => (
+                        <BusinessFinanceCard
+                            key={business.key}
+                            business={business}
+                            t={t}
+                        />
+                    ))}
                 </div>
 
                 <div className="grid gap-4 xl:grid-cols-[1.6fr_1fr]">

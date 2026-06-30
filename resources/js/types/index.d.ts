@@ -739,6 +739,23 @@ export interface InventoryTransaction {
     [key: string]: unknown;
 }
 
+export interface InventoryAssignment {
+    id: number;
+    inventory_item_id: number;
+    employee_id: number;
+    employee?: Employee | null;
+    quantity: number | string;
+    assigned_at: string;
+    expected_return_at?: string | null;
+    returned_at?: string | null;
+    condition_out?: string | null;
+    condition_in?: string | null;
+    notes?: string | null;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
 export interface InventoryItem {
     id: number;
     property_id: number;
@@ -767,6 +784,10 @@ export interface InventoryItem {
     is_usable: boolean;
     images?: InventoryItemImage[];
     transactions?: InventoryTransaction[];
+    assignments?: InventoryAssignment[];
+    active_assignments?: InventoryAssignment[];
+    assigned_quantity?: number | string;
+    available_quantity?: number | string;
     created_at?: string;
     updated_at?: string;
     [key: string]: unknown;

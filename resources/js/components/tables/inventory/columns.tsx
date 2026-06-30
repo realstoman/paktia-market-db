@@ -4,6 +4,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import {
     Property,
     Currency,
+    Employee,
     InventoryCategory,
     InventoryItem,
     InventoryType,
@@ -52,6 +53,7 @@ export const buildColumns = (
     units: Unit[],
     categories: InventoryCategory[],
     inventoryTypes: InventoryType[],
+    employees: Employee[],
     t: (key: string, fallback?: string) => string,
 ): ColumnDef<InventoryItem>[] => {
     const propertyById = new Map(properties.map((property) => [property.id, property]));
@@ -175,6 +177,52 @@ export const buildColumns = (
                 ),
         },
         {
+            id: 'assigned_to',
+            header: t('inventory.columns.assignedTo', 'Assigned To'),
+            cell: ({ row }) => {
+                const activeAssignments = row.original.active_assignments ?? [];
+
+                if (!activeAssignments.length) {
+                    return (
+                        <span className="text-xs text-muted-foreground">
+                            {t('inventory.assignments.available', 'Available')}
+                        </span>
+                    );
+                }
+
+                return (
+                    <div className="space-y-1">
+                        {activeAssignments.slice(0, 2).map((assignment) => {
+                            const employee =
+                                assignment.employee ??
+                                employees.find(
+                                    (item) => item.id === assignment.employee_id,
+                                );
+                            const employeeName = employee
+                                ? `${employee.first_name} ${employee.last_name}`.trim()
+                                : t(
+                                      'inventory.assignments.employeeNumber',
+                                      'Employee #:id',
+                                  ).replace(
+                                      ':id',
+                                      String(assignment.employee_id),
+                                  );
+
+                            return (
+                                <Badge
+                                    key={assignment.id}
+                                    variant="outline"
+                                    className="block w-fit bg-amber-50 text-amber-800"
+                                >
+                                    {employeeName}
+                                </Badge>
+                            );
+                        })}
+                    </div>
+                );
+            },
+        },
+        {
             id: 'images',
             header: t('inventory.columns.images', 'Images'),
             cell: ({ row }) => (
@@ -221,6 +269,7 @@ export const buildColumns = (
                     units={units}
                     categories={categories}
                     inventoryTypes={inventoryTypes}
+                    employees={employees}
                 />
             ),
         },

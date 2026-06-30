@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Currency;
+use App\Models\Employee;
+use App\Models\InventoryAssignment;
 use App\Models\InventoryCategory;
 use App\Models\InventoryItem;
 use App\Models\InventoryType;
@@ -86,6 +88,8 @@ class InventoryController extends Controller
             'typeReference',
             'images',
             'transactions',
+            'activeAssignments.employee:id,first_name,last_name,phone,property_id',
+            'assignments.employee:id,first_name,last_name,phone,property_id',
         ])
             ->orderBy('name')
             ->get()
@@ -101,6 +105,11 @@ class InventoryController extends Controller
             'units' => Unit::orderBy('name')->get(),
             'categories' => InventoryCategory::orderBy('name')->get(),
             'inventoryTypes' => InventoryType::orderBy('name')->get(),
+            'employees' => Employee::query()
+                ->where('is_active', true)
+                ->orderBy('first_name')
+                ->orderBy('last_name')
+                ->get(['id', 'first_name', 'last_name', 'phone', 'property_id']),
         ]);
     }
 
@@ -296,6 +305,97 @@ class InventoryController extends Controller
 
         return redirect()->route('inventory.index')
             ->with('success', 'Usage cycle saved successfully.');
+    }
+
+    public function assignToEmployee(Request $request, InventoryItem $inventory)
+    {
+        $validated = $request->validate([
+            'employee_id' => ['required', 'exists:employees,id'],
+            'quantity' => ['required', 'numeric', 'min:0.01'],
+            'assigned_at' => ['required', 'date'],
+            'expected_return_at' => ['nullable', 'date', 'after_or_equal:assigned_at'],
+            'condition_out' => ['nullable', 'string', 'max:120'],
+            'notes' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        DB::transaction(function () use ($inventory, $validated, $request): void {
+            $item = InventoryItem::query()
+                ->withSum(['activeAssignments as active_assigned_quantity' => fn ($query) => $query->whereNull('returned_at')], 'quantity')
+                ->lockForUpdate()
+                ->findOrFail($inventory->id);
+
+            if ($item->is_usable && ! str_contains(strtolower((string) $item->type), 'fixed')) {
+                throw ValidationException::withMessages([
+                    'inventory_item_id' => 'Only fixed or non-usable inventory items can be assigned to employees.',
+                ]);
+            }
+
+            $available = (float) $item->quantity - (float) ($item->active_assigned_quantity ?? 0);
+
+            if ((float) $validated['quantity'] > $available) {
+                throw ValidationException::withMessages([
+                    'quantity' => 'Assigned quantity cannot exceed available inventory quantity.',
+                ]);
+            }
+
+            $assignment = $item->assignments()->create([
+                'employee_id' => $validated['employee_id'],
+                'quantity' => $validated['quantity'],
+                'assigned_at' => $validated['assigned_at'],
+                'expected_return_at' => $validated['expected_return_at'] ?? null,
+                'condition_out' => $validated['condition_out'] ?? null,
+                'notes' => $validated['notes'] ?? null,
+                'assigned_by' => $request->user()?->id,
+            ]);
+
+            $item->transactions()->create([
+                'action' => 'employee_assignment',
+                'quantity' => -abs((float) $validated['quantity']),
+                'note' => 'Assigned to employee #'.$validated['employee_id'],
+                'reference_type' => InventoryAssignment::class,
+                'reference_id' => $assignment->id,
+            ]);
+        });
+
+        return redirect()->route('inventory.index')
+            ->with('success', 'Inventory item assigned to employee successfully.');
+    }
+
+    public function returnFromEmployee(Request $request, InventoryItem $inventory, InventoryAssignment $assignment)
+    {
+        abort_unless($assignment->inventory_item_id === $inventory->id, 404);
+
+        $validated = $request->validate([
+            'returned_at' => ['required', 'date'],
+            'condition_in' => ['nullable', 'string', 'max:120'],
+            'notes' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        DB::transaction(function () use ($assignment, $inventory, $validated, $request): void {
+            $assignment = InventoryAssignment::query()
+                ->whereKey($assignment->id)
+                ->whereNull('returned_at')
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $assignment->update([
+                'returned_at' => $validated['returned_at'],
+                'condition_in' => $validated['condition_in'] ?? null,
+                'notes' => trim(($assignment->notes ? $assignment->notes."\n" : '').($validated['notes'] ?? '')) ?: $assignment->notes,
+                'returned_by' => $request->user()?->id,
+            ]);
+
+            $inventory->transactions()->create([
+                'action' => 'employee_return',
+                'quantity' => abs((float) $assignment->quantity),
+                'note' => 'Returned by employee #'.$assignment->employee_id,
+                'reference_type' => InventoryAssignment::class,
+                'reference_id' => $assignment->id,
+            ]);
+        });
+
+        return redirect()->route('inventory.index')
+            ->with('success', 'Inventory item returned successfully.');
     }
 
     public function update(Request $request, InventoryItem $inventory)

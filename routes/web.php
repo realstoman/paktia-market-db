@@ -196,6 +196,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('inventory', [InventoryController::class, 'store'])->name('inventory.store');
         Route::put('inventory/{inventory}', [InventoryController::class, 'update'])->name('inventory.update');
         Route::post('inventory/{inventory}/restock', [InventoryController::class, 'restock'])->name('inventory.restock');
+        Route::post('inventory/{inventory}/assign-employee', [InventoryController::class, 'assignToEmployee'])->name('inventory.assign-employee');
+        Route::post('inventory/{inventory}/assignments/{assignment}/return', [InventoryController::class, 'returnFromEmployee'])->name('inventory.assignments.return');
         Route::post('inventory/usage-cycle', [InventoryController::class, 'storeUsageCycle'])->name('inventory.usage-cycle.store');
         Route::post('vendors', [InventoryController::class, 'storeVendor'])->name('vendors.store');
         Route::put('vendors/{vendor}', [InventoryController::class, 'updateVendor'])->name('vendors.update');

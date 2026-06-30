@@ -172,6 +172,56 @@ class BusinessFinanceController extends Controller
         ];
     }
 
+    public static function financeDashboardCards(?string $startDate = null, ?string $endDate = null): array
+    {
+        if (! Schema::hasTable('business_finance_entries')) {
+            return collect(self::BUSINESSES)->map(fn (array $business, string $slug) => [
+                'slug' => $slug,
+                'key' => $business['key'],
+                'title' => $business['title'],
+                'titleKey' => $business['titleKey'],
+                'valuation' => 0.0,
+                'sales' => 0.0,
+                'income' => 0.0,
+                'expenses' => 0.0,
+                'net' => 0.0,
+                'currencyCode' => $business['defaultCurrency'],
+            ])->values()->all();
+        }
+
+        return collect(self::BUSINESSES)->map(function (array $business, string $slug) use ($startDate, $endDate): array {
+            $periodQuery = BusinessFinanceEntry::query()
+                ->where('business_key', $business['key'])
+                ->when($startDate && $endDate, fn ($query) => $query->whereBetween('entry_date', [$startDate, $endDate]));
+
+            $totals = (clone $periodQuery)
+                ->selectRaw('COALESCE(SUM(sales), 0) as sales')
+                ->selectRaw('COALESCE(SUM(income), 0) as income')
+                ->selectRaw('COALESCE(SUM(expenses), 0) as expenses')
+                ->first();
+
+            $latestValuation = BusinessFinanceEntry::query()
+                ->where('business_key', $business['key'])
+                ->whereNotNull('valuation')
+                ->latest('entry_date')
+                ->latest('id')
+                ->first();
+
+            return [
+                'slug' => $slug,
+                'key' => $business['key'],
+                'title' => $business['title'],
+                'titleKey' => $business['titleKey'],
+                'valuation' => (float) ($latestValuation?->valuation ?? 0),
+                'sales' => (float) ($totals?->sales ?? 0),
+                'income' => (float) ($totals?->income ?? 0),
+                'expenses' => (float) ($totals?->expenses ?? 0),
+                'net' => (float) ($totals?->income ?? 0) - (float) ($totals?->expenses ?? 0),
+                'currencyCode' => $latestValuation?->currency_code ?? $business['defaultCurrency'],
+            ];
+        })->values()->all();
+    }
+
     private function businessConfig(string $business): array
     {
         abort_unless(array_key_exists($business, self::BUSINESSES), 404);
