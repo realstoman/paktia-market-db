@@ -178,6 +178,10 @@ const shopNumber = (lease?: Lease) =>
     (lease?.property?.property_type === 'commercial_unit'
         ? lease.property.external_unit_number
         : null);
+const propertyBehavior = (property?: Property | null) =>
+    property?.type_definition?.behavior ??
+    property?.property_type_behavior ??
+    (property?.property_type === 'mall' ? 'market' : property?.property_type);
 const currencySymbol = (currency?: Currency | null) => {
     const code = currency?.code?.toUpperCase();
 
@@ -1008,12 +1012,11 @@ function TenantForm({
     const property = properties.find(
         (item) => String(item.id) === data.property_id,
     );
-    const unitOptions = ['house', 'commercial_unit'].includes(
-        property?.property_type ?? '',
-    )
+    const behavior = propertyBehavior(property);
+    const unitOptions = ['house', 'commercial_unit'].includes(behavior ?? '')
         ? [{ value: '', label: t('tenants.lease.wholeProperty') }]
         : [
-              ...(property?.property_type === 'block'
+              ...(behavior === 'block'
                   ? [{ value: '', label: t('tenants.lease.wholeProperty') }]
                   : []),
               ...(property?.floors ?? []).flatMap((floor) =>

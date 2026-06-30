@@ -110,6 +110,10 @@ const initials = (name: string) =>
         .map((part) => part[0])
         .join('')
         .toUpperCase();
+const propertyBehavior = (property?: Property | null) =>
+    property?.type_definition?.behavior ??
+    property?.property_type_behavior ??
+    (property?.property_type === 'mall' ? 'market' : property?.property_type);
 
 export default function TenantProfile({
     tenant,
@@ -809,12 +813,11 @@ function AssignmentForm({
     const property = properties.find(
         (item) => String(item.id) === form.data.property_id,
     );
-    const units = ['house', 'commercial_unit'].includes(
-        property?.property_type ?? '',
-    )
+    const behavior = propertyBehavior(property);
+    const units = ['house', 'commercial_unit'].includes(behavior ?? '')
         ? [{ value: '', label: t('tenants.lease.wholeProperty') }]
         : [
-              ...(property?.property_type === 'block'
+              ...(behavior === 'block'
                   ? [{ value: '', label: t('tenants.lease.wholeProperty') }]
                   : []),
               ...(property?.floors ?? []).flatMap((floor) =>

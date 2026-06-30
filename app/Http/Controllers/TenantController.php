@@ -104,6 +104,7 @@ class TenantController extends Controller
             ->with([
                 'documents',
                 'leases.property:id,name,name_translations,property_type,external_unit_number',
+                'leases.property.typeDefinition:id,key,name,name_translations,behavior,is_active,sort_order',
                 'leases.floor:id,name,level_number',
                 'leases.unit:id,unit_number,unit_type,property_floor_id',
                 'leases.currency:id,code,symbol',
@@ -133,6 +134,7 @@ class TenantController extends Controller
             'tenant' => $tenant->load([
                 'documents',
                 'leases.property:id,name,name_translations,property_type,address,address_translations,external_unit_number',
+                'leases.property.typeDefinition:id,key,name,name_translations,behavior,is_active,sort_order',
                 'leases.floor:id,name,level_number',
                 'leases.unit:id,unit_number,unit_type,property_floor_id,area_sqm,rooms_count',
                 'leases.currency:id,code,symbol',
@@ -148,6 +150,7 @@ class TenantController extends Controller
         return Inertia::render('tenants/card', [
             'tenant' => $tenant->load([
                 'leases.property:id,name,name_translations,property_type,external_unit_number',
+                'leases.property.typeDefinition:id,key,name,name_translations,behavior,is_active,sort_order',
                 'leases.floor:id,name,level_number',
                 'leases.unit:id,unit_number,unit_type,property_floor_id',
             ]),
