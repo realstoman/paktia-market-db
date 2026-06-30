@@ -175,7 +175,7 @@ const initials = (name: string) =>
         .toUpperCase();
 const shopNumber = (lease?: Lease) =>
     lease?.unit?.unit_number ??
-    (lease?.property?.property_type === 'commercial_unit'
+    (propertyBehavior(lease?.property) === 'commercial_unit'
         ? lease.property.external_unit_number
         : null);
 const propertyBehavior = (property?: Property | null) =>

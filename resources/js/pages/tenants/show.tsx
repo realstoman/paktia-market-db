@@ -141,7 +141,7 @@ export default function TenantProfile({
     ];
     const location = (item: Lease) => {
         const externalUnit =
-            item.property?.property_type === 'commercial_unit'
+            propertyBehavior(item.property) === 'commercial_unit'
                 ? item.property.external_unit_number
                 : null;
 

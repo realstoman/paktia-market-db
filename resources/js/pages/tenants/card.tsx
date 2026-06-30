@@ -17,6 +17,10 @@ const currentLeases = (tenant: Tenant): Lease[] =>
             lease.start_date <= today() &&
             (!lease.end_date || lease.end_date >= today()),
     );
+const propertyBehavior = (property?: Lease['property']) =>
+    property?.type_definition?.behavior ??
+    property?.property_type_behavior ??
+    (property?.property_type === 'mall' ? 'market' : property?.property_type);
 
 export default function TenantCard({ tenant, selectedLeaseId = null }: Props) {
     const { t, isRtl } = useLocalization();
@@ -27,7 +31,7 @@ export default function TenantCard({ tenant, selectedLeaseId = null }: Props) {
     const leases = selectedLease ? [selectedLease] : currentLeases(tenant);
     const leaseLocation = (lease: Lease) => {
         const externalUnit =
-            lease.property?.property_type === 'commercial_unit'
+            propertyBehavior(lease.property) === 'commercial_unit'
                 ? lease.property.external_unit_number
                 : null;
 
