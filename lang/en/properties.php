@@ -18,5 +18,6 @@ return [
         'documents_uploaded' => 'Property documents uploaded successfully.',
         'document_deleted' => 'Property document deleted successfully.',
         'images_uploaded' => 'Property images uploaded successfully.',
+        'type_saved' => 'Property type saved successfully.',
     ],
 ];

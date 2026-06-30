@@ -3234,6 +3234,7 @@ const en = {
         registerHelp:
             'Create the profile first. Floors and rentable spaces can be added afterward.',
         manageOrder: 'Manage order',
+        manageTypes: 'Manage types',
         orderTitle: 'Property display order',
         orderHelp:
             'New properties are added to the end. Move items to control their order here and on the dashboard.',
@@ -3241,6 +3242,7 @@ const en = {
         moveDown: 'Move property down',
         edit: 'Edit property',
         editTitle: 'Edit property details',
+        editNamedTitle: 'Edit :name information',
         editHelp:
             'Update identity, translations, location and physical details.',
         total: 'Total properties',
@@ -3366,6 +3368,23 @@ const en = {
             block: 'Residential block',
             house: 'House',
             commercial_unit: 'Commercial unit / shop–office',
+        },
+        typeBehaviors: {
+            market: 'Market / shopping center with shops',
+            block: 'Residential block with apartments',
+            house: 'Complete house',
+            commercial_unit: 'Single owned shop / office',
+        },
+        typesManager: {
+            title: 'Manage property types',
+            description:
+                'Create localized property type labels and choose how each type behaves in floors, shops, apartments and rental flows.',
+            create: 'Create type',
+            nameFa: 'Dari name',
+            namePs: 'Pashto name',
+            nameEn: 'English name',
+            behavior: 'System behavior',
+            active: 'Active and selectable',
         },
         usage: {
             commercial: 'Commercial',
