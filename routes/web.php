@@ -107,6 +107,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('properties', PropertyController::class);
         Route::post('property-types', [PropertyTypeController::class, 'store'])->name('property-types.store');
         Route::put('property-types/{propertyType}', [PropertyTypeController::class, 'update'])->name('property-types.update');
+        Route::delete('property-types/{propertyType}', [PropertyTypeController::class, 'destroy'])->name('property-types.destroy');
         Route::post('properties/{property}/disable', [PropertyController::class, 'disable'])->name('properties.disable');
         Route::patch('properties/{property}/order', [PropertyController::class, 'reorder'])->name('properties.order.update');
         Route::post('properties/{property}/floors', [PropertyController::class, 'storeFloor'])->name('properties.floors.store');

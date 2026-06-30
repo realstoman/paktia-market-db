@@ -19,5 +19,7 @@ return [
         'document_deleted' => 'Property document deleted successfully.',
         'images_uploaded' => 'Property images uploaded successfully.',
         'type_saved' => 'Property type saved successfully.',
+        'type_deleted' => 'Property type deleted successfully.',
+        'type_in_use' => 'This property type is used by one or more properties and cannot be deleted.',
     ],
 ];

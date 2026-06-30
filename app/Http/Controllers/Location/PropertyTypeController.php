@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Location;
 
 use App\Http\Controllers\Controller;
+use App\Models\Property;
 use App\Models\PropertyType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -46,6 +47,21 @@ class PropertyTypeController extends Controller
         ]);
 
         return back()->with('success', __('properties.actions.type_saved'));
+    }
+
+    public function destroy(PropertyType $propertyType)
+    {
+        $isUsed = Property::query()
+            ->where('property_type', $propertyType->key)
+            ->exists();
+
+        if ($isUsed) {
+            return back()->with('error', __('properties.actions.type_in_use'));
+        }
+
+        $propertyType->delete();
+
+        return back()->with('success', __('properties.actions.type_deleted'));
     }
 
     private function validateType(Request $request, ?PropertyType $type = null): array

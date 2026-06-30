@@ -3385,6 +3385,10 @@ const en = {
             nameEn: 'English name',
             behavior: 'System behavior',
             active: 'Active and selectable',
+            delete: 'Delete type',
+            deleteTitle: 'Delete property type',
+            deleteDescription:
+                'Are you sure you want to delete “:name”? If this type is already used by a property, the system will not allow it.',
         },
         usage: {
             commercial: 'Commercial',

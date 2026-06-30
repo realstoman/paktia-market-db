@@ -3368,6 +3368,10 @@ const fa = {
             nameEn: 'نام انگلیسی',
             behavior: 'رفتار سیستم',
             active: 'فعال و قابل انتخاب',
+            delete: 'حذف نوعیت',
+            deleteTitle: 'حذف نوعیت جایداد',
+            deleteDescription:
+                'آیا مطمئن هستید که می‌خواهید نوعیت «:name» را حذف کنید؟ اگر این نوعیت در جایدادی استفاده شده باشد، سیستم اجازه حذف نمی‌دهد.',
         },
         usage: { commercial: 'تجارتی', residential: 'رهایشی', mixed: 'مختلط' },
         occupancy: {

@@ -7,6 +7,16 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
     Dialog,
     DialogContent,
     DialogDescription,
@@ -50,6 +60,7 @@ import {
     Search,
     Store,
     Tags,
+    Trash2,
 } from 'lucide-react';
 import { FormEvent, useMemo, useState } from 'react';
 
@@ -1116,9 +1127,11 @@ function PropertyTypesDialog({
 }: {
     propertyTypes: PropertyType[];
 }) {
-    const { t, locale } = useLocalization();
+    const { t, locale, isRtl } = useLocalization();
     const [open, setOpen] = useState(false);
     const [editing, setEditing] = useState<PropertyType | null>(null);
+    const [deleteTarget, setDeleteTarget] = useState<PropertyType | null>(null);
+    const [deletingId, setDeletingId] = useState<number | null>(null);
     const form = useForm<PropertyTypeForm>({
         name: '',
         name_ps: '',
@@ -1168,175 +1181,275 @@ function PropertyTypesDialog({
 
         form.post('/property-types', options);
     };
+    const deleteType = () => {
+        if (!deleteTarget) return;
+
+        setDeletingId(deleteTarget.id);
+        router.delete(`/property-types/${deleteTarget.id}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                if (editing?.id === deleteTarget.id) {
+                    resetForm();
+                }
+            },
+            onFinish: () => {
+                setDeletingId(null);
+                setDeleteTarget(null);
+            },
+        });
+    };
 
     return (
-        <Dialog
-            open={open}
-            onOpenChange={(nextOpen) => {
-                setOpen(nextOpen);
-                if (!nextOpen) resetForm();
-            }}
-        >
-            <DialogTrigger asChild>
-                <Button variant="outline">
-                    <Tags className="me-2 size-4" />
-                    {t('propertyWorkspace.manageTypes')}
-                </Button>
-            </DialogTrigger>
-            <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto rounded-2xl bg-[#f8f9fd] sm:max-w-4xl [&_input]:bg-white">
-                <DialogHeader>
-                    <DialogTitle>
-                        {t('propertyWorkspace.typesManager.title')}
-                    </DialogTitle>
-                    <DialogDescription>
-                        {t('propertyWorkspace.typesManager.description')}
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 lg:grid-cols-[1fr_1.15fr]">
-                    <form
-                        onSubmit={submit}
-                        className="space-y-4 rounded-2xl border bg-white p-4"
-                    >
-                        <Field
-                            label={t('propertyWorkspace.typesManager.nameFa')}
-                            error={form.errors.name}
+        <>
+            <Dialog
+                open={open}
+                onOpenChange={(nextOpen) => {
+                    setOpen(nextOpen);
+                    if (!nextOpen) resetForm();
+                }}
+            >
+                <DialogTrigger asChild>
+                    <Button variant="outline">
+                        <Tags className="me-2 size-4" />
+                        {t('propertyWorkspace.manageTypes')}
+                    </Button>
+                </DialogTrigger>
+                <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto rounded-2xl bg-[#f8f9fd] sm:max-w-4xl [&_input]:bg-white">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {t('propertyWorkspace.typesManager.title')}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {t('propertyWorkspace.typesManager.description')}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 lg:grid-cols-[1fr_1.15fr]">
+                        <form
+                            onSubmit={submit}
+                            className="space-y-4 rounded-2xl border bg-white p-4"
                         >
-                            <Input
-                                dir="rtl"
-                                value={form.data.name}
-                                onChange={(event) =>
-                                    form.setData('name', event.target.value)
-                                }
-                            />
-                        </Field>
-                        <Field
-                            label={t('propertyWorkspace.typesManager.namePs')}
-                            error={form.errors.name_ps}
-                        >
-                            <Input
-                                dir="rtl"
-                                value={form.data.name_ps}
-                                onChange={(event) =>
-                                    form.setData('name_ps', event.target.value)
-                                }
-                            />
-                        </Field>
-                        <Field
-                            label={t('propertyWorkspace.typesManager.nameEn')}
-                            error={form.errors.name_en}
-                        >
-                            <Input
-                                dir="ltr"
-                                value={form.data.name_en}
-                                onChange={(event) =>
-                                    form.setData('name_en', event.target.value)
-                                }
-                            />
-                        </Field>
-                        <Field
-                            label={t('propertyWorkspace.typesManager.behavior')}
-                            error={form.errors.behavior}
-                        >
-                            <SearchableDropdown
-                                value={form.data.behavior}
-                                onValueChange={(value) =>
-                                    form.setData('behavior', value)
-                                }
-                                options={behaviorOptions.map((behavior) => ({
-                                    value: behavior,
-                                    label: t(
-                                        `propertyWorkspace.typeBehaviors.${behavior}`,
-                                    ),
-                                }))}
-                                placeholder={t(
+                            <Field
+                                label={t(
+                                    'propertyWorkspace.typesManager.nameFa',
+                                )}
+                                error={form.errors.name}
+                            >
+                                <Input
+                                    dir="rtl"
+                                    value={form.data.name}
+                                    onChange={(event) =>
+                                        form.setData(
+                                            'name',
+                                            event.target.value,
+                                        )
+                                    }
+                                />
+                            </Field>
+                            <Field
+                                label={t(
+                                    'propertyWorkspace.typesManager.namePs',
+                                )}
+                                error={form.errors.name_ps}
+                            >
+                                <Input
+                                    dir="rtl"
+                                    value={form.data.name_ps}
+                                    onChange={(event) =>
+                                        form.setData(
+                                            'name_ps',
+                                            event.target.value,
+                                        )
+                                    }
+                                />
+                            </Field>
+                            <Field
+                                label={t(
+                                    'propertyWorkspace.typesManager.nameEn',
+                                )}
+                                error={form.errors.name_en}
+                            >
+                                <Input
+                                    dir="ltr"
+                                    value={form.data.name_en}
+                                    onChange={(event) =>
+                                        form.setData(
+                                            'name_en',
+                                            event.target.value,
+                                        )
+                                    }
+                                />
+                            </Field>
+                            <Field
+                                label={t(
                                     'propertyWorkspace.typesManager.behavior',
                                 )}
-                            />
-                        </Field>
-                        <label className="flex items-center gap-2 rounded-xl border bg-[#f8f9fd] p-3 text-sm">
-                            <Checkbox
-                                checked={form.data.is_active}
-                                onCheckedChange={(checked) =>
-                                    form.setData('is_active', Boolean(checked))
-                                }
-                            />
-                            {t('propertyWorkspace.typesManager.active')}
-                        </label>
-                        <div className="flex justify-end gap-2">
-                            {editing && (
-                                <Button
-                                    type="button"
-                                    variant="ghost"
-                                    onClick={resetForm}
-                                >
-                                    {t('propertyWorkspace.cancel')}
-                                </Button>
-                            )}
-                            <Button disabled={form.processing}>
-                                {editing
-                                    ? t('propertyWorkspace.save')
-                                    : t(
-                                          'propertyWorkspace.typesManager.create',
-                                      )}
-                            </Button>
-                        </div>
-                    </form>
-                    <div className="space-y-2">
-                        {propertyTypes.map((type) => (
-                            <div
-                                key={type.id}
-                                className="flex items-center gap-3 rounded-2xl border bg-white p-3"
+                                error={form.errors.behavior}
                             >
-                                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/8 text-primary">
-                                    {(() => {
-                                        const Icon = propertyTypeIcon(
-                                            type.key,
-                                            propertyTypes,
-                                        );
-                                        return <Icon className="size-5" />;
-                                    })()}
-                                </span>
-                                <div className="min-w-0 flex-1 text-start">
-                                    <p className="truncate font-semibold">
-                                        {propertyTypeName(
-                                            type.key,
-                                            propertyTypes,
-                                            locale,
-                                            t,
-                                        )}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">
-                                        {t(
-                                            `propertyWorkspace.typeBehaviors.${type.behavior}`,
-                                        )}
-                                    </p>
-                                </div>
-                                <Badge
-                                    variant={
-                                        type.is_active ? 'success' : 'outline'
+                                <SearchableDropdown
+                                    value={form.data.behavior}
+                                    onValueChange={(value) =>
+                                        form.setData('behavior', value)
                                     }
-                                >
-                                    {t(
-                                        type.is_active
-                                            ? 'propertyWorkspace.active'
-                                            : 'propertyWorkspace.inactive',
+                                    options={behaviorOptions.map(
+                                        (behavior) => ({
+                                            value: behavior,
+                                            label: t(
+                                                `propertyWorkspace.typeBehaviors.${behavior}`,
+                                            ),
+                                        }),
                                     )}
-                                </Badge>
-                                <Button
-                                    type="button"
-                                    size="icon"
-                                    variant="outline"
-                                    className="bg-white"
-                                    onClick={() => editType(type)}
-                                >
-                                    <Pencil className="size-4" />
+                                    placeholder={t(
+                                        'propertyWorkspace.typesManager.behavior',
+                                    )}
+                                />
+                            </Field>
+                            <label className="flex items-center gap-2 rounded-xl border bg-[#f8f9fd] p-3 text-sm">
+                                <Checkbox
+                                    checked={form.data.is_active}
+                                    onCheckedChange={(checked) =>
+                                        form.setData(
+                                            'is_active',
+                                            Boolean(checked),
+                                        )
+                                    }
+                                />
+                                {t('propertyWorkspace.typesManager.active')}
+                            </label>
+                            <div className="flex justify-end gap-2">
+                                {editing && (
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        onClick={resetForm}
+                                    >
+                                        {t('propertyWorkspace.cancel')}
+                                    </Button>
+                                )}
+                                <Button disabled={form.processing}>
+                                    {editing
+                                        ? t('propertyWorkspace.save')
+                                        : t(
+                                              'propertyWorkspace.typesManager.create',
+                                          )}
                                 </Button>
                             </div>
-                        ))}
+                        </form>
+                        <div className="space-y-2">
+                            {propertyTypes.map((type) => (
+                                <div
+                                    key={type.id}
+                                    className="flex items-center gap-3 rounded-2xl border bg-white p-3"
+                                >
+                                    <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/8 text-primary">
+                                        {(() => {
+                                            const Icon = propertyTypeIcon(
+                                                type.key,
+                                                propertyTypes,
+                                            );
+                                            return (
+                                                <Icon className="size-5" />
+                                            );
+                                        })()}
+                                    </span>
+                                    <div className="min-w-0 flex-1 text-start">
+                                        <p className="truncate font-semibold">
+                                            {propertyTypeName(
+                                                type.key,
+                                                propertyTypes,
+                                                locale,
+                                                t,
+                                            )}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {t(
+                                                `propertyWorkspace.typeBehaviors.${type.behavior}`,
+                                            )}
+                                        </p>
+                                    </div>
+                                    <Badge
+                                        variant={
+                                            type.is_active
+                                                ? 'success'
+                                                : 'outline'
+                                        }
+                                    >
+                                        {t(
+                                            type.is_active
+                                                ? 'propertyWorkspace.active'
+                                                : 'propertyWorkspace.inactive',
+                                        )}
+                                    </Badge>
+                                    <Button
+                                        type="button"
+                                        size="icon"
+                                        variant="outline"
+                                        className="bg-white"
+                                        onClick={() => editType(type)}
+                                    >
+                                        <Pencil className="size-4" />
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        size="icon"
+                                        variant="outline"
+                                        className="border-red-200 bg-white text-red-600 hover:bg-red-50 hover:text-red-700"
+                                        disabled={deletingId === type.id}
+                                        onClick={() => setDeleteTarget(type)}
+                                    >
+                                        <Trash2 className="size-4" />
+                                    </Button>
+                                </div>
+                            ))}
+                        </div>
                     </div>
-                </div>
-            </DialogContent>
-        </Dialog>
+                </DialogContent>
+            </Dialog>
+            <AlertDialog
+                open={Boolean(deleteTarget)}
+                onOpenChange={(nextOpen) => {
+                    if (!nextOpen && deletingId === null) {
+                        setDeleteTarget(null);
+                    }
+                }}
+            >
+                <AlertDialogContent dir={isRtl ? 'rtl' : 'ltr'}>
+                    <AlertDialogHeader className={isRtl ? 'text-right' : ''}>
+                        <AlertDialogTitle>
+                            {t(
+                                'propertyWorkspace.typesManager.deleteTitle',
+                            )}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {t(
+                                'propertyWorkspace.typesManager.deleteDescription',
+                            ).replace(
+                                ':name',
+                                deleteTarget
+                                    ? propertyTypeName(
+                                          deleteTarget.key,
+                                          propertyTypes,
+                                          locale,
+                                          t,
+                                      )
+                                    : '',
+                            )}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={deletingId !== null}>
+                            {t('propertyWorkspace.cancel')}
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            className="bg-red-600 text-white hover:bg-red-700"
+                            disabled={deletingId !== null}
+                            onClick={deleteType}
+                        >
+                            {t('propertyWorkspace.typesManager.delete')}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </>
     );
 }
 

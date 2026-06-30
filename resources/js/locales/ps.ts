@@ -3355,6 +3355,10 @@ const ps = {
             nameEn: 'انګلیسي نوم',
             behavior: 'د سیستم چلند',
             active: 'فعال او د انتخاب وړ',
+            delete: 'ډول حذف کړئ',
+            deleteTitle: 'د جایداد ډول حذفول',
+            deleteDescription:
+                'ایا ډاډه یاست چې د «:name» ډول حذف کړئ؟ که دا ډول په کوم جایداد کې کارول شوی وي، سیستم به یې د حذف اجازه ورنه کړي.',
         },
         usage: { commercial: 'سوداګریز', residential: 'استوګنیز', mixed: 'ګډ' },
         occupancy: {
