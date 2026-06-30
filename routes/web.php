@@ -21,6 +21,7 @@ use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\LeaseContractController;
 use App\Http\Controllers\Location\CountryController;
 use App\Http\Controllers\Location\PropertyController;
+use App\Http\Controllers\Location\PropertyTypeController;
 use App\Http\Controllers\Location\ProvinceController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OperationsRuntimeHealthController;
@@ -104,6 +105,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('provinces/{province}', [ProvinceController::class, 'update'])->name('provinces.update');
         Route::delete('provinces/{province}', [ProvinceController::class, 'destroy'])->name('provinces.destroy');
         Route::resource('properties', PropertyController::class);
+        Route::post('property-types', [PropertyTypeController::class, 'store'])->name('property-types.store');
+        Route::put('property-types/{propertyType}', [PropertyTypeController::class, 'update'])->name('property-types.update');
         Route::post('properties/{property}/disable', [PropertyController::class, 'disable'])->name('properties.disable');
         Route::patch('properties/{property}/order', [PropertyController::class, 'reorder'])->name('properties.order.update');
         Route::post('properties/{property}/floors', [PropertyController::class, 'storeFloor'])->name('properties.floors.store');

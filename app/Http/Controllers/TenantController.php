@@ -352,6 +352,7 @@ class TenantController extends Controller
     {
         return Property::query()
             ->where('is_active', true)
+            ->with('typeDefinition')
             ->with([
                 'floors' => fn ($query) => $query
                     ->where('is_active', true)

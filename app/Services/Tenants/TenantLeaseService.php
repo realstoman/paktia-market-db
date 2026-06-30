@@ -24,8 +24,8 @@ class TenantLeaseService
 
             $data['property_floor_id'] = $unit?->property_floor_id;
             $data['property_unit_id'] = $unit?->id;
-            $data['leased_space_type'] = match ($property->property_type) {
-                'market', 'mall' => 'shop',
+            $data['leased_space_type'] = match ($property->typeBehavior()) {
+                'market' => 'shop',
                 'commercial_unit' => 'shop',
                 'house' => 'house',
                 'block' => $unit ? 'apartment' : 'block',
@@ -38,7 +38,7 @@ class TenantLeaseService
                 $unit->update(['occupancy_status' => 'occupied']);
             }
 
-            if ($property->property_type === 'commercial_unit' && $lease->status === 'active') {
+            if ($property->typeBehavior() === 'commercial_unit' && $lease->status === 'active') {
                 $property->update(['operating_mode' => 'rented']);
             }
 
@@ -61,8 +61,8 @@ class TenantLeaseService
 
             $data['property_floor_id'] = $unit?->property_floor_id;
             $data['property_unit_id'] = $unit?->id;
-            $data['leased_space_type'] = match ($property->property_type) {
-                'market', 'mall' => 'shop',
+            $data['leased_space_type'] = match ($property->typeBehavior()) {
+                'market' => 'shop',
                 'commercial_unit' => 'shop',
                 'house' => 'house',
                 'block' => $unit ? 'apartment' : 'block',
@@ -89,7 +89,9 @@ class TenantLeaseService
             ]);
         }
 
-        if (in_array($property->property_type, ['market', 'mall'], true)) {
+        $behavior = $property->typeBehavior();
+
+        if ($behavior === 'market') {
             if (! $unit || $unit->unit_type !== 'shop') {
                 throw ValidationException::withMessages([
                     'property_unit_id' => 'A shop must be selected for a market or mall tenant.',
@@ -99,19 +101,19 @@ class TenantLeaseService
             return;
         }
 
-        if ($property->property_type === 'house' && $unit) {
+        if ($behavior === 'house' && $unit) {
             throw ValidationException::withMessages([
                 'property_unit_id' => 'A house is assigned as a complete property.',
             ]);
         }
 
-        if ($property->property_type === 'commercial_unit' && $unit) {
+        if ($behavior === 'commercial_unit' && $unit) {
             throw ValidationException::withMessages([
                 'property_unit_id' => 'A commercial unit is assigned as one complete shop or office.',
             ]);
         }
 
-        if ($property->property_type === 'block' && $unit && $unit->unit_type !== 'apartment') {
+        if ($behavior === 'block' && $unit && $unit->unit_type !== 'apartment') {
             throw ValidationException::withMessages([
                 'property_unit_id' => 'Only an apartment may be selected inside a residential block.',
             ]);
@@ -185,7 +187,7 @@ class TenantLeaseService
 
         $property = Property::query()->find($propertyId);
 
-        if (! $property || $property->property_type !== 'commercial_unit') {
+        if (! $property || $property->typeBehavior() !== 'commercial_unit') {
             return;
         }
 

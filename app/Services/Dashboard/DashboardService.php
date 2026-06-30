@@ -23,6 +23,7 @@ class DashboardService
         $monthEnd = CarbonImmutable::now()->endOfMonth();
         $today = CarbonImmutable::now()->toDateString();
         $properties = Property::query()
+            ->with('typeDefinition')
             ->withCount(['inventoryItems', 'employees', 'floors', 'units'])
             ->orderBy('display_order')
             ->orderBy('id')
@@ -168,7 +169,8 @@ class DashboardService
                             ->orWhereDate('end_date', '>=', $today))
                         ->distinct()
                         ->pluck('property_unit_id');
-                    $occupiedUnits = $property->property_type === 'commercial_unit'
+                    $behavior = $property->typeBehavior();
+                    $occupiedUnits = $behavior === 'commercial_unit'
                         ? (int) (in_array($property->operating_mode, ['owner_occupied', 'rented'], true)
                             || Lease::query()
                                 ->where('property_id', $property->id)
@@ -186,7 +188,7 @@ class DashboardService
                                     fn ($units) => $units->orWhereIn('property_units.id', $activeLeasedUnitIds),
                                 ))
                             ->count();
-                    $shops = match ($property->property_type) {
+                    $shops = match ($behavior) {
                         'house' => (int) ($property->rooms_count ?? 0),
                         'commercial_unit' => 1,
                         default => (int) $property->units_count,

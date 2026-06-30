@@ -7,12 +7,14 @@ use App\Models\Country;
 use App\Models\Property;
 use App\Models\PropertyDocument;
 use App\Models\PropertyFloor;
+use App\Models\PropertyType;
 use App\Models\PropertyUnit;
 use App\Models\Province;
 use App\Services\Location\PropertyService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -29,6 +31,7 @@ class PropertyController extends Controller
                 ->orderBy('display_order')
                 ->orderBy('id')
                 ->get(['id', 'name', 'name_translations', 'property_type', 'country_id', 'province_id']),
+            'propertyTypes' => $this->propertyTypes(),
         ]);
     }
 
@@ -36,7 +39,7 @@ class PropertyController extends Controller
     {
         return Inertia::render('location/properties/show', [
             'property' => $property->load([
-                'country', 'province', 'parentProperty.country', 'parentProperty.province',
+                'country', 'province', 'typeDefinition', 'parentProperty.country', 'parentProperty.province',
                 'relatedLocations.country', 'relatedLocations.province',
                 'documents', 'images',
                 'floors' => fn ($query) => $query->with('units')->orderBy('level_number'),
@@ -48,6 +51,7 @@ class PropertyController extends Controller
                 ->orderBy('display_order')
                 ->orderBy('id')
                 ->get(['id', 'name', 'name_translations', 'property_type', 'country_id', 'province_id']),
+            'propertyTypes' => $this->propertyTypes(),
         ]);
     }
 
@@ -110,7 +114,7 @@ class PropertyController extends Controller
 
     public function storeFloor(Request $request, Property $property)
     {
-        abort_if(in_array($property->property_type, ['house', 'commercial_unit'], true), 422);
+        abort_if(in_array($property->typeBehavior(), ['house', 'commercial_unit'], true), 422);
 
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100'],
@@ -159,9 +163,10 @@ class PropertyController extends Controller
     public function storeUnit(Request $request, Property $property, PropertyFloor $floor)
     {
         abort_unless($floor->property_id === $property->id, 404);
-        abort_if(in_array($property->property_type, ['house', 'commercial_unit'], true), 422);
+        $behavior = $property->typeBehavior();
+        abort_if(in_array($behavior, ['house', 'commercial_unit'], true), 422);
 
-        $expectedType = in_array($property->property_type, ['market', 'mall'], true) ? 'shop' : 'apartment';
+        $expectedType = $behavior === 'market' ? 'shop' : 'apartment';
         $validated = $request->validate([
             'unit_number' => [
                 'required', 'string', 'max:50',
@@ -271,7 +276,7 @@ class PropertyController extends Controller
 
     private function validateProperty(Request $request): array
     {
-        return $request->validate([
+        $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'name_ps' => ['nullable', 'string', 'max:255'],
             'name_en' => ['nullable', 'string', 'max:255'],
@@ -281,12 +286,12 @@ class PropertyController extends Controller
                 'exists:properties,id',
                 Rule::notIn(array_filter([$request->route('property')?->id])),
             ],
-            'property_type' => ['required', Rule::in(['market', 'mall', 'block', 'house', 'commercial_unit'])],
+            'property_type' => ['required', 'exists:property_types,key'],
             'usage_type' => ['required', Rule::in(['commercial', 'residential', 'mixed'])],
-            'host_market_name' => ['nullable', 'required_if:property_type,commercial_unit', 'string', 'max:255'],
+            'host_market_name' => ['nullable', 'string', 'max:255'],
             'host_market_name_ps' => ['nullable', 'string', 'max:255'],
             'host_market_name_en' => ['nullable', 'string', 'max:255'],
-            'external_unit_number' => ['nullable', 'required_if:property_type,commercial_unit', 'string', 'max:100'],
+            'external_unit_number' => ['nullable', 'string', 'max:100'],
             'external_floor' => ['nullable', 'string', 'max:100'],
             'ownership_type' => ['nullable', Rule::in(['owned', 'leased', 'managed'])],
             'operating_mode' => ['nullable', Rule::in(['owner_occupied', 'vacant', 'rented', 'maintenance'])],
@@ -322,6 +327,24 @@ class PropertyController extends Controller
             'images' => ['nullable', 'array', 'max:10'],
             'images.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:width=1920,height=1080'],
         ]);
+
+        if ($this->propertyTypeBehavior($validated['property_type']) === 'commercial_unit') {
+            $missing = [];
+
+            if (blank($validated['host_market_name'] ?? null)) {
+                $missing['host_market_name'] = __('validation.required', ['attribute' => 'host market name']);
+            }
+
+            if (blank($validated['external_unit_number'] ?? null)) {
+                $missing['external_unit_number'] = __('validation.required', ['attribute' => 'shop / office number']);
+            }
+
+            if ($missing !== []) {
+                throw ValidationException::withMessages($missing);
+            }
+        }
+
+        return $validated;
     }
 
     private function validateImages(Request $request, Property $property): void
@@ -388,7 +411,7 @@ class PropertyController extends Controller
             unset($validated["{$field}_ps"], $validated["{$field}_en"]);
         }
 
-        if (($validated['property_type'] ?? null) === 'commercial_unit') {
+        if ($this->propertyTypeBehavior($validated['property_type'] ?? null) === 'commercial_unit') {
             $validated['usage_type'] = 'commercial';
             $validated['parent_property_id'] = null;
             $validated['land_area_sqm'] = null;
@@ -403,5 +426,23 @@ class PropertyController extends Controller
         }
 
         return $validated;
+    }
+
+    private function propertyTypeBehavior(?string $key): string
+    {
+        return PropertyType::query()->where('key', $key)->value('behavior')
+            ?? match ($key) {
+                'mall' => 'market',
+                'market', 'block', 'house', 'commercial_unit' => $key,
+                default => 'market',
+            };
+    }
+
+    private function propertyTypes()
+    {
+        return PropertyType::query()
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get(['id', 'key', 'name', 'name_translations', 'behavior', 'is_active', 'sort_order']);
     }
 }

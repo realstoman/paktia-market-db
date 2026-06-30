@@ -36,6 +36,7 @@ import {
     PropertyDocument,
     PropertyFloor,
     PropertyImage,
+    PropertyType,
     PropertyUnit,
     Province,
 } from '@/types';
@@ -72,6 +73,7 @@ interface PropertyShowProps {
     countries: Country[];
     provinces: Province[];
     propertyOptions: Property[];
+    propertyTypes: PropertyType[];
 }
 
 export default function PropertyShow({
@@ -79,14 +81,20 @@ export default function PropertyShow({
     countries,
     provinces,
     propertyOptions,
+    propertyTypes,
 }: PropertyShowProps) {
     const { t } = useLocalization();
     const floors = property.floors ?? [];
     const units = floors.flatMap((floor) => floor.units ?? []);
-    const isMarket = ['market', 'mall'].includes(
-        property.property_type ?? 'market',
-    );
-    const isCommercialUnit = property.property_type === 'commercial_unit';
+    const behavior =
+        property.type_definition?.behavior ??
+        property.property_type_behavior ??
+        (property.property_type === 'mall' ? 'market' : property.property_type);
+    const isMarket = behavior === 'market';
+    const isCommercialUnit = behavior === 'commercial_unit';
+    const propertyTypeLabel =
+        property.type_definition?.name ??
+        t(`propertyWorkspace.types.${property.property_type ?? 'market'}`);
     const coverImageUrl = property.images?.[0]?.url ?? property.image_url;
     const breadcrumbs: BreadcrumbItem[] = [
         { title: t('propertyWorkspace.title'), href: '/properties' },
@@ -108,9 +116,7 @@ export default function PropertyShow({
                     <div className="relative flex min-h-64 flex-col justify-end bg-linear-to-t from-black/80 to-transparent p-6 text-white md:p-8">
                         <div className="mb-3 flex gap-2">
                             <Badge className="bg-white/90 text-slate-900">
-                                {t(
-                                    `propertyWorkspace.types.${property.property_type ?? 'market'}`,
-                                )}
+                                {propertyTypeLabel}
                             </Badge>
                             <Badge
                                 variant="outline"
@@ -161,6 +167,7 @@ export default function PropertyShow({
                                     countries={countries}
                                     provinces={provinces}
                                     propertyOptions={propertyOptions}
+                                    propertyTypes={propertyTypes}
                                 />
                             </div>
                         </div>
@@ -198,14 +205,14 @@ export default function PropertyShow({
                                   )
                                 : isMarket
                                   ? t('propertyWorkspace.shops')
-                                  : property.property_type === 'block'
+                                  : behavior === 'block'
                                     ? t('propertyWorkspace.apartments')
                                     : t('propertyWorkspace.rooms')
                         }
                         value={
                             isCommercialUnit
                                 ? (property.external_unit_number ?? '—')
-                                : property.property_type === 'house'
+                                : behavior === 'house'
                                   ? (property.rooms_count ?? 0)
                                   : units.length
                         }
@@ -370,7 +377,7 @@ export default function PropertyShow({
                                     value={property.parking_spaces ?? '—'}
                                 />
                                 {['house', 'commercial_unit'].includes(
-                                    property.property_type ?? '',
+                                    behavior ?? '',
                                 ) && (
                                     <>
                                         <Detail
@@ -477,10 +484,10 @@ export default function PropertyShow({
                                     </p>
                                 </div>
                                 {!['house', 'commercial_unit'].includes(
-                                    property.property_type ?? '',
+                                    behavior ?? '',
                                 ) && <AddFloor property={property} />}
                             </div>
-                            {property.property_type === 'house' ? (
+                            {behavior === 'house' ? (
                                 <Card>
                                     <CardContent className="py-10 text-center text-muted-foreground">
                                         <Building2 className="mx-auto mb-3 h-10 w-10" />

@@ -462,7 +462,9 @@ export interface Property {
     description_translations?: Partial<
         Record<'fa' | 'ps' | 'en', string>
     > | null;
-    property_type?: 'market' | 'mall' | 'block' | 'house' | 'commercial_unit';
+    property_type?: string;
+    property_type_behavior?: 'market' | 'block' | 'house' | 'commercial_unit';
+    type_definition?: PropertyType | null;
     usage_type?: 'commercial' | 'residential' | 'mixed';
     image_url?: string | null;
     images?: PropertyImage[];
@@ -498,6 +500,18 @@ export interface Property {
     created_at: string;
     updated_at: string;
     [key: string]: unknown;
+}
+
+export interface PropertyType {
+    id: number;
+    key: string;
+    name: string;
+    name_translations?: Partial<Record<'fa' | 'ps' | 'en', string>> | null;
+    behavior: 'market' | 'block' | 'house' | 'commercial_unit';
+    is_active: boolean;
+    sort_order?: number;
+    created_at?: string;
+    updated_at?: string;
 }
 
 export interface PropertyImage {

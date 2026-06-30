@@ -125,6 +125,21 @@ class Property extends Model
         return $this->hasMany(self::class, 'parent_property_id')->orderBy('name');
     }
 
+    public function typeDefinition()
+    {
+        return $this->belongsTo(PropertyType::class, 'property_type', 'key');
+    }
+
+    public function typeBehavior(): string
+    {
+        return $this->typeDefinition?->behavior
+            ?? match ($this->property_type) {
+                'mall' => 'market',
+                'market', 'block', 'house', 'commercial_unit' => $this->property_type,
+                default => 'market',
+            };
+    }
+
     public function province()
     {
         return $this->belongsTo(Province::class);
