@@ -133,14 +133,6 @@ type NumericPropertyField =
     | 'bathrooms_count'
     | 'parking_spaces';
 
-const typeIcons = {
-    market: Store,
-    mall: Building2,
-    block: Layers3,
-    house: Home,
-    commercial_unit: BriefcaseBusiness,
-} as const;
-
 const typeBehavior = (
     key: string | undefined,
     propertyTypes: PropertyType[],
@@ -184,18 +176,25 @@ const propertyTypeName = (
     );
 };
 
-const propertyTypeIcon = (
-    key: string | undefined,
-    propertyTypes: PropertyType[],
-) => {
-    const behavior = typeBehavior(key, propertyTypes);
+function PropertyTypeIcon({
+    propertyType,
+    propertyTypes,
+    className,
+}: {
+    propertyType?: string;
+    propertyTypes: PropertyType[];
+    className?: string;
+}) {
+    const behavior = typeBehavior(propertyType, propertyTypes);
 
-    if (behavior === 'block') return Layers3;
-    if (behavior === 'house') return Home;
-    if (behavior === 'commercial_unit') return BriefcaseBusiness;
+    if (behavior === 'block') return <Layers3 className={className} />;
+    if (behavior === 'house') return <Home className={className} />;
+    if (behavior === 'commercial_unit') {
+        return <BriefcaseBusiness className={className} />;
+    }
 
-    return Store;
-};
+    return <Store className={className} />;
+}
 
 const emptyForm: PropertyForm = {
     name: '',
@@ -1048,10 +1047,6 @@ function PropertyOrderDialog({
                 </DialogHeader>
                 <div className="max-h-[60vh] space-y-2 overflow-y-auto pe-1">
                     {properties.map((property, index) => {
-                        const Icon = propertyTypeIcon(
-                            property.property_type,
-                            propertyTypes,
-                        );
                         const isMoving = movingId === property.id;
 
                         return (
@@ -1063,7 +1058,11 @@ function PropertyOrderDialog({
                                     {index + 1}
                                 </span>
                                 <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/8 text-primary">
-                                    <Icon className="size-4" />
+                                    <PropertyTypeIcon
+                                        propertyType={property.property_type}
+                                        propertyTypes={propertyTypes}
+                                        className="size-4"
+                                    />
                                 </span>
                                 <div className="min-w-0 flex-1 text-start">
                                     <p className="truncate text-sm font-semibold">
@@ -1341,15 +1340,11 @@ function PropertyTypesDialog({
                                     className="flex items-center gap-3 rounded-2xl border bg-white p-3"
                                 >
                                     <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/8 text-primary">
-                                        {(() => {
-                                            const Icon = propertyTypeIcon(
-                                                type.key,
-                                                propertyTypes,
-                                            );
-                                            return (
-                                                <Icon className="size-5" />
-                                            );
-                                        })()}
+                                        <PropertyTypeIcon
+                                            propertyType={type.key}
+                                            propertyTypes={propertyTypes}
+                                            className="size-5"
+                                        />
                                     </span>
                                     <div className="min-w-0 flex-1 text-start">
                                         <p className="truncate font-semibold">
@@ -1558,7 +1553,6 @@ function PropertyCard({
 }) {
     const { t, locale } = useLocalization();
     const behavior = typeBehavior(property.property_type, propertyTypes);
-    const Icon = propertyTypeIcon(property.property_type, propertyTypes);
     const spacesLabel = behavior === 'market'
         ? t('propertyWorkspace.shops')
         : behavior === 'block'
@@ -1582,7 +1576,11 @@ function PropertyCard({
                         />
                     ) : (
                         <div className="flex h-full items-center justify-center bg-slate-100 dark:bg-slate-900">
-                            <Icon className="h-12 w-12 text-slate-400" />
+                            <PropertyTypeIcon
+                                propertyType={property.property_type}
+                                propertyTypes={propertyTypes}
+                                className="h-12 w-12 text-slate-400"
+                            />
                         </div>
                     )}
                     <div className="pointer-events-none absolute inset-0 bg-black/25 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100" />
