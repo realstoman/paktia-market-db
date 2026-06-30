@@ -102,6 +102,14 @@ interface PropertyForm {
     images: File[];
 }
 
+interface PropertyTypeForm {
+    name: string;
+    name_ps: string;
+    name_en: string;
+    behavior: PropertyType['behavior'];
+    is_active: boolean;
+}
+
 type NumericPropertyField =
     | 'distance_from_city_km'
     | 'land_area_sqm'
@@ -1111,7 +1119,7 @@ function PropertyTypesDialog({
     const { t, locale } = useLocalization();
     const [open, setOpen] = useState(false);
     const [editing, setEditing] = useState<PropertyType | null>(null);
-    const form = useForm({
+    const form = useForm<PropertyTypeForm>({
         name: '',
         name_ps: '',
         name_en: '',
