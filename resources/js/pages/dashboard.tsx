@@ -129,9 +129,9 @@ function StatCard({
 }) {
     const tones = {
         teal: 'bg-[#edf1f4] text-[#002452]',
-        green: 'bg-[#f8f1e5] text-[#a4772d]',
-        coral: 'bg-rose-50 text-[#ef786f]',
-        blue: 'bg-blue-50 text-[#5d91c9]',
+        green: 'bg-[#edf1f4] text-[#002452]',
+        coral: 'bg-[#edf1f4] text-[#002452]',
+        blue: 'bg-[#edf1f4] text-[#002452]',
     };
 
     return (
