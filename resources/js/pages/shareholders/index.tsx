@@ -306,7 +306,10 @@ export default function ShareholdersPage({
                                 options={[
                                     {
                                         value: 'all',
-                                        label: t('common.all', 'All'),
+                                        label: t(
+                                            'shareholders.allProperties',
+                                            'All properties',
+                                        ),
                                     },
                                     ...properties.map((property) => ({
                                         value: String(property.id),

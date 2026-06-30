@@ -3436,6 +3436,7 @@ const ps = {
         total: 'ټول شریکان',
         assigned: 'ونډه لرونکي',
         properties: 'شریک لرونکي جایدادونه',
+        allProperties: 'ټول جایدادونه',
         identity: 'هویت او اړیکې',
         documents: 'شخصي اسناد',
         documentsHelp:

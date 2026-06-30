@@ -3471,6 +3471,7 @@ const en = {
         total: 'Total shareholders',
         assigned: 'With ownership',
         properties: 'Properties represented',
+        allProperties: 'All properties',
         identity: 'Identity & contact',
         documents: 'Private documents',
         documentsHelp:
