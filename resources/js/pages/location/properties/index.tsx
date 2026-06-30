@@ -1457,8 +1457,8 @@ function LocalizedFields({ form }: { form: InertiaFormProps<PropertyForm> }) {
     const { t } = useLocalization();
 
     return (
-        <div className="grid min-w-0 gap-4 rounded-2xl border border-[#002452]/10 bg-white p-4 lg:col-span-4 lg:grid-cols-4">
-            <div className="space-y-1 border-b border-[#002452]/10 pb-3 lg:col-span-4">
+        <div className="grid min-w-0 gap-4 rounded-2xl border border-[#002452]/10 bg-white p-4 lg:col-span-4 lg:grid-cols-3">
+            <div className="space-y-1 border-b border-[#002452]/10 pb-3 lg:col-span-3">
                 <p className="text-sm font-semibold text-[#002452]">
                     {t('propertyWorkspace.languages.fa')}
                 </p>
