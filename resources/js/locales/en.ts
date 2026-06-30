@@ -1713,6 +1713,9 @@ const en = {
         summary: {
             sales: 'Rent Received',
             salesSubtitle: 'Tenant rent received in the selected period',
+            rentReceived: 'Rent Received',
+            rentReceivedSubtitle:
+                'Collected tenant rent for the selected property and period',
             rentExpected: 'Contracted Rent',
             rentExpectedSubtitle:
                 'Rent due from active contracts in this period',
@@ -1737,6 +1740,13 @@ const en = {
             supplierBalancesSubtitle:
                 'Unpaid vendor balance from stock purchases',
             pending: 'Pending',
+        },
+        businessCards: {
+            title: 'Business finance',
+            valuation: 'Valuation',
+            income: 'Income',
+            expenses: 'Expenses',
+            net: 'Net',
         },
         notes: {
             grossProfitRecognized:
@@ -2929,10 +2939,37 @@ const en = {
             singlePrice: 'Single Price',
             totalPrice: 'Total Price',
             usable: 'Usable',
+            assignedTo: 'Assigned To',
             images: 'Images',
             receipt: 'Receipt/Bill',
             actions: 'Actions',
             unknown: 'Unknown',
+        },
+        assignments: {
+            assignAction: 'Assign to employee',
+            returnAction: 'Return from employee',
+            assignTitle: 'Assign item to employee',
+            assignDescription:
+                'Track fixed assets given to employees so they can be returned when employment ends.',
+            returnTitle: 'Return assigned item',
+            returnDescription:
+                'Mark an employee-held fixed asset as returned.',
+            employee: 'Employee',
+            selectEmployee: 'Select employee',
+            employeeNumber: 'Employee #:id',
+            assignment: 'Assignment',
+            selectAssignment: 'Select assignment',
+            quantity: 'Quantity',
+            available: 'Available',
+            assignedAt: 'Assigned date',
+            expectedReturnAt: 'Expected return date',
+            returnedAt: 'Returned date',
+            conditionOut: 'Condition when assigned',
+            conditionIn: 'Condition when returned',
+            assigned: 'Item assigned to employee successfully.',
+            assignFailed: 'Failed to assign item.',
+            returned: 'Item returned successfully.',
+            returnFailed: 'Failed to return item.',
         },
         common: {
             name: 'Name',

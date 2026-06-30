@@ -1714,6 +1714,9 @@ const fa = {
         summary: {
             sales: 'کرایه دریافت‌شده',
             salesSubtitle: 'کرایه مستأجران در دوره انتخاب‌شده',
+            rentReceived: 'کرایه دریافت‌شده',
+            rentReceivedSubtitle:
+                'کرایه جمع‌آوری‌شده برای جایداد و دوره انتخاب‌شده',
             rentExpected: 'کرایه قراردادی',
             rentExpectedSubtitle:
                 'کرایه قابل پرداخت قراردادهای فعال در این دوره',
@@ -1737,6 +1740,13 @@ const fa = {
             supplierBalancesSubtitle:
                 'مانده پرداخت‌نشده فروشندگان از خریدهای موجودی',
             pending: 'در انتظار',
+        },
+        businessCards: {
+            title: 'مالیه کاروبارها',
+            valuation: 'ارزش‌گذاری',
+            income: 'عاید',
+            expenses: 'مصارف',
+            net: 'خالص',
         },
         notes: {
             grossProfitRecognized:
@@ -2917,10 +2927,37 @@ const fa = {
             singlePrice: 'قیمت واحد',
             totalPrice: 'قیمت مجموعی',
             usable: 'قابل استفاده',
+            assignedTo: 'سپرده‌شده به',
             images: 'تصاویر',
             receipt: 'رسید/بل',
             actions: 'عملیات',
             unknown: 'نامعلوم',
+        },
+        assignments: {
+            assignAction: 'سپردن به کارمند',
+            returnAction: 'برگرداندن از کارمند',
+            assignTitle: 'سپردن قلم به کارمند',
+            assignDescription:
+                'اقلام ثابت سپرده‌شده به کارمندان را پیگیری کنید تا هنگام ختم کار دوباره تسلیم شوند.',
+            returnTitle: 'برگرداندن قلم سپرده‌شده',
+            returnDescription:
+                'قلم ثابت نزد کارمند را به‌عنوان برگشت‌شده ثبت کنید.',
+            employee: 'کارمند',
+            selectEmployee: 'کارمند را انتخاب کنید',
+            employeeNumber: 'کارمند #:id',
+            assignment: 'سپردگی',
+            selectAssignment: 'سپردگی را انتخاب کنید',
+            quantity: 'تعداد',
+            available: 'موجود',
+            assignedAt: 'تاریخ سپردن',
+            expectedReturnAt: 'تاریخ احتمالی برگشت',
+            returnedAt: 'تاریخ برگشت',
+            conditionOut: 'حالت هنگام سپردن',
+            conditionIn: 'حالت هنگام برگشت',
+            assigned: 'قلم با موفقیت به کارمند سپرده شد.',
+            assignFailed: 'سپردن قلم به کارمند انجام نشد.',
+            returned: 'قلم با موفقیت برگشت داده شد.',
+            returnFailed: 'برگشت قلم انجام نشد.',
         },
         common: {
             name: 'نام',

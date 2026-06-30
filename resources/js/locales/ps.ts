@@ -1703,6 +1703,9 @@ const ps = {
         summary: {
             sales: 'ترلاسه شوې کرایه',
             salesSubtitle: 'په ټاکلې موده کې ترلاسه شوې د کرایه‌دارانو کرایه',
+            rentReceived: 'ترلاسه شوې کرایه',
+            rentReceivedSubtitle:
+                'د ټاکل شوي جایداد او مودې لپاره راټوله شوې کرایه',
             rentExpected: 'قراردادي کرایه',
             rentExpectedSubtitle:
                 'په دې موده کې د فعالو قراردادونو د ورکړې کرایه',
@@ -1729,6 +1732,13 @@ const ps = {
             supplierBalancesSubtitle:
                 'د موجودۍ د پېرودونو له امله د پلورونکو نه‌ورکړل شوې مانده',
             pending: 'په تمه',
+        },
+        businessCards: {
+            title: 'د کاروبار مالي برخه',
+            valuation: 'ارزښت‌ټاکنه',
+            income: 'عاید',
+            expenses: 'لګښتونه',
+            net: 'خالص',
         },
         notes: {
             grossProfitRecognized:
@@ -2906,10 +2916,37 @@ const ps = {
             singlePrice: 'واحد قیمت',
             totalPrice: 'ټول قیمت',
             usable: 'د کار وړ',
+            assignedTo: 'سپارل شوی چا ته',
             images: 'انځورونه',
             receipt: 'رسید/بل',
             actions: 'عملیات',
             unknown: 'نامعلوم',
+        },
+        assignments: {
+            assignAction: 'کارکوونکي ته سپارل',
+            returnAction: 'له کارکوونکي څخه بېرته اخیستل',
+            assignTitle: 'توکی کارکوونکي ته سپارل',
+            assignDescription:
+                'هغه ثابت توکي تعقیب کړئ چې کارکوونکو ته سپارل کېږي، څو د کار د ختمېدو پر وخت بېرته وسپارل شي.',
+            returnTitle: 'سپارل شوی توکی بېرته اخیستل',
+            returnDescription:
+                'هغه ثابت توکی چې له کارکوونکي سره دی، د بېرته راګرځېدلي په توګه ثبت کړئ.',
+            employee: 'کارکوونکی',
+            selectEmployee: 'کارکوونکی وټاکئ',
+            employeeNumber: 'کارکوونکی #:id',
+            assignment: 'سپارښت',
+            selectAssignment: 'سپارښت وټاکئ',
+            quantity: 'تعداد',
+            available: 'موجود',
+            assignedAt: 'د سپارلو نېټه',
+            expectedReturnAt: 'د تمه کېدونکي بېرته سپارلو نېټه',
+            returnedAt: 'د بېرته سپارلو نېټه',
+            conditionOut: 'حالت د سپارلو پر وخت',
+            conditionIn: 'حالت د بېرته سپارلو پر وخت',
+            assigned: 'توکی په بریالیتوب کارکوونکي ته وسپارل شو.',
+            assignFailed: 'کارکوونکي ته د توکي سپارل ناکام شول.',
+            returned: 'توکی په بریالیتوب بېرته وسپارل شو.',
+            returnFailed: 'د توکي بېرته سپارل ناکام شول.',
         },
         common: {
             name: 'نوم',
