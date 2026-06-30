@@ -160,13 +160,6 @@ const toolNavConfig: HeaderNavConfig[] = [
         superAdminOnly: true,
     },
     {
-        titleKey: 'navigation.runtimeHealth',
-        fallbackTitle: 'System Health',
-        href: '/operations/runtime-health',
-        icon: Activity,
-        superAdminOnly: true,
-    },
-    {
         titleKey: 'navigation.activityLogs',
         fallbackTitle: 'Activity Logs',
         href: '/admin/activity-logs',

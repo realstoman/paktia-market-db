@@ -17,7 +17,6 @@ import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
 import {
-    Activity,
     Banknote,
     Building2,
     ChartLine,
@@ -129,15 +128,6 @@ export function AppSidebar() {
                 can: item.can,
                 canAny: item.canAny,
             })),
-        ...(isSuperAdmin
-            ? [
-                  {
-                      title: t('navigation.runtimeHealth', 'Runtime Health'),
-                      href: '/operations/runtime-health',
-                      icon: Activity,
-                  } satisfies NavItem,
-              ]
-            : []),
     ];
     return (
         <Sidebar
