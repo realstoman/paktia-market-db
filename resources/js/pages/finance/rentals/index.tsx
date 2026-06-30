@@ -25,7 +25,7 @@ import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
 import { Lease, Property, SharedData } from '@/types';
-import { formatNumber } from '@/utils/format';
+import { formatCurrencySymbol, formatNumber } from '@/utils/format';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import {
     ArrowLeft,
@@ -322,7 +322,9 @@ export default function RentalsFinancePage({
                                                     {formatNumber(
                                                         payment.amount,
                                                     )}{' '}
-                                                    {payment.currency?.code}
+                                                    {formatCurrencySymbol(
+                                                        payment.currency,
+                                                    )}
                                                 </TableCell>
                                                 <TableCell>
                                                     <Badge
@@ -547,7 +549,7 @@ function PaymentForm({
                     <strong>{selected.property?.name}</strong> ·{' '}
                     {selected.contract_number} ·{' '}
                     {formatNumber(selected.rent_amount ?? 0)}{' '}
-                    {selected.currency?.code}
+                    {formatCurrencySymbol(selected.currency)}
                 </div>
             )}
             <div className="grid gap-4 sm:grid-cols-2">
@@ -681,7 +683,7 @@ function VoidForm({
         >
             <div className="rounded-xl bg-muted p-3 text-sm">
                 {payment.receipt_number} · {formatNumber(payment.amount)}{' '}
-                {payment.currency?.code}
+                {formatCurrencySymbol(payment.currency)}
             </div>
             <div className="space-y-1.5">
                 <Label>{t('rentals.voidReason')}</Label>

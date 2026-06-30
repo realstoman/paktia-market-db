@@ -35,6 +35,8 @@ import {
     Property,
     PropertyDocument,
     PropertyFloor,
+    PropertyImage,
+    PropertyType,
     PropertyUnit,
     Province,
 } from '@/types';
@@ -46,9 +48,11 @@ import {
     BriefcaseBusiness,
     Building2,
     ChefHat,
+    ChevronLeft,
+    ChevronRight,
     DoorOpen,
     FileText,
-    HandCoins,
+    Image as ImageIcon,
     Layers3,
     MapPin,
     Pencil,
@@ -60,6 +64,7 @@ import {
     Trash2,
     Upload,
     Users,
+    X,
 } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 
@@ -68,6 +73,7 @@ interface PropertyShowProps {
     countries: Country[];
     provinces: Province[];
     propertyOptions: Property[];
+    propertyTypes: PropertyType[];
 }
 
 export default function PropertyShow({
@@ -75,14 +81,21 @@ export default function PropertyShow({
     countries,
     provinces,
     propertyOptions,
+    propertyTypes,
 }: PropertyShowProps) {
     const { t } = useLocalization();
     const floors = property.floors ?? [];
     const units = floors.flatMap((floor) => floor.units ?? []);
-    const isMarket = ['market', 'mall'].includes(
-        property.property_type ?? 'market',
-    );
-    const isCommercialUnit = property.property_type === 'commercial_unit';
+    const behavior =
+        property.type_definition?.behavior ??
+        property.property_type_behavior ??
+        (property.property_type === 'mall' ? 'market' : property.property_type);
+    const isMarket = behavior === 'market';
+    const isCommercialUnit = behavior === 'commercial_unit';
+    const propertyTypeLabel =
+        property.type_definition?.name ??
+        t(`propertyWorkspace.types.${property.property_type ?? 'market'}`);
+    const coverImageUrl = property.images?.[0]?.url ?? property.image_url;
     const breadcrumbs: BreadcrumbItem[] = [
         { title: t('propertyWorkspace.title'), href: '/properties' },
         { title: property.name, href: `/properties/${property.id}` },
@@ -93,9 +106,9 @@ export default function PropertyShow({
             <Head title={property.name} />
             <div className="[**:data-[slot=card]:border-slate-200/80 mx-auto w-full max-w-[1600px] space-y-5 **:data-[slot=card]:rounded-2xl **:data-[slot=card]:bg-white **:data-[slot=card]:shadow-none">
                 <section className="relative min-h-64 overflow-hidden rounded-3xl border border-slate-200/80 bg-linear-to-r from-emerald-950 to-teal-700 shadow-none">
-                    {property.image_url && (
+                    {coverImageUrl && (
                         <img
-                            src={property.image_url}
+                            src={coverImageUrl}
                             alt=""
                             className="absolute inset-0 h-full w-full object-cover opacity-45"
                         />
@@ -103,9 +116,7 @@ export default function PropertyShow({
                     <div className="relative flex min-h-64 flex-col justify-end bg-linear-to-t from-black/80 to-transparent p-6 text-white md:p-8">
                         <div className="mb-3 flex gap-2">
                             <Badge className="bg-white/90 text-slate-900">
-                                {t(
-                                    `propertyWorkspace.types.${property.property_type ?? 'market'}`,
-                                )}
+                                {propertyTypeLabel}
                             </Badge>
                             <Badge
                                 variant="outline"
@@ -126,12 +137,39 @@ export default function PropertyShow({
                                     {property.address || '—'}
                                 </p>
                             </div>
-                            <EditPropertyDialog
-                                property={property}
-                                countries={countries}
-                                provinces={provinces}
-                                propertyOptions={propertyOptions}
-                            />
+                            <div className="flex flex-wrap items-center gap-2">
+                                <BannerAction
+                                    href={`/employees?property_id=${property.id}`}
+                                    icon={BriefcaseBusiness}
+                                    label={t('propertyWorkspace.employees')}
+                                />
+                                <BannerAction
+                                    href={`/finance/expenses?property_id=${property.id}`}
+                                    icon={ReceiptText}
+                                    label={t('propertyWorkspace.expenses')}
+                                />
+                                <BannerAction
+                                    href={`/shareholders?property_id=${property.id}`}
+                                    icon={Users}
+                                    label={t('propertyWorkspace.shareholders')}
+                                />
+                                {!isCommercialUnit && (
+                                    <BannerAction
+                                        href={`/tenants?property_id=${property.id}`}
+                                        icon={DoorOpen}
+                                        label={t(
+                                            'propertyWorkspace.rentContracts',
+                                        )}
+                                    />
+                                )}
+                                <EditPropertyDialog
+                                    property={property}
+                                    countries={countries}
+                                    provinces={provinces}
+                                    propertyOptions={propertyOptions}
+                                    propertyTypes={propertyTypes}
+                                />
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -167,14 +205,14 @@ export default function PropertyShow({
                                   )
                                 : isMarket
                                   ? t('propertyWorkspace.shops')
-                                  : property.property_type === 'block'
+                                  : behavior === 'block'
                                     ? t('propertyWorkspace.apartments')
                                     : t('propertyWorkspace.rooms')
                         }
                         value={
                             isCommercialUnit
                                 ? (property.external_unit_number ?? '—')
-                                : property.property_type === 'house'
+                                : behavior === 'house'
                                   ? (property.rooms_count ?? 0)
                                   : units.length
                         }
@@ -219,39 +257,16 @@ export default function PropertyShow({
                     />
                 </div>
 
-                <Card>
-                    <CardContent className="grid gap-3 py-5 sm:grid-cols-2 xl:grid-cols-4">
-                        <WorkspaceCapability
-                            icon={BriefcaseBusiness}
-                            title={t('propertyWorkspace.employees')}
-                            description={t('propertyWorkspace.employeesHelp')}
-                        />
-                        <WorkspaceCapability
-                            icon={ReceiptText}
-                            title={t('propertyWorkspace.expenses')}
-                            description={t('propertyWorkspace.expensesHelp')}
-                        />
-                        <WorkspaceCapability
-                            icon={Users}
-                            title={t('propertyWorkspace.shareholders')}
-                            description={t(
-                                'propertyWorkspace.shareholdersHelp',
-                            )}
-                            planned
-                        />
-                        <WorkspaceCapability
-                            icon={HandCoins}
-                            title={t('propertyWorkspace.rentContracts')}
-                            description={t(
-                                'propertyWorkspace.rentContractsHelp',
-                            )}
-                            href={'/tenants?property_id=' + property.id}
-                        />
-                    </CardContent>
-                </Card>
-
-                <div className="grid gap-6 xl:grid-cols-[1fr_2fr]">
-                    <div className="space-y-6">
+                <div
+                    className={
+                        isCommercialUnit
+                            ? 'grid gap-6 lg:grid-cols-3'
+                            : 'grid gap-6 xl:grid-cols-[1fr_2fr]'
+                    }
+                >
+                    <div
+                        className={isCommercialUnit ? 'contents' : 'space-y-6'}
+                    >
                         <Card>
                             <CardHeader>
                                 <CardTitle>
@@ -362,7 +377,7 @@ export default function PropertyShow({
                                     value={property.parking_spaces ?? '—'}
                                 />
                                 {['house', 'commercial_unit'].includes(
-                                    property.property_type ?? '',
+                                    behavior ?? '',
                                 ) && (
                                     <>
                                         <Detail
@@ -398,7 +413,8 @@ export default function PropertyShow({
                                 </div>
                             </CardContent>
                         </Card>
-                        {property.related_locations?.length ? (
+                        {!isCommercialUnit &&
+                        property.related_locations?.length ? (
                             <Card>
                                 <CardHeader>
                                     <CardTitle>
@@ -440,66 +456,60 @@ export default function PropertyShow({
                             property={property}
                             documents={property.documents ?? []}
                         />
+                        <PropertyImageGallery
+                            property={property}
+                            images={property.images ?? []}
+                        />
                     </div>
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <h2 className="text-xl font-semibold">
-                                    {isCommercialUnit
-                                        ? t(
-                                              'propertyWorkspace.commercialUnitManagement',
-                                          )
-                                        : t(
-                                              'propertyWorkspace.floorsAndSpaces',
-                                          ).replace(
-                                              ':spaces',
-                                              isMarket
-                                                  ? t('propertyWorkspace.shops')
-                                                  : t(
-                                                        'propertyWorkspace.apartments',
-                                                    ),
-                                          )}
-                                </h2>
-                                <p className="text-sm text-muted-foreground">
-                                    {t(
-                                        isCommercialUnit
-                                            ? 'propertyWorkspace.commercialUnitRentalHelp'
-                                            : 'propertyWorkspace.basementHelp',
-                                    )}
-                                </p>
+                    {!isCommercialUnit && (
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h2 className="text-xl font-semibold">
+                                        {t(
+                                            'propertyWorkspace.floorsAndSpaces',
+                                        ).replace(
+                                            ':spaces',
+                                            isMarket
+                                                ? t('propertyWorkspace.shops')
+                                                : t(
+                                                      'propertyWorkspace.apartments',
+                                                  ),
+                                        )}
+                                    </h2>
+                                    <p className="text-sm text-muted-foreground">
+                                        {t(
+                                            'propertyWorkspace.basementHelp',
+                                        )}
+                                    </p>
+                                </div>
+                                {!['house', 'commercial_unit'].includes(
+                                    behavior ?? '',
+                                ) && <AddFloor property={property} />}
                             </div>
-                            {!['house', 'commercial_unit'].includes(
-                                property.property_type ?? '',
-                            ) && <AddFloor property={property} />}
+                            {behavior === 'house' ? (
+                                <Card>
+                                    <CardContent className="py-10 text-center text-muted-foreground">
+                                        <Building2 className="mx-auto mb-3 h-10 w-10" />
+                                        {t('propertyWorkspace.houseHelp')}
+                                    </CardContent>
+                                </Card>
+                            ) : floors.length ? (
+                                floors.map((floor) => (
+                                    <FloorCard
+                                        key={floor.id}
+                                        property={property}
+                                        floor={floor}
+                                        isMarket={isMarket}
+                                    />
+                                ))
+                            ) : (
+                                <div className="rounded-xl border border-dashed py-16 text-center text-muted-foreground">
+                                    {t('propertyWorkspace.noFloors')}
+                                </div>
+                            )}
                         </div>
-                        {['house', 'commercial_unit'].includes(
-                            property.property_type ?? '',
-                        ) ? (
-                            <Card>
-                                <CardContent className="py-10 text-center text-muted-foreground">
-                                    <Building2 className="mx-auto mb-3 h-10 w-10" />
-                                    {t(
-                                        isCommercialUnit
-                                            ? 'propertyWorkspace.commercialUnitHelp'
-                                            : 'propertyWorkspace.houseHelp',
-                                    )}
-                                </CardContent>
-                            </Card>
-                        ) : floors.length ? (
-                            floors.map((floor) => (
-                                <FloorCard
-                                    key={floor.id}
-                                    property={property}
-                                    floor={floor}
-                                    isMarket={isMarket}
-                                />
-                            ))
-                        ) : (
-                            <div className="rounded-xl border border-dashed py-16 text-center text-muted-foreground">
-                                {t('propertyWorkspace.noFloors')}
-                            </div>
-                        )}
-                    </div>
+                    )}
                 </div>
             </div>
         </AppLayout>
@@ -642,6 +652,200 @@ function PropertyDocuments({
                 </div>
             </CardContent>
         </Card>
+    );
+}
+
+function PropertyImageGallery({
+    property,
+    images,
+}: {
+    property: Property;
+    images: PropertyImage[];
+}) {
+    const { t, isRtl } = useLocalization();
+    const [activeIndex, setActiveIndex] = useState(0);
+    const [lightboxOpen, setLightboxOpen] = useState(false);
+    const form = useForm<{ images: File[] }>({ images: [] });
+    const activeImage = images[activeIndex] ?? images[0];
+
+    const submit = (event: FormEvent) => {
+        event.preventDefault();
+        form.post(`/properties/${property.id}/images`, {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => form.reset('images'),
+        });
+    };
+
+    const move = (direction: 'previous' | 'next') => {
+        if (!images.length) return;
+        setActiveIndex((current) => {
+            if (direction === 'previous') {
+                return current === 0 ? images.length - 1 : current - 1;
+            }
+
+            return current === images.length - 1 ? 0 : current + 1;
+        });
+    };
+
+    return (
+        <>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <ImageIcon className="size-5" />
+                        {t('propertyWorkspace.images.title', 'Property images')}
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                        {t(
+                            'propertyWorkspace.images.help',
+                            'Upload up to 10 gallery images. Each image must be exactly 1920×1080.',
+                        )}
+                    </p>
+                    <form
+                        onSubmit={submit}
+                        className="grid gap-3 rounded-xl border bg-muted/20 p-3"
+                    >
+                        <Input
+                            type="file"
+                            multiple
+                            accept="image/png,image/jpeg,image/webp"
+                            className="bg-white dark:bg-neutral-900"
+                            onChange={(event) =>
+                                form.setData(
+                                    'images',
+                                    Array.from(event.target.files ?? []).slice(
+                                        0,
+                                        10,
+                                    ),
+                                )
+                            }
+                        />
+                        <InputError message={form.errors.images} />
+                        <Button
+                            type="submit"
+                            disabled={
+                                form.processing || !form.data.images.length
+                            }
+                            className="w-fit gap-2"
+                        >
+                            <Upload className="size-4" />
+                            {t(
+                                'propertyWorkspace.images.upload',
+                                'Upload images',
+                            )}
+                        </Button>
+                    </form>
+
+                    {activeImage ? (
+                        <div className="space-y-3">
+                            <button
+                                type="button"
+                                className="group relative aspect-video w-full overflow-hidden rounded-2xl border bg-slate-100 text-start"
+                                onClick={() => setLightboxOpen(true)}
+                            >
+                                <img
+                                    src={activeImage.url}
+                                    alt={activeImage.original_name ?? ''}
+                                    className="h-full w-full object-cover"
+                                />
+                                <span className="absolute inset-0 flex items-center justify-center bg-black/0 text-sm font-semibold text-white opacity-0 transition group-hover:bg-black/35 group-hover:opacity-100">
+                                    {t(
+                                        'propertyWorkspace.images.openLarge',
+                                        'Open large view',
+                                    )}
+                                </span>
+                            </button>
+                            {images.length > 1 && (
+                                <div className="flex gap-2 overflow-x-auto pb-1">
+                                    {images.map((image, index) => (
+                                        <button
+                                            key={image.id}
+                                            type="button"
+                                            onClick={() =>
+                                                setActiveIndex(index)
+                                            }
+                                            className={`h-16 w-24 shrink-0 overflow-hidden rounded-xl border ${
+                                                index === activeIndex
+                                                    ? 'border-primary ring-2 ring-primary/20'
+                                                    : 'border-slate-200'
+                                            }`}
+                                        >
+                                            <img
+                                                src={image.url}
+                                                alt={image.original_name ?? ''}
+                                                className="h-full w-full object-cover"
+                                            />
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="rounded-xl border border-dashed py-10 text-center text-sm text-muted-foreground">
+                            <ImageIcon className="mx-auto mb-2 size-8 opacity-50" />
+                            {t(
+                                'propertyWorkspace.images.empty',
+                                'No property images have been uploaded.',
+                            )}
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+
+            <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
+                <DialogContent
+                    dir={isRtl ? 'rtl' : 'ltr'}
+                    className="max-w-6xl border-none bg-transparent p-0 shadow-none"
+                >
+                    <DialogTitle className="sr-only">
+                        {t('propertyWorkspace.images.title', 'Property images')}
+                    </DialogTitle>
+                    {activeImage && (
+                        <div className="relative overflow-hidden rounded-3xl bg-black">
+                            <img
+                                src={activeImage.url}
+                                alt={activeImage.original_name ?? ''}
+                                className="max-h-[82vh] w-full object-contain"
+                            />
+                            <Button
+                                type="button"
+                                size="icon"
+                                variant="secondary"
+                                className="absolute top-4 right-4 rounded-full bg-white/90"
+                                onClick={() => setLightboxOpen(false)}
+                            >
+                                <X className="size-4" />
+                            </Button>
+                            {images.length > 1 && (
+                                <>
+                                    <Button
+                                        type="button"
+                                        size="icon"
+                                        variant="secondary"
+                                        className="absolute top-1/2 left-4 -translate-y-1/2 rounded-full bg-white/90"
+                                        onClick={() => move('previous')}
+                                    >
+                                        <ChevronLeft className="size-5" />
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        size="icon"
+                                        variant="secondary"
+                                        className="absolute top-1/2 right-4 -translate-y-1/2 rounded-full bg-white/90"
+                                        onClick={() => move('next')}
+                                    >
+                                        <ChevronRight className="size-5" />
+                                    </Button>
+                                </>
+                            )}
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
+        </>
     );
 }
 
@@ -819,7 +1023,6 @@ function AddFloor({ property }: { property: Property }) {
         name: '',
         level_number: '0',
         area_sqm: '',
-        planned_units: '',
         usage_type: property.usage_type ?? 'commercial',
         description: '',
     });
@@ -878,16 +1081,6 @@ function AddFloor({ property }: { property: Property }) {
                             value={form.data.area_sqm}
                             onValueChange={(value) =>
                                 form.setData('area_sqm', value)
-                            }
-                            showControls={false}
-                        />
-                    </Field>
-                    <Field label={t('propertyWorkspace.fields.plannedSpaces')}>
-                        <NumericInput
-                            min="0"
-                            value={form.data.planned_units}
-                            onValueChange={(value) =>
-                                form.setData('planned_units', value)
                             }
                             showControls={false}
                         />
@@ -1506,42 +1699,28 @@ function Metric({
         </Card>
     );
 }
-function WorkspaceCapability({
-    icon: Icon,
-    title,
-    description,
-    planned = false,
+
+function BannerAction({
     href,
+    icon: Icon,
+    label,
 }: {
     icon: typeof Store;
-    title: string;
-    description: string;
-    planned?: boolean;
-    href?: string;
+    href: string;
+    label: string;
 }) {
-    const { t } = useLocalization();
-    const content = (
-        <div className="flex h-full gap-3 rounded-xl border bg-muted/20 p-4 transition hover:border-primary/30 hover:bg-primary/5">
-            <div className="h-fit rounded-lg bg-primary/10 p-2 text-primary">
-                <Icon className="h-4 w-4" />
-            </div>
-            <div>
-                <div className="flex items-center gap-2">
-                    <p className="text-sm font-semibold">{title}</p>
-                    {planned && (
-                        <Badge variant="secondary">
-                            {t('propertyWorkspace.plannedLabel')}
-                        </Badge>
-                    )}
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">
-                    {description}
-                </p>
-            </div>
-        </div>
+    return (
+        <Button
+            asChild
+            variant="secondary"
+            className="bg-white/90 text-slate-900 hover:bg-white"
+        >
+            <Link href={href}>
+                <Icon className="me-2 size-4" />
+                {label}
+            </Link>
+        </Button>
     );
-
-    return href ? <Link href={href}>{content}</Link> : content;
 }
 function Detail({ label, value }: { label: string; value: React.ReactNode }) {
     return (

@@ -447,6 +447,7 @@ export interface Property {
     parent_property?: Property | null;
     related_locations?: Property[];
     name: string;
+    name_translations?: Partial<Record<'fa' | 'ps' | 'en', string>> | null;
     country?: Country | string | null;
     country_id?: number | null;
     country_object?: Country | null;
@@ -461,9 +462,12 @@ export interface Property {
     description_translations?: Partial<
         Record<'fa' | 'ps' | 'en', string>
     > | null;
-    property_type?: 'market' | 'mall' | 'block' | 'house' | 'commercial_unit';
+    property_type?: string;
+    property_type_behavior?: 'market' | 'block' | 'house' | 'commercial_unit';
+    type_definition?: PropertyType | null;
     usage_type?: 'commercial' | 'residential' | 'mixed';
     image_url?: string | null;
+    images?: PropertyImage[];
     distance_from_city_km?: string | null;
     land_area_sqm?: string | null;
     building_area_sqm?: string | null;
@@ -496,6 +500,31 @@ export interface Property {
     created_at: string;
     updated_at: string;
     [key: string]: unknown;
+}
+
+export interface PropertyType {
+    id: number;
+    key: string;
+    name: string;
+    name_translations?: Partial<Record<'fa' | 'ps' | 'en', string>> | null;
+    behavior: 'market' | 'block' | 'house' | 'commercial_unit';
+    is_active: boolean;
+    sort_order?: number;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface PropertyImage {
+    id: number;
+    property_id: number;
+    path: string;
+    original_name?: string | null;
+    mime_type?: string | null;
+    size_bytes?: number | null;
+    sort_order?: number;
+    url: string;
+    created_at: string;
+    updated_at: string;
 }
 
 export interface PropertyDocument {

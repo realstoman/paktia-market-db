@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useLocalization } from '@/lib/localization';
-import { Country, Property, Province } from '@/types';
+import { Country, Property, PropertyType, Province } from '@/types';
 import { useForm } from '@inertiajs/react';
 import { Pencil } from 'lucide-react';
 import { FormEvent, useState } from 'react';
@@ -26,15 +26,60 @@ interface Props {
     countries: Country[];
     provinces: Province[];
     propertyOptions: Property[];
+    propertyTypes: PropertyType[];
 }
+
+const typeBehavior = (
+    key: string | undefined,
+    propertyTypes: PropertyType[],
+): PropertyType['behavior'] => {
+    const resolved = propertyTypes.find((type) => type.key === key)?.behavior;
+
+    if (resolved) return resolved;
+    if (key === 'mall') return 'market';
+    if (
+        key === 'market' ||
+        key === 'block' ||
+        key === 'house' ||
+        key === 'commercial_unit'
+    ) {
+        return key;
+    }
+
+    return 'market';
+};
+
+const propertyTypeName = (
+    key: string | undefined,
+    propertyTypes: PropertyType[],
+    locale: string,
+    fallback: (key: string, fallback?: string) => string,
+) => {
+    const type = propertyTypes.find((item) => item.key === key);
+    if (type) {
+        return (
+            type.name_translations?.[
+                locale as keyof NonNullable<PropertyType['name_translations']>
+            ] ||
+            type.name_translations?.fa ||
+            type.name
+        );
+    }
+
+    return fallback(
+        `propertyWorkspace.types.${key ?? 'market'}`,
+        key ?? 'Property',
+    );
+};
 
 export function EditPropertyDialog({
     property,
     countries,
     provinces,
     propertyOptions,
+    propertyTypes,
 }: Props) {
-    const { t } = useLocalization();
+    const { t, locale } = useLocalization();
     const [open, setOpen] = useState(false);
     const form = useForm({
         _method: 'put',
@@ -90,12 +135,24 @@ export function EditPropertyDialog({
         year_built: property.year_built ? String(property.year_built) : '',
         notes: property.notes ?? '',
         image: null as File | null,
+        images: [] as File[],
     });
     const provinceOptions = provinces.filter(
         (province) =>
             !form.data.country_id ||
             String(province.country_id) === form.data.country_id,
     );
+    const selectedTypeBehavior = typeBehavior(
+        form.data.property_type,
+        propertyTypes,
+    );
+    const activePropertyTypes = propertyTypes.filter(
+        (type) => type.is_active || type.key === form.data.property_type,
+    );
+    const editTitle = t(
+        'propertyWorkspace.editNamedTitle',
+        'Edit :name information',
+    ).replace(':name', property.name);
 
     const submit = (event: FormEvent) => {
         event.preventDefault();
@@ -114,11 +171,9 @@ export function EditPropertyDialog({
                     {t('propertyWorkspace.edit')}
                 </Button>
             </DialogTrigger>
-            <DialogContent className="max-h-[92vh] overflow-y-auto bg-[#f8f9fd] sm:max-w-4xl [&_input]:bg-white [&_textarea]:bg-white">
+            <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto bg-[#f8f9fd] sm:max-w-4xl [&_input]:bg-white [&_textarea]:bg-white">
                 <DialogHeader>
-                    <DialogTitle>
-                        {t('propertyWorkspace.editTitle')}
-                    </DialogTitle>
+                    <DialogTitle>{editTitle}</DialogTitle>
                     <DialogDescription>
                         {t('propertyWorkspace.editHelp')}
                     </DialogDescription>
@@ -192,29 +247,23 @@ export function EditPropertyDialog({
                         <SearchableDropdown
                             value={form.data.property_type}
                             onValueChange={(value) => {
-                                form.setData(
-                                    'property_type',
-                                    value as
-                                        | 'market'
-                                        | 'mall'
-                                        | 'block'
-                                        | 'house'
-                                        | 'commercial_unit',
-                                );
-                                if (value === 'commercial_unit') {
+                                form.setData('property_type', value);
+                                if (
+                                    typeBehavior(value, propertyTypes) ===
+                                    'commercial_unit'
+                                ) {
                                     form.setData('usage_type', 'commercial');
                                     form.setData('parent_property_id', '');
                                 }
                             }}
-                            options={[
-                                'market',
-                                'mall',
-                                'block',
-                                'house',
-                                'commercial_unit',
-                            ].map((value) => ({
-                                value,
-                                label: t(`propertyWorkspace.types.${value}`),
+                            options={activePropertyTypes.map((type) => ({
+                                value: type.key,
+                                label: propertyTypeName(
+                                    type.key,
+                                    propertyTypes,
+                                    locale,
+                                    t,
+                                ),
                             }))}
                             placeholder={t('propertyWorkspace.fields.type')}
                             searchPlaceholder={t(
@@ -223,7 +272,7 @@ export function EditPropertyDialog({
                             emptyText={t('propertyWorkspace.noOptions')}
                         />
                     </Field>
-                    {form.data.property_type !== 'commercial_unit' && (
+                    {selectedTypeBehavior !== 'commercial_unit' && (
                         <Field label={t('propertyWorkspace.fields.usage')}>
                             <SearchableDropdown
                                 value={form.data.usage_type}
@@ -291,7 +340,7 @@ export function EditPropertyDialog({
                             emptyText={t('propertyWorkspace.noOptions')}
                         />
                     </Field>
-                    {form.data.property_type !== 'commercial_unit' && (
+                    {selectedTypeBehavior !== 'commercial_unit' && (
                         <Field label={t('propertyWorkspace.relatedLocation')}>
                             <SearchableDropdown
                                 value={form.data.parent_property_id || 'none'}
@@ -321,7 +370,7 @@ export function EditPropertyDialog({
                             />
                         </Field>
                     )}
-                    {form.data.property_type === 'commercial_unit' && (
+                    {selectedTypeBehavior === 'commercial_unit' && (
                         <>
                             <TextField
                                 label={t(
@@ -498,7 +547,7 @@ export function EditPropertyDialog({
                             form.setData('distance_from_city_km', value)
                         }
                     />
-                    {form.data.property_type !== 'commercial_unit' && (
+                    {selectedTypeBehavior !== 'commercial_unit' && (
                         <NumericField
                             label={t('propertyWorkspace.fields.landArea')}
                             value={form.data.land_area_sqm}
@@ -514,7 +563,7 @@ export function EditPropertyDialog({
                             form.setData('building_area_sqm', value)
                         }
                     />
-                    {form.data.property_type !== 'commercial_unit' && (
+                    {selectedTypeBehavior !== 'commercial_unit' && (
                         <>
                             <NumericField
                                 label={t('propertyWorkspace.fields.floors')}
@@ -525,9 +574,7 @@ export function EditPropertyDialog({
                             />
                             <NumericField
                                 label={t(
-                                    ['market', 'mall'].includes(
-                                        form.data.property_type,
-                                    )
+                                    selectedTypeBehavior === 'market'
                                         ? 'propertyWorkspace.fields.expectedShops'
                                         : 'propertyWorkspace.fields.expectedApartments',
                                 )}
@@ -546,7 +593,7 @@ export function EditPropertyDialog({
                         </>
                     )}
                     {['house', 'commercial_unit'].includes(
-                        form.data.property_type,
+                        selectedTypeBehavior,
                     ) && (
                         <>
                             <NumericField
@@ -564,13 +611,6 @@ export function EditPropertyDialog({
                                 }
                             />
                             <NumericField
-                                label={t('propertyWorkspace.fields.halls')}
-                                value={form.data.halls_count}
-                                set={(value) =>
-                                    form.setData('halls_count', value)
-                                }
-                            />
-                            <NumericField
                                 label={t('propertyWorkspace.fields.bathrooms')}
                                 value={form.data.bathrooms_count}
                                 set={(value) =>
@@ -581,8 +621,11 @@ export function EditPropertyDialog({
                     )}
                     <PropertyImageUpload
                         value={form.data.image}
-                        onChange={(file) => form.setData('image', file)}
-                        error={form.errors.image}
+                        onChange={() => undefined}
+                        multiple
+                        files={form.data.images}
+                        onFilesChange={(files) => form.setData('images', files)}
+                        error={form.errors.images ?? form.errors.image}
                         existingImageUrl={property.image_url}
                         className="sm:col-span-2 lg:col-span-3"
                     />

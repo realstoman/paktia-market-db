@@ -87,6 +87,9 @@ const EMPLOYEE_STATUSES = ['active', 'inactive', 'suspended', 'terminated'];
 const CURRENCIES = ['AFN', 'USD'];
 const MAX_ATTACHMENTS = 25;
 
+const currencyLabel = (currency: string) =>
+    currency === 'USD' ? '$' : currency === 'AFN' ? '؋' : currency;
+
 const formatTimeTo12Hour = (time?: string | null) => {
     if (!time) {
         return '';
@@ -321,7 +324,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                           'Advances: :amount',
                       ).replace(
                           ':amount',
-                          `${formatNumber(advanceTotal)} ${data.salary_currency ?? 'AFN'}`,
+                          `${formatNumber(advanceTotal)} ${currencyLabel(data.salary_currency ?? 'AFN')}`,
                       )
                     : null,
             ]
@@ -840,9 +843,9 @@ export const CellAction: React.FC<CellActionProps> = ({
                                                 :
                                             </span>{' '}
                                             {data.contract_amount
-                                                ? `${formatNumber(Number(data.contract_amount))} ${data.salary_currency ?? 'AFN'} (${t('employees.common.contract', 'Contract')})`
+                                                ? `${formatNumber(Number(data.contract_amount))} ${currencyLabel(data.salary_currency ?? 'AFN')} (${t('employees.common.contract', 'Contract')})`
                                                 : data.salary
-                                                  ? `${formatNumber(Number(data.salary))} ${data.salary_currency ?? 'AFN'}`
+                                                  ? `${formatNumber(Number(data.salary))} ${currencyLabel(data.salary_currency ?? 'AFN')}`
                                                   : t(
                                                         'employees.common.empty',
                                                         '—',
@@ -970,7 +973,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                                 <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                                     <div>
                                         <p className="text-2xl font-semibold">
-                                            {`${formatNumber(upcomingPayment.amount)} ${upcomingPayment.currency}`}
+                                            {`${formatNumber(upcomingPayment.amount)} ${currencyLabel(upcomingPayment.currency)}`}
                                         </p>
                                         <p className="text-sm text-muted-foreground">
                                             {upcomingPayment.title}
@@ -1079,7 +1082,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                                                                 </span>
                                                             </TableCell>
                                                             <TableCell className="font-medium">
-                                                                {`${formatNumber(payment.amount)} ${payment.currency}`}
+                                                                {`${formatNumber(payment.amount)} ${currencyLabel(payment.currency)}`}
                                                             </TableCell>
                                                             <TableCell className="text-muted-foreground">
                                                                 <div className="space-y-1">
@@ -1368,7 +1371,7 @@ export const CellAction: React.FC<CellActionProps> = ({
                                     }
                                     options={CURRENCIES.map((currency) => ({
                                         value: currency,
-                                        label: currency,
+                                        label: currencyLabel(currency),
                                     }))}
                                     placeholder={t(
                                         'employees.form.selectCurrency',

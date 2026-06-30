@@ -127,10 +127,25 @@ export function ExpenseClient({
     const [approvalTarget, setApprovalTarget] = React.useState<Expense | null>(
         null,
     );
+    const initialFilters = React.useMemo(
+        () =>
+            new URLSearchParams(
+                typeof window !== 'undefined' ? window.location.search : '',
+            ),
+        [],
+    );
     const [form, setForm] = React.useState<ExpenseFormState>(emptyForm);
-    const [propertyFilter, setPropertyFilter] = React.useState('all');
+    const [propertyFilter, setPropertyFilter] = React.useState(
+        initialFilters.get('property_id') || 'all',
+    );
     const [categoryFilter, setCategoryFilter] = React.useState('all');
     const [statusFilter, setStatusFilter] = React.useState('all');
+    const [startDateFilter, setStartDateFilter] = React.useState(
+        initialFilters.get('start_date') || '',
+    );
+    const [endDateFilter, setEndDateFilter] = React.useState(
+        initialFilters.get('end_date') || '',
+    );
 
     const propertyOptions = React.useMemo(
         () =>
@@ -363,9 +378,26 @@ export function ExpenseClient({
                 return false;
             }
 
+            const expenseDate = expense.expense_date?.slice(0, 10) ?? '';
+
+            if (startDateFilter && expenseDate < startDateFilter) {
+                return false;
+            }
+
+            if (endDateFilter && expenseDate > endDateFilter) {
+                return false;
+            }
+
             return true;
         });
-    }, [propertyFilter, categoryFilter, expenses, statusFilter]);
+    }, [
+        propertyFilter,
+        categoryFilter,
+        expenses,
+        statusFilter,
+        startDateFilter,
+        endDateFilter,
+    ]);
 
     const columns = React.useMemo(
         () =>
@@ -462,6 +494,23 @@ export function ExpenseClient({
                     'No statuses found.',
                 )}
                 className="w-[170px] bg-white dark:bg-neutral-900"
+            />
+            <Input
+                type="date"
+                value={startDateFilter}
+                onChange={(event) => setStartDateFilter(event.target.value)}
+                aria-label={t(
+                    'financeExpenses.filters.startDate',
+                    'Start Date',
+                )}
+                className="h-10 w-[150px] bg-white dark:bg-neutral-900"
+            />
+            <Input
+                type="date"
+                value={endDateFilter}
+                onChange={(event) => setEndDateFilter(event.target.value)}
+                aria-label={t('financeExpenses.filters.endDate', 'End Date')}
+                className="h-10 w-[150px] bg-white dark:bg-neutral-900"
             />
         </div>
     );

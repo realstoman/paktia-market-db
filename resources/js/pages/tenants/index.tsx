@@ -70,7 +70,6 @@ import {
     ScanLine,
     Search,
     ShieldCheck,
-    Store,
     Upload,
     UserRound,
 } from 'lucide-react';
@@ -91,10 +90,15 @@ interface Props {
     summary: {
         total: number;
         assigned: number;
+        persons: number;
         businesses: number;
         properties: number;
     };
-    filters: { search?: string };
+    filters: {
+        search?: string;
+        property_id?: number | null;
+        tenant_kind?: 'business' | 'person' | null;
+    };
     properties: Property[];
     currencies: Currency[];
     initialPropertyId?: number | null;
@@ -127,6 +131,8 @@ interface FormData {
 }
 
 const today = () => new Date().toLocaleDateString('en-CA');
+const MAX_TENANT_DOCUMENTS = 5;
+const MAX_TENANT_DOCUMENT_BYTES = 2 * 1024 * 1024;
 const emptyForm = (): FormData => ({
     tenant_type: 'individual',
     full_name: '',
@@ -167,11 +173,28 @@ const initials = (name: string) =>
         .map((part) => part[0])
         .join('')
         .toUpperCase();
-const shopNumber = (lease?: Lease) =>
-    lease?.unit?.unit_number ??
-    (lease?.property?.property_type === 'commercial_unit'
-        ? lease.property.external_unit_number
-        : null);
+const shopNumber = (lease?: Lease) => {
+    if (!lease) return null;
+
+    return (
+        lease.unit?.unit_number ??
+        (propertyBehavior(lease.property) === 'commercial_unit'
+            ? (lease.property?.external_unit_number ?? null)
+            : null)
+    );
+};
+const propertyBehavior = (property?: Property | null) =>
+    property?.type_definition?.behavior ??
+    property?.property_type_behavior ??
+    (property?.property_type === 'mall' ? 'market' : property?.property_type);
+const currencySymbol = (currency?: Currency | null) => {
+    const code = currency?.code?.toUpperCase();
+
+    if (code === 'AFN') return '؋';
+    if (code === 'USD') return '$';
+
+    return currency?.symbol || currency?.code || '';
+};
 
 function buildPageNumbers(currentPage: number, lastPage: number) {
     if (lastPage <= 7) {
@@ -204,27 +227,49 @@ export default function TenantsIndex({
     currencies,
     initialPropertyId,
 }: Props) {
-    const { t, isRtl } = useLocalization();
+    const { t, isRtl, locale } = useLocalization();
     const { auth } = usePage<SharedData>().props;
     const canManage =
         auth.is_super_admin || auth.permissions.includes('tenants.manage');
     const [search, setSearch] = useState(filters.search ?? '');
+    const [propertyFilter, setPropertyFilter] = useState(
+        filters.property_id ? String(filters.property_id) : 'all',
+    );
+    const [tenantKindFilter, setTenantKindFilter] = useState<string>(
+        filters.tenant_kind ?? 'all',
+    );
     const [scan, setScan] = useState('');
     const [open, setOpen] = useState(false);
     const pageNumbers = useMemo(
         () => buildPageNumbers(tenants.current_page, tenants.last_page),
         [tenants.current_page, tenants.last_page],
     );
+    const propertyLabel = (property: Property) =>
+        property.name_translations?.[
+            locale as keyof NonNullable<Property['name_translations']>
+        ] || property.name;
+    const selectedPropertyId =
+        propertyFilter === 'all' ? undefined : propertyFilter;
+    const selectedTenantKind =
+        tenantKindFilter === 'all' ? undefined : tenantKindFilter;
 
     useEffect(() => {
-        if (search.trim() === (filters.search ?? '')) return;
+        if (
+            search.trim() === (filters.search ?? '') &&
+            (selectedPropertyId ?? null) ===
+                (filters.property_id ? String(filters.property_id) : null) &&
+            (selectedTenantKind ?? null) === (filters.tenant_kind ?? null)
+        ) {
+            return;
+        }
 
         const timeout = window.setTimeout(() => {
             router.get(
                 '/tenants',
                 {
                     search: search.trim() || undefined,
-                    property_id: initialPropertyId || undefined,
+                    property_id: selectedPropertyId,
+                    tenant_kind: selectedTenantKind,
                 },
                 {
                     preserveState: true,
@@ -236,7 +281,14 @@ export default function TenantsIndex({
         }, 350);
 
         return () => window.clearTimeout(timeout);
-    }, [filters.search, initialPropertyId, search]);
+    }, [
+        filters.property_id,
+        filters.search,
+        filters.tenant_kind,
+        search,
+        selectedPropertyId,
+        selectedTenantKind,
+    ]);
 
     const goToPage = (page: number) => {
         router.get(
@@ -244,7 +296,8 @@ export default function TenantsIndex({
             {
                 page,
                 search: search.trim() || undefined,
-                property_id: initialPropertyId || undefined,
+                property_id: selectedPropertyId,
+                tenant_kind: selectedTenantKind,
             },
             {
                 preserveState: true,
@@ -265,7 +318,8 @@ export default function TenantsIndex({
 
         router.get('/tenants', {
             scan: scan.trim(),
-            property_id: initialPropertyId || undefined,
+            property_id: selectedPropertyId,
+            tenant_kind: selectedTenantKind,
         });
     };
     const breadcrumbs: BreadcrumbItem[] = [
@@ -317,17 +371,22 @@ export default function TenantsIndex({
                     )}
                 </section>
 
-                <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                    {[
-                        [ContactRound, t('tenants.total'), summary.total],
-                        [IdCard, t('tenants.assigned'), summary.assigned],
-                        [Store, t('tenants.businesses'), summary.businesses],
+                <section className="grid gap-3 md:grid-cols-3">
+                    {(
                         [
-                            Building2,
-                            t('tenants.properties'),
-                            summary.properties,
-                        ],
-                    ].map(([Icon, label, value], index) => (
+                            [
+                                ContactRound,
+                                t('tenants.total'),
+                                summary.businesses,
+                            ],
+                            [IdCard, t('tenants.persons'), summary.persons],
+                            [
+                                Building2,
+                                t('tenants.rentedProperties'),
+                                summary.properties,
+                            ],
+                        ] as [typeof ContactRound, string, number][]
+                    ).map(([Icon, label, value], index) => (
                         <Card
                             key={index}
                             className="border border-primary/10 shadow-none"
@@ -380,17 +439,69 @@ export default function TenantsIndex({
                             {t('tenants.scanHelp')}
                         </p>
                     </div>
-                    <div>
+                    <div className="min-w-0">
                         <Label className="mb-2 flex items-center gap-2">
                             <Search className="h-4 w-4" />
                             {t('common.search', 'Search')}
                         </Label>
-                        <Input
-                            className="bg-white dark:bg-neutral-950"
-                            value={search}
-                            onChange={(event) => setSearch(event.target.value)}
-                            placeholder={t('tenants.searchPlaceholder')}
-                        />
+                        <div className="grid min-w-0 gap-2 md:grid-cols-[minmax(0,1fr)_220px_190px]">
+                            <Input
+                                className="bg-white dark:bg-neutral-950"
+                                value={search}
+                                onChange={(event) =>
+                                    setSearch(event.target.value)
+                                }
+                                placeholder={t('tenants.searchPlaceholder')}
+                            />
+                            <SearchableDropdown
+                                value={propertyFilter}
+                                onValueChange={setPropertyFilter}
+                                placeholder={t('tenants.filters.property')}
+                                searchPlaceholder={t(
+                                    'tenants.filters.searchProperties',
+                                )}
+                                emptyText={t(
+                                    'tenants.filters.noPropertiesFound',
+                                )}
+                                options={[
+                                    {
+                                        value: 'all',
+                                        label: t(
+                                            'tenants.filters.allProperties',
+                                        ),
+                                    },
+                                    ...properties.map((property) => ({
+                                        value: String(property.id),
+                                        label: propertyLabel(property),
+                                    })),
+                                ]}
+                            />
+                            <SearchableDropdown
+                                value={tenantKindFilter}
+                                onValueChange={setTenantKindFilter}
+                                placeholder={t('tenants.filters.renterType')}
+                                searchPlaceholder={t(
+                                    'tenants.filters.searchRenterTypes',
+                                )}
+                                emptyText={t(
+                                    'tenants.filters.noRenterTypesFound',
+                                )}
+                                options={[
+                                    {
+                                        value: 'all',
+                                        label: t('tenants.filters.allRenters'),
+                                    },
+                                    {
+                                        value: 'business',
+                                        label: t('tenants.filters.business'),
+                                    },
+                                    {
+                                        value: 'person',
+                                        label: t('tenants.filters.person'),
+                                    },
+                                ]}
+                            />
+                        </div>
                     </div>
                 </section>
 
@@ -474,9 +585,25 @@ export default function TenantsIndex({
                                                             {tenant.full_name}
                                                         </p>
                                                         <p className="truncate text-xs text-muted-foreground">
-                                                            {tenant.phone} ·{' '}
-                                                            {tenant.card_code}
+                                                            {tenant.phone}
                                                         </p>
+                                                        {lease?.contract_number ? (
+                                                            <p className="truncate text-xs text-muted-foreground">
+                                                                {t(
+                                                                    'tenants.table.contractNumber',
+                                                                )}
+                                                                :{' '}
+                                                                {
+                                                                    lease.contract_number
+                                                                }
+                                                            </p>
+                                                        ) : (
+                                                            <p className="truncate text-xs text-muted-foreground">
+                                                                {
+                                                                    tenant.card_code
+                                                                }
+                                                            </p>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </TableCell>
@@ -516,10 +643,12 @@ export default function TenantsIndex({
                                                 <div className="max-w-60">
                                                     <p className="truncate font-medium">
                                                         {lease?.property
-                                                            ?.name ??
-                                                            t(
-                                                                'tenants.table.unassigned',
-                                                            )}
+                                                            ? propertyLabel(
+                                                                  lease.property,
+                                                              )
+                                                            : t(
+                                                                  'tenants.table.unassigned',
+                                                              )}
                                                     </p>
                                                     {lease?.floor && (
                                                         <p className="truncate text-xs text-muted-foreground">
@@ -538,9 +667,9 @@ export default function TenantsIndex({
                                                                   )
                                                                 : '—'}{' '}
                                                             <span className="text-xs font-normal text-muted-foreground">
-                                                                {lease.currency
-                                                                    ?.code ??
-                                                                    ''}
+                                                                {currencySymbol(
+                                                                    lease.currency,
+                                                                )}
                                                             </span>
                                                         </p>
                                                         <p className="text-xs text-muted-foreground">
@@ -849,6 +978,7 @@ function TenantForm({
     const { data, setData, post, processing, errors, reset } =
         useForm<FormData>(initial);
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+    const [documentError, setDocumentError] = useState<string | null>(null);
 
     useEffect(
         () => () => {
@@ -863,15 +993,41 @@ function TenantForm({
         setData('photo', photo);
         setPhotoPreview(photo ? URL.createObjectURL(photo) : null);
     };
+    const selectDocuments = (files: FileList | null) => {
+        const selectedFiles = Array.from(files ?? []);
+        const totalBytes = selectedFiles.reduce(
+            (total, file) => total + file.size,
+            0,
+        );
+
+        if (selectedFiles.length > MAX_TENANT_DOCUMENTS) {
+            setDocumentError(
+                t('tenants.fields.documentsMaxFiles').replace(
+                    ':count',
+                    String(MAX_TENANT_DOCUMENTS),
+                ),
+            );
+            setData('documents', []);
+            return;
+        }
+
+        if (totalBytes > MAX_TENANT_DOCUMENT_BYTES) {
+            setDocumentError(t('tenants.fields.documentsMaxSize'));
+            setData('documents', []);
+            return;
+        }
+
+        setDocumentError(null);
+        setData('documents', selectedFiles);
+    };
     const property = properties.find(
         (item) => String(item.id) === data.property_id,
     );
-    const unitOptions = ['house', 'commercial_unit'].includes(
-        property?.property_type ?? '',
-    )
+    const behavior = propertyBehavior(property);
+    const unitOptions = ['house', 'commercial_unit'].includes(behavior ?? '')
         ? [{ value: '', label: t('tenants.lease.wholeProperty') }]
         : [
-              ...(property?.property_type === 'block'
+              ...(behavior === 'block'
                   ? [{ value: '', label: t('tenants.lease.wholeProperty') }]
                   : []),
               ...(property?.floors ?? []).flatMap((floor) =>
@@ -889,6 +1045,7 @@ function TenantForm({
             onSuccess: () => {
                 reset();
                 setPhotoPreview(null);
+                setDocumentError(null);
                 onDone();
             },
         });
@@ -914,7 +1071,7 @@ function TenantForm({
                     <UserRound className="h-4 w-4 text-primary" />
                     {t('tenants.identity')}
                 </h3>
-                <div className="grid min-w-0 gap-4 md:grid-cols-3">
+                <div className="grid min-w-0 gap-4 md:grid-cols-4">
                     <div className="min-w-0 space-y-1.5">
                         <Label>{t('tenants.fields.tenantType')}</Label>
                         <SearchableDropdown
@@ -1021,12 +1178,24 @@ function TenantForm({
                         {t('tenants.fields.documents')}
                     </Label>
                     <div className="min-w-0 rounded-2xl border border-dashed border-[#002452]/20 bg-white p-4">
-                        <p className="truncate text-sm font-medium text-[#002452]">
-                            {data.documents.length
-                                ? data.documents
-                                      .map((document) => document.name)
-                                      .join(', ')
-                                : t('tenants.fields.documents')}
+                        {data.documents.length ? (
+                            <div className="space-y-1">
+                                {data.documents.map((document) => (
+                                    <p
+                                        key={`${document.name}-${document.size}`}
+                                        className="truncate text-sm font-medium text-[#002452]"
+                                    >
+                                        {document.name}
+                                    </p>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="truncate text-sm font-medium text-[#002452]">
+                                {t('tenants.fields.documents')}
+                            </p>
+                        )}
+                        <p className="mt-1 text-xs text-muted-foreground">
+                            {t('tenants.fields.documentsHelp')}
                         </p>
                         <label
                             htmlFor="tenant-create-documents"
@@ -1042,14 +1211,11 @@ function TenantForm({
                             accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx"
                             className="sr-only"
                             onChange={(event) =>
-                                setData(
-                                    'documents',
-                                    Array.from(event.target.files ?? []),
-                                )
+                                selectDocuments(event.target.files)
                             }
                         />
                     </div>
-                    <InputError message={errors.documents} />
+                    <InputError message={documentError ?? errors.documents} />
                 </div>
             </section>
             <section className="space-y-4 rounded-2xl border bg-muted/25 p-4">
@@ -1062,7 +1228,7 @@ function TenantForm({
                         {t('tenants.lease.optional')}
                     </p>
                 </div>
-                <div className="grid min-w-0 gap-4 md:grid-cols-3">
+                <div className="grid min-w-0 gap-4 md:grid-cols-4">
                     <div className="space-y-1.5">
                         <Label>{t('tenants.lease.property')}</Label>
                         <SearchableDropdown
@@ -1129,7 +1295,7 @@ function TenantForm({
                             placeholder={t('tenants.fields.select')}
                             options={currencies.map((currency) => ({
                                 value: String(currency.id),
-                                label: `${currency.code} · ${currency.symbol}`,
+                                label: currencySymbol(currency),
                             }))}
                         />
                     </div>
@@ -1161,7 +1327,7 @@ function TenantForm({
                             }))}
                         />
                     </div>
-                    <div className="space-y-1.5 md:col-span-2 lg:col-span-3">
+                    <div className="space-y-1.5 md:col-span-2 lg:col-span-4">
                         <Label>{t('tenants.lease.terms')}</Label>
                         <Textarea
                             value={data.terms}

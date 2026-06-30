@@ -7,17 +7,23 @@ import { useEffect, useId, useMemo } from 'react';
 interface PropertyImageUploadProps {
     value: File | null;
     onChange: (file: File | null) => void;
+    files?: File[];
+    onFilesChange?: (files: File[]) => void;
     error?: string;
     existingImageUrl?: string | null;
     className?: string;
+    multiple?: boolean;
 }
 
 export function PropertyImageUpload({
     value,
     onChange,
+    files = [],
+    onFilesChange,
     error,
     existingImageUrl,
     className = '',
+    multiple = false,
 }: PropertyImageUploadProps) {
     const { t } = useLocalization();
     const inputId = useId();
@@ -47,11 +53,22 @@ export function PropertyImageUpload({
                 <input
                     id={inputId}
                     type="file"
+                    multiple={multiple}
                     accept="image/png,image/jpeg,image/webp"
                     className="sr-only"
-                    onChange={(event) =>
-                        onChange(event.target.files?.[0] ?? null)
-                    }
+                    onChange={(event) => {
+                        if (multiple) {
+                            onFilesChange?.(
+                                Array.from(event.target.files ?? []).slice(
+                                    0,
+                                    10,
+                                ),
+                            );
+                            return;
+                        }
+
+                        onChange(event.target.files?.[0] ?? null);
+                    }}
                 />
 
                 <div className="flex h-24 items-center justify-center overflow-hidden rounded-lg border bg-white">
@@ -68,14 +85,22 @@ export function PropertyImageUpload({
 
                 <div className="min-w-0 text-start">
                     <p className="text-sm font-semibold text-foreground">
-                        {value
-                            ? t('propertyWorkspace.selectedPhoto')
-                            : existingImageUrl
-                              ? t('propertyWorkspace.currentPhoto')
-                              : t('propertyWorkspace.uploadPhoto')}
+                        {multiple && files.length
+                            ? t('propertyWorkspace.selectedPhotos').replace(
+                                  ':count',
+                                  String(files.length),
+                              )
+                            : value
+                              ? t('propertyWorkspace.selectedPhoto')
+                              : existingImageUrl
+                                ? t('propertyWorkspace.currentPhoto')
+                                : t('propertyWorkspace.uploadPhoto')}
                     </p>
                     <p className="mt-1 truncate text-xs text-muted-foreground">
-                        {value?.name ?? t('propertyWorkspace.uploadPhotoHelp')}
+                        {multiple && files.length
+                            ? files.map((file) => file.name).join(', ')
+                            : (value?.name ??
+                              t('propertyWorkspace.uploadPhotoHelp'))}
                     </p>
                 </div>
 

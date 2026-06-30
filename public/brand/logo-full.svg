@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 360" role="img" aria-labelledby="title">
-  <title id="title">Paktia Market</title>
-  <rect width="360" height="360" rx="78" fill="#102F33"/>
-  <path d="M78 151 180 73l102 78v30H78z" fill="#CC924B"/>
-  <path d="M112 173h136v118H112z" fill="#F8FAFD"/>
-  <path d="M145 291v-92h43c37 0 59 18 59 48 0 30-22 48-59 48h-12v-31h11c17 0 26-6 26-17s-9-17-26-17h-9v61z" fill="#102F33"/>
-  <text x="420" y="175" fill="#F8FAFD" font-family="Arial, sans-serif" font-size="92" font-weight="700">Paktia Market</text>
-  <text x="424" y="247" fill="#CC924B" font-family="Arial, sans-serif" font-size="43">پکتیا مارکیټ  |  پکتیا مارکیت</text>
-</svg>

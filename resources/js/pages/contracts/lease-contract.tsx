@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useLocalization } from '@/lib/localization';
 import { Lease, SharedData, Tenant } from '@/types';
-import { formatNumber } from '@/utils/format';
+import { formatCurrencySymbol, formatNumber } from '@/utils/format';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import {
     ArrowLeft,
@@ -143,7 +143,7 @@ export default function LeaseContractPage({
         lease.property?.address_translations?.fa ||
         lease.property?.address ||
         '—';
-    const currency = lease.currency?.code ?? lease.currency?.symbol ?? '';
+    const currency = formatCurrencySymbol(lease.currency);
     const values: Record<string, string> = {
         ':tenant_name': tenant.full_name,
         ':business_name': tenant.business_name ?? tenant.full_name,

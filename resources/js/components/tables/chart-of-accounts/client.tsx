@@ -25,7 +25,7 @@ import { DataTable } from '@/components/ui/table/data-table';
 import { Textarea } from '@/components/ui/textarea';
 import { useLocalization } from '@/lib/localization';
 import { Property, Currency, FinanceAccount, SharedData } from '@/types';
-import { formatNumber } from '@/utils/format';
+import { formatCurrencySymbol, formatNumber } from '@/utils/format';
 import { Link, router, usePage } from '@inertiajs/react';
 import { BookOpenText, Plus, Trash2 } from 'lucide-react';
 import React from 'react';
@@ -140,7 +140,7 @@ export function ChartOfAccountsClient({
             },
             ...currencies.map((currency) => ({
                 value: currency.code,
-                label: `${currency.code} - ${currency.name} (${currency.symbol})`,
+                label: `${formatCurrencySymbol(currency)} - ${currency.name}`,
             })),
         ],
         [currencies, t],

@@ -7,6 +7,16 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
     Dialog,
     DialogContent,
     DialogDescription,
@@ -19,7 +29,13 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
-import { BreadcrumbItem, Country, Property, Province } from '@/types';
+import {
+    BreadcrumbItem,
+    Country,
+    Property,
+    PropertyType,
+    Province,
+} from '@/types';
 import { formatNumber } from '@/utils/format';
 import {
     Head,
@@ -35,14 +51,16 @@ import {
     BriefcaseBusiness,
     Building2,
     CheckCircle2,
-    DoorOpen,
     Home,
     Layers3,
     ListOrdered,
     MapPin,
+    Pencil,
     Plus,
     Search,
     Store,
+    Tags,
+    Trash2,
 } from 'lucide-react';
 import { FormEvent, useMemo, useState } from 'react';
 
@@ -51,6 +69,7 @@ interface Props {
     propertyOptions: Property[];
     countries: Country[];
     provinces: Province[];
+    propertyTypes: PropertyType[];
     openCreate?: boolean;
 }
 
@@ -91,6 +110,15 @@ interface PropertyForm {
     year_built: string;
     notes: string;
     image: File | null;
+    images: File[];
+}
+
+interface PropertyTypeForm {
+    name: string;
+    name_ps: string;
+    name_en: string;
+    behavior: PropertyType['behavior'];
+    is_active: boolean;
 }
 
 type NumericPropertyField =
@@ -105,13 +133,68 @@ type NumericPropertyField =
     | 'bathrooms_count'
     | 'parking_spaces';
 
-const typeIcons = {
-    market: Store,
-    mall: Building2,
-    block: Layers3,
-    house: Home,
-    commercial_unit: BriefcaseBusiness,
-} as const;
+const typeBehavior = (
+    key: string | undefined,
+    propertyTypes: PropertyType[],
+): PropertyType['behavior'] => {
+    const resolved = propertyTypes.find((type) => type.key === key)?.behavior;
+
+    if (resolved) return resolved;
+    if (key === 'mall') return 'market';
+    if (
+        key === 'market' ||
+        key === 'block' ||
+        key === 'house' ||
+        key === 'commercial_unit'
+    ) {
+        return key;
+    }
+
+    return 'market';
+};
+
+const propertyTypeName = (
+    key: string | undefined,
+    propertyTypes: PropertyType[],
+    locale: string,
+    fallback: (key: string, fallback?: string) => string,
+) => {
+    const type = propertyTypes.find((item) => item.key === key);
+    if (type) {
+        return (
+            type.name_translations?.[
+                locale as keyof NonNullable<PropertyType['name_translations']>
+            ] ||
+            type.name_translations?.fa ||
+            type.name
+        );
+    }
+
+    return fallback(
+        `propertyWorkspace.types.${key ?? 'market'}`,
+        key ?? 'Property',
+    );
+};
+
+function PropertyTypeIcon({
+    propertyType,
+    propertyTypes,
+    className,
+}: {
+    propertyType?: string;
+    propertyTypes: PropertyType[];
+    className?: string;
+}) {
+    const behavior = typeBehavior(propertyType, propertyTypes);
+
+    if (behavior === 'block') return <Layers3 className={className} />;
+    if (behavior === 'house') return <Home className={className} />;
+    if (behavior === 'commercial_unit') {
+        return <BriefcaseBusiness className={className} />;
+    }
+
+    return <Store className={className} />;
+}
 
 const emptyForm: PropertyForm = {
     name: '',
@@ -150,6 +233,7 @@ const emptyForm: PropertyForm = {
     year_built: '',
     notes: '',
     image: null,
+    images: [],
 };
 
 export default function PropertiesPage({
@@ -157,13 +241,30 @@ export default function PropertiesPage({
     propertyOptions,
     countries,
     provinces,
+    propertyTypes,
     openCreate = false,
 }: Props) {
-    const { t } = useLocalization();
+    const { t, locale } = useLocalization();
     const [open, setOpen] = useState(openCreate);
     const [search, setSearch] = useState('');
     const [type, setType] = useState('all');
     const form = useForm<PropertyForm>(emptyForm);
+    const activePropertyTypes = useMemo(
+        () =>
+            propertyTypes.filter(
+                (propertyType) =>
+                    propertyType.is_active ||
+                    properties.some(
+                        (property) =>
+                            property.property_type === propertyType.key,
+                    ),
+            ),
+        [properties, propertyTypes],
+    );
+    const selectedTypeBehavior = typeBehavior(
+        form.data.property_type,
+        propertyTypes,
+    );
     const provinceOptions = provinces.filter(
         (province) =>
             !form.data.country_id ||
@@ -198,7 +299,7 @@ export default function PropertiesPage({
     ];
 
     const typeLabel = (value?: string) =>
-        t(`propertyWorkspace.types.${value ?? 'market'}`, value ?? 'Property');
+        propertyTypeName(value, propertyTypes, locale, t);
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -214,7 +315,11 @@ export default function PropertiesPage({
                         </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
-                        <PropertyOrderDialog properties={properties} />
+                        <PropertyOrderDialog
+                            properties={properties}
+                            propertyTypes={propertyTypes}
+                        />
+                        <PropertyTypesDialog propertyTypes={propertyTypes} />
                         <Dialog open={open} onOpenChange={setOpen}>
                             <DialogTrigger asChild>
                                 <Button>
@@ -222,7 +327,7 @@ export default function PropertiesPage({
                                     {t('propertyWorkspace.register')}
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent className="max-h-[92vh] overflow-x-hidden overflow-y-auto rounded-2xl bg-[#f8f9fd] sm:max-w-4xl [&_input]:bg-white [&_textarea]:bg-white">
+                            <DialogContent className="max-h-[calc(100vh-2rem)] overflow-x-hidden overflow-y-auto rounded-2xl bg-[#f8f9fd] sm:max-w-4xl [&_input]:bg-white [&_textarea]:bg-white">
                                 <DialogHeader>
                                     <DialogTitle>
                                         {t('propertyWorkspace.registerTitle')}
@@ -233,7 +338,7 @@ export default function PropertiesPage({
                                 </DialogHeader>
                                 <form
                                     onSubmit={submit}
-                                    className="grid min-w-0 gap-4 md:grid-cols-3"
+                                    className="grid min-w-0 gap-4 lg:grid-cols-4"
                                 >
                                     <LocalizedFields form={form} />
 
@@ -251,7 +356,10 @@ export default function PropertiesPage({
                                                     value,
                                                 );
                                                 if (
-                                                    value === 'commercial_unit'
+                                                    typeBehavior(
+                                                        value,
+                                                        propertyTypes,
+                                                    ) === 'commercial_unit'
                                                 ) {
                                                     form.setData(
                                                         'usage_type',
@@ -263,12 +371,18 @@ export default function PropertiesPage({
                                                     );
                                                 }
                                             }}
-                                            options={Object.keys(typeIcons).map(
-                                                (value) => ({
-                                                    value,
-                                                    label: typeLabel(value),
-                                                }),
-                                            )}
+                                            options={activePropertyTypes
+                                                .filter(
+                                                    (item) =>
+                                                        item.is_active ||
+                                                        item.key ===
+                                                            form.data
+                                                                .property_type,
+                                                )
+                                                .map((item) => ({
+                                                    value: item.key,
+                                                    label: typeLabel(item.key),
+                                                }))}
                                             placeholder={t(
                                                 'propertyWorkspace.fields.type',
                                             )}
@@ -280,7 +394,7 @@ export default function PropertiesPage({
                                             )}
                                         />
                                     </Field>
-                                    {form.data.property_type !==
+                                    {selectedTypeBehavior !==
                                         'commercial_unit' && (
                                         <Field
                                             label={t(
@@ -305,16 +419,16 @@ export default function PropertiesPage({
                                                         `propertyWorkspace.usage.${value}`,
                                                     ),
                                                 }))}
-                                                placeholder={t(
-                                                    'propertyWorkspace.fields.usage',
-                                                )}
-                                                searchPlaceholder={t(
-                                                    'propertyWorkspace.searchOptions',
-                                                )}
-                                                emptyText={t(
-                                                    'propertyWorkspace.noOptions',
-                                                )}
-                                            />
+                                            placeholder={t(
+                                                'propertyWorkspace.fields.usage',
+                                            )}
+                                            searchPlaceholder={t(
+                                                'propertyWorkspace.searchOptions',
+                                            )}
+                                            emptyText={t(
+                                                'propertyWorkspace.noOptions',
+                                            )}
+                                        />
                                         </Field>
                                     )}
                                     <Field
@@ -380,13 +494,13 @@ export default function PropertiesPage({
                                             )}
                                         />
                                     </Field>
-                                    {form.data.property_type !==
+                                    {selectedTypeBehavior !==
                                         'commercial_unit' && (
                                         <Field
                                             label={t(
                                                 'propertyWorkspace.relatedLocation',
                                             )}
-                                            className="md:col-span-3"
+                                            className="lg:col-span-4"
                                             error={
                                                 form.errors.parent_property_id
                                             }
@@ -439,7 +553,7 @@ export default function PropertiesPage({
                                         </Field>
                                     )}
 
-                                    {form.data.property_type ===
+                                    {selectedTypeBehavior ===
                                         'commercial_unit' && (
                                         <>
                                             <Field
@@ -689,7 +803,7 @@ export default function PropertiesPage({
                                         name="distance_from_city_km"
                                         form={form}
                                     />
-                                    {form.data.property_type !==
+                                    {selectedTypeBehavior !==
                                         'commercial_unit' && (
                                         <NumberField
                                             label={t(
@@ -706,7 +820,7 @@ export default function PropertiesPage({
                                         name="building_area_sqm"
                                         form={form}
                                     />
-                                    {form.data.property_type !==
+                                    {selectedTypeBehavior !==
                                         'commercial_unit' && (
                                         <>
                                             <NumberField
@@ -718,9 +832,8 @@ export default function PropertiesPage({
                                             />
                                             <NumberField
                                                 label={t(
-                                                    ['market', 'mall'].includes(
-                                                        form.data.property_type,
-                                                    )
+                                                    selectedTypeBehavior ===
+                                                        'market'
                                                         ? 'propertyWorkspace.fields.expectedShops'
                                                         : 'propertyWorkspace.fields.expectedApartments',
                                                 )}
@@ -737,7 +850,7 @@ export default function PropertiesPage({
                                         </>
                                     )}
                                     {['house', 'commercial_unit'].includes(
-                                        form.data.property_type,
+                                        selectedTypeBehavior,
                                     ) && (
                                         <>
                                             <NumberField
@@ -756,13 +869,6 @@ export default function PropertiesPage({
                                             />
                                             <NumberField
                                                 label={t(
-                                                    'propertyWorkspace.fields.halls',
-                                                )}
-                                                name="halls_count"
-                                                form={form}
-                                            />
-                                            <NumberField
-                                                label={t(
                                                     'propertyWorkspace.fields.bathrooms',
                                                 )}
                                                 name="bathrooms_count"
@@ -772,13 +878,19 @@ export default function PropertiesPage({
                                     )}
                                     <PropertyImageUpload
                                         value={form.data.image}
-                                        onChange={(file) =>
-                                            form.setData('image', file)
+                                        onChange={() => undefined}
+                                        multiple
+                                        files={form.data.images}
+                                        onFilesChange={(files) =>
+                                            form.setData('images', files)
                                         }
-                                        error={form.errors.image}
-                                        className="md:col-span-3"
+                                        error={
+                                            form.errors.images ??
+                                            form.errors.image
+                                        }
+                                        className="lg:col-span-4"
                                     />
-                                    <div className="flex justify-end gap-2 border-t border-[#002452]/10 pt-4 md:col-span-3">
+                                    <div className="flex justify-end gap-2 border-t border-[#002452]/10 pt-4 lg:col-span-4">
                                         <Button
                                             type="button"
                                             variant="ghost"
@@ -808,9 +920,8 @@ export default function PropertiesPage({
                         label={t('propertyWorkspace.markets')}
                         value={
                             properties.filter((item) =>
-                                ['market', 'mall'].includes(
-                                    item.property_type ?? '',
-                                ),
+                                typeBehavior(item.property_type, propertyTypes) ===
+                                'market',
                             ).length
                         }
                     />
@@ -820,22 +931,26 @@ export default function PropertiesPage({
                         value={
                             properties.filter((item) =>
                                 ['house', 'block'].includes(
-                                    item.property_type ?? '',
+                                    typeBehavior(
+                                        item.property_type,
+                                        propertyTypes,
+                                    ),
                                 ),
                             ).length
                         }
                     />
                     <PortfolioMetric
-                        icon={DoorOpen}
-                        label={t('propertyWorkspace.spaces')}
-                        value={properties.reduce(
-                            (total, item) =>
-                                total +
-                                (item.property_type === 'commercial_unit'
-                                    ? 1
-                                    : (item.units_count ?? 0)),
-                            0,
-                        )}
+                        icon={BriefcaseBusiness}
+                        label={t('propertyWorkspace.types.commercial_unit')}
+                        value={
+                            properties.filter(
+                                (item) =>
+                                    typeBehavior(
+                                        item.property_type,
+                                        propertyTypes,
+                                    ) === 'commercial_unit',
+                            ).length
+                        }
                     />
                 </div>
 
@@ -858,9 +973,9 @@ export default function PropertiesPage({
                                 value: 'all',
                                 label: t('propertyWorkspace.allTypes'),
                             },
-                            ...Object.keys(typeIcons).map((value) => ({
-                                value,
-                                label: typeLabel(value),
+                            ...activePropertyTypes.map((item) => ({
+                                value: item.key,
+                                label: typeLabel(item.key),
                             })),
                         ]}
                         placeholder={t('propertyWorkspace.allTypes')}
@@ -876,6 +991,7 @@ export default function PropertiesPage({
                             <PropertyCard
                                 key={property.id}
                                 property={property}
+                                propertyTypes={propertyTypes}
                             />
                         ))}
                     </div>
@@ -889,8 +1005,14 @@ export default function PropertiesPage({
     );
 }
 
-function PropertyOrderDialog({ properties }: { properties: Property[] }) {
-    const { t } = useLocalization();
+function PropertyOrderDialog({
+    properties,
+    propertyTypes,
+}: {
+    properties: Property[];
+    propertyTypes: PropertyType[];
+}) {
+    const { t, locale } = useLocalization();
     const [open, setOpen] = useState(false);
     const [movingId, setMovingId] = useState<number | null>(null);
 
@@ -925,11 +1047,6 @@ function PropertyOrderDialog({ properties }: { properties: Property[] }) {
                 </DialogHeader>
                 <div className="max-h-[60vh] space-y-2 overflow-y-auto pe-1">
                     {properties.map((property, index) => {
-                        const Icon =
-                            typeIcons[
-                                (property.property_type ??
-                                    'market') as keyof typeof typeIcons
-                            ] ?? Store;
                         const isMoving = movingId === property.id;
 
                         return (
@@ -941,15 +1058,22 @@ function PropertyOrderDialog({ properties }: { properties: Property[] }) {
                                     {index + 1}
                                 </span>
                                 <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/8 text-primary">
-                                    <Icon className="size-4" />
+                                    <PropertyTypeIcon
+                                        propertyType={property.property_type}
+                                        propertyTypes={propertyTypes}
+                                        className="size-4"
+                                    />
                                 </span>
                                 <div className="min-w-0 flex-1 text-start">
                                     <p className="truncate text-sm font-semibold">
                                         {property.name}
                                     </p>
                                     <p className="text-xs text-muted-foreground">
-                                        {t(
-                                            `propertyWorkspace.types.${property.property_type ?? 'market'}`,
+                                        {propertyTypeName(
+                                            property.property_type,
+                                            propertyTypes,
+                                            locale,
+                                            t,
                                         )}
                                     </p>
                                 </div>
@@ -997,12 +1121,339 @@ function PropertyOrderDialog({ properties }: { properties: Property[] }) {
     );
 }
 
+function PropertyTypesDialog({
+    propertyTypes,
+}: {
+    propertyTypes: PropertyType[];
+}) {
+    const { t, locale, isRtl } = useLocalization();
+    const [open, setOpen] = useState(false);
+    const [editing, setEditing] = useState<PropertyType | null>(null);
+    const [deleteTarget, setDeleteTarget] = useState<PropertyType | null>(null);
+    const [deletingId, setDeletingId] = useState<number | null>(null);
+    const form = useForm<PropertyTypeForm>({
+        name: '',
+        name_ps: '',
+        name_en: '',
+        behavior: 'market',
+        is_active: true,
+    });
+    const behaviorOptions: PropertyType['behavior'][] = [
+        'market',
+        'block',
+        'house',
+        'commercial_unit',
+    ];
+    const resetForm = () => {
+        setEditing(null);
+        form.setData({
+            name: '',
+            name_ps: '',
+            name_en: '',
+            behavior: 'market',
+            is_active: true,
+        });
+        form.clearErrors();
+    };
+    const editType = (type: PropertyType) => {
+        setEditing(type);
+        form.setData({
+            name: type.name_translations?.fa || type.name,
+            name_ps: type.name_translations?.ps || '',
+            name_en: type.name_translations?.en || '',
+            behavior: type.behavior,
+            is_active: type.is_active,
+        });
+        form.clearErrors();
+    };
+    const submit = (event: FormEvent) => {
+        event.preventDefault();
+        const options = {
+            preserveScroll: true,
+            onSuccess: resetForm,
+        };
+
+        if (editing) {
+            form.put(`/property-types/${editing.id}`, options);
+            return;
+        }
+
+        form.post('/property-types', options);
+    };
+    const deleteType = () => {
+        if (!deleteTarget) return;
+
+        setDeletingId(deleteTarget.id);
+        router.delete(`/property-types/${deleteTarget.id}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                if (editing?.id === deleteTarget.id) {
+                    resetForm();
+                }
+            },
+            onFinish: () => {
+                setDeletingId(null);
+                setDeleteTarget(null);
+            },
+        });
+    };
+
+    return (
+        <>
+            <Dialog
+                open={open}
+                onOpenChange={(nextOpen) => {
+                    setOpen(nextOpen);
+                    if (!nextOpen) resetForm();
+                }}
+            >
+                <DialogTrigger asChild>
+                    <Button variant="outline">
+                        <Tags className="me-2 size-4" />
+                        {t('propertyWorkspace.manageTypes')}
+                    </Button>
+                </DialogTrigger>
+                <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto rounded-2xl bg-[#f8f9fd] sm:max-w-4xl [&_input]:bg-white">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {t('propertyWorkspace.typesManager.title')}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {t('propertyWorkspace.typesManager.description')}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 lg:grid-cols-[1fr_1.15fr]">
+                        <form
+                            onSubmit={submit}
+                            className="space-y-4 rounded-2xl border bg-white p-4"
+                        >
+                            <Field
+                                label={t(
+                                    'propertyWorkspace.typesManager.nameFa',
+                                )}
+                                error={form.errors.name}
+                            >
+                                <Input
+                                    dir="rtl"
+                                    value={form.data.name}
+                                    onChange={(event) =>
+                                        form.setData(
+                                            'name',
+                                            event.target.value,
+                                        )
+                                    }
+                                />
+                            </Field>
+                            <Field
+                                label={t(
+                                    'propertyWorkspace.typesManager.namePs',
+                                )}
+                                error={form.errors.name_ps}
+                            >
+                                <Input
+                                    dir="rtl"
+                                    value={form.data.name_ps}
+                                    onChange={(event) =>
+                                        form.setData(
+                                            'name_ps',
+                                            event.target.value,
+                                        )
+                                    }
+                                />
+                            </Field>
+                            <Field
+                                label={t(
+                                    'propertyWorkspace.typesManager.nameEn',
+                                )}
+                                error={form.errors.name_en}
+                            >
+                                <Input
+                                    dir="ltr"
+                                    value={form.data.name_en}
+                                    onChange={(event) =>
+                                        form.setData(
+                                            'name_en',
+                                            event.target.value,
+                                        )
+                                    }
+                                />
+                            </Field>
+                            <Field
+                                label={t(
+                                    'propertyWorkspace.typesManager.behavior',
+                                )}
+                                error={form.errors.behavior}
+                            >
+                                <SearchableDropdown
+                                    value={form.data.behavior}
+                                    onValueChange={(value) =>
+                                        form.setData('behavior', value)
+                                    }
+                                    options={behaviorOptions.map(
+                                        (behavior) => ({
+                                            value: behavior,
+                                            label: t(
+                                                `propertyWorkspace.typeBehaviors.${behavior}`,
+                                            ),
+                                        }),
+                                    )}
+                                    placeholder={t(
+                                        'propertyWorkspace.typesManager.behavior',
+                                    )}
+                                />
+                            </Field>
+                            <label className="flex items-center gap-2 rounded-xl border bg-[#f8f9fd] p-3 text-sm">
+                                <Checkbox
+                                    checked={form.data.is_active}
+                                    onCheckedChange={(checked) =>
+                                        form.setData(
+                                            'is_active',
+                                            Boolean(checked),
+                                        )
+                                    }
+                                />
+                                {t('propertyWorkspace.typesManager.active')}
+                            </label>
+                            <div className="flex justify-end gap-2">
+                                {editing && (
+                                    <Button
+                                        type="button"
+                                        variant="ghost"
+                                        onClick={resetForm}
+                                    >
+                                        {t('propertyWorkspace.cancel')}
+                                    </Button>
+                                )}
+                                <Button disabled={form.processing}>
+                                    {editing
+                                        ? t('propertyWorkspace.save')
+                                        : t(
+                                              'propertyWorkspace.typesManager.create',
+                                          )}
+                                </Button>
+                            </div>
+                        </form>
+                        <div className="space-y-2">
+                            {propertyTypes.map((type) => (
+                                <div
+                                    key={type.id}
+                                    className="flex items-center gap-3 rounded-2xl border bg-white p-3"
+                                >
+                                    <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/8 text-primary">
+                                        <PropertyTypeIcon
+                                            propertyType={type.key}
+                                            propertyTypes={propertyTypes}
+                                            className="size-5"
+                                        />
+                                    </span>
+                                    <div className="min-w-0 flex-1 text-start">
+                                        <p className="truncate font-semibold">
+                                            {propertyTypeName(
+                                                type.key,
+                                                propertyTypes,
+                                                locale,
+                                                t,
+                                            )}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {t(
+                                                `propertyWorkspace.typeBehaviors.${type.behavior}`,
+                                            )}
+                                        </p>
+                                    </div>
+                                    <Badge
+                                        variant={
+                                            type.is_active
+                                                ? 'success'
+                                                : 'outline'
+                                        }
+                                    >
+                                        {t(
+                                            type.is_active
+                                                ? 'propertyWorkspace.active'
+                                                : 'propertyWorkspace.inactive',
+                                        )}
+                                    </Badge>
+                                    <Button
+                                        type="button"
+                                        size="icon"
+                                        variant="outline"
+                                        className="bg-white"
+                                        onClick={() => editType(type)}
+                                    >
+                                        <Pencil className="size-4" />
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        size="icon"
+                                        variant="outline"
+                                        className="border-red-200 bg-white text-red-600 hover:bg-red-50 hover:text-red-700"
+                                        disabled={deletingId === type.id}
+                                        onClick={() => setDeleteTarget(type)}
+                                    >
+                                        <Trash2 className="size-4" />
+                                    </Button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+            <AlertDialog
+                open={Boolean(deleteTarget)}
+                onOpenChange={(nextOpen) => {
+                    if (!nextOpen && deletingId === null) {
+                        setDeleteTarget(null);
+                    }
+                }}
+            >
+                <AlertDialogContent dir={isRtl ? 'rtl' : 'ltr'}>
+                    <AlertDialogHeader className={isRtl ? 'text-right' : ''}>
+                        <AlertDialogTitle>
+                            {t(
+                                'propertyWorkspace.typesManager.deleteTitle',
+                            )}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {t(
+                                'propertyWorkspace.typesManager.deleteDescription',
+                            ).replace(
+                                ':name',
+                                deleteTarget
+                                    ? propertyTypeName(
+                                          deleteTarget.key,
+                                          propertyTypes,
+                                          locale,
+                                          t,
+                                      )
+                                    : '',
+                            )}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={deletingId !== null}>
+                            {t('propertyWorkspace.cancel')}
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            className="bg-red-600 text-white hover:bg-red-700"
+                            disabled={deletingId !== null}
+                            onClick={deleteType}
+                        >
+                            {t('propertyWorkspace.typesManager.delete')}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </>
+    );
+}
+
 function LocalizedFields({ form }: { form: InertiaFormProps<PropertyForm> }) {
     const { t } = useLocalization();
 
     return (
-        <div className="grid min-w-0 gap-4 rounded-2xl border border-[#002452]/10 bg-white p-4 md:col-span-3 md:grid-cols-3">
-            <div className="space-y-1 border-b border-[#002452]/10 pb-3 md:col-span-3">
+        <div className="grid min-w-0 gap-4 rounded-2xl border border-[#002452]/10 bg-white p-4 lg:col-span-4 lg:grid-cols-3">
+            <div className="space-y-1 border-b border-[#002452]/10 pb-3 lg:col-span-3">
                 <p className="text-sm font-semibold text-[#002452]">
                     {t('propertyWorkspace.languages.fa')}
                 </p>
@@ -1093,15 +1544,20 @@ function LocalizedFields({ form }: { form: InertiaFormProps<PropertyForm> }) {
     );
 }
 
-function PropertyCard({ property }: { property: Property }) {
-    const { t } = useLocalization();
-    const type = (property.property_type ?? 'market') as keyof typeof typeIcons;
-    const Icon = typeIcons[type] ?? Store;
-    const spacesLabel = ['market', 'mall'].includes(type)
+function PropertyCard({
+    property,
+    propertyTypes,
+}: {
+    property: Property;
+    propertyTypes: PropertyType[];
+}) {
+    const { t, locale } = useLocalization();
+    const behavior = typeBehavior(property.property_type, propertyTypes);
+    const spacesLabel = behavior === 'market'
         ? t('propertyWorkspace.shops')
-        : type === 'block'
+        : behavior === 'block'
           ? t('propertyWorkspace.apartments')
-          : type === 'commercial_unit'
+          : behavior === 'commercial_unit'
             ? t('propertyWorkspace.commercialUnit')
             : t('propertyWorkspace.rooms');
 
@@ -1120,7 +1576,11 @@ function PropertyCard({ property }: { property: Property }) {
                         />
                     ) : (
                         <div className="flex h-full items-center justify-center bg-slate-100 dark:bg-slate-900">
-                            <Icon className="h-12 w-12 text-slate-400" />
+                            <PropertyTypeIcon
+                                propertyType={property.property_type}
+                                propertyTypes={propertyTypes}
+                                className="h-12 w-12 text-slate-400"
+                            />
                         </div>
                     )}
                     <div className="pointer-events-none absolute inset-0 bg-black/25 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100" />
@@ -1176,7 +1636,12 @@ function PropertyCard({ property }: { property: Property }) {
                             </div>
                             <div className="flex shrink-0 flex-col items-end gap-1.5">
                                 <Badge variant="secondary">
-                                    {t(`propertyWorkspace.types.${type}`)}
+                                    {propertyTypeName(
+                                        property.property_type,
+                                        propertyTypes,
+                                        locale,
+                                        t,
+                                    )}
                                 </Badge>
                                 <Badge variant="outline">
                                     {t(
@@ -1189,21 +1654,21 @@ function PropertyCard({ property }: { property: Property }) {
                     <div className="mt-auto grid grid-cols-3 divide-x rounded-lg border bg-muted/30 py-3 text-center text-xs rtl:divide-x-reverse">
                         <Stat
                             value={
-                                type === 'commercial_unit'
+                                behavior === 'commercial_unit'
                                     ? (property.external_floor ?? '—')
                                     : (property.floors_count ??
                                       property.declared_floors ??
                                       0)
                             }
                             label={t(
-                                type === 'commercial_unit'
+                                behavior === 'commercial_unit'
                                     ? 'propertyWorkspace.fields.externalFloor'
                                     : 'propertyWorkspace.floors',
                             )}
                         />
                         <Stat
                             value={
-                                type === 'commercial_unit'
+                                behavior === 'commercial_unit'
                                     ? (property.external_unit_number ?? '—')
                                     : (property.units_count ??
                                       property.declared_units ??

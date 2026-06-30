@@ -21,6 +21,7 @@ use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\LeaseContractController;
 use App\Http\Controllers\Location\CountryController;
 use App\Http\Controllers\Location\PropertyController;
+use App\Http\Controllers\Location\PropertyTypeController;
 use App\Http\Controllers\Location\ProvinceController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\OperationsRuntimeHealthController;
@@ -104,6 +105,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('provinces/{province}', [ProvinceController::class, 'update'])->name('provinces.update');
         Route::delete('provinces/{province}', [ProvinceController::class, 'destroy'])->name('provinces.destroy');
         Route::resource('properties', PropertyController::class);
+        Route::post('property-types', [PropertyTypeController::class, 'store'])->name('property-types.store');
+        Route::put('property-types/{propertyType}', [PropertyTypeController::class, 'update'])->name('property-types.update');
+        Route::delete('property-types/{propertyType}', [PropertyTypeController::class, 'destroy'])->name('property-types.destroy');
         Route::post('properties/{property}/disable', [PropertyController::class, 'disable'])->name('properties.disable');
         Route::patch('properties/{property}/order', [PropertyController::class, 'reorder'])->name('properties.order.update');
         Route::post('properties/{property}/floors', [PropertyController::class, 'storeFloor'])->name('properties.floors.store');
@@ -115,6 +119,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('properties/{property}/documents', [PropertyController::class, 'uploadDocuments'])->name('properties.documents.store');
         Route::get('properties/{property}/documents/{document}', [PropertyController::class, 'downloadDocument'])->name('properties.documents.download');
         Route::delete('properties/{property}/documents/{document}', [PropertyController::class, 'destroyDocument'])->name('properties.documents.destroy');
+        Route::post('properties/{property}/images', [PropertyController::class, 'uploadImages'])->name('properties.images.store');
 
         Route::get('contract-templates', [ContractTemplateController::class, 'index'])->name('contract-templates.index');
         Route::post('contract-templates', [ContractTemplateController::class, 'store'])->name('contract-templates.store');
@@ -173,6 +178,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::put('tenants/{tenant}', [TenantController::class, 'update'])->name('tenants.update');
         Route::post('tenants/{tenant}/toggle', [TenantController::class, 'toggle'])->name('tenants.toggle');
         Route::post('tenants/{tenant}/leases', [TenantController::class, 'storeLease'])->name('tenants.leases.store');
+        Route::put('tenants/{tenant}/leases/{lease}', [TenantController::class, 'updateLease'])->name('tenants.leases.update');
         Route::post('tenants/{tenant}/documents', [TenantController::class, 'uploadDocuments'])->name('tenants.documents.store');
         Route::delete('tenants/{tenant}/documents/{document}', [TenantController::class, 'destroyDocument'])
             ->name('tenants.documents.destroy');

@@ -37,7 +37,7 @@ import {
     SharedData,
     Tenant,
 } from '@/types';
-import { formatNumber } from '@/utils/format';
+import { formatCurrencySymbol, formatNumber } from '@/utils/format';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import {
     Banknote,
@@ -110,6 +110,10 @@ const initials = (name: string) =>
         .map((part) => part[0])
         .join('')
         .toUpperCase();
+const propertyBehavior = (property?: Property | null) =>
+    property?.type_definition?.behavior ??
+    property?.property_type_behavior ??
+    (property?.property_type === 'mall' ? 'market' : property?.property_type);
 
 export default function TenantProfile({
     tenant,
@@ -125,6 +129,7 @@ export default function TenantProfile({
     const hasBusiness = Boolean(tenant.business_name?.trim());
     const displayName = tenant.business_name?.trim() || tenant.full_name;
     const [assignmentOpen, setAssignmentOpen] = useState(false);
+    const [editingLease, setEditingLease] = useState<Lease | null>(null);
     const [editOpen, setEditOpen] = useState(openEdit);
     const breadcrumbs: BreadcrumbItem[] = [
         { title: t('navigation.dashboard'), href: '/dashboard' },
@@ -136,7 +141,7 @@ export default function TenantProfile({
     ];
     const location = (item: Lease) => {
         const externalUnit =
-            item.property?.property_type === 'commercial_unit'
+            propertyBehavior(item.property) === 'commercial_unit'
                 ? item.property.external_unit_number
                 : null;
 
@@ -147,7 +152,7 @@ export default function TenantProfile({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={displayName} />
             <div
-                className="mx-auto w-full max-w-[1500px] space-y-6"
+                className="mx-auto w-full max-w-375 space-y-4"
                 dir={isRtl ? 'rtl' : 'ltr'}
             >
                 <section className="overflow-hidden rounded-3xl border border-[#002452]/10 bg-[#f1f5f9] p-6 text-[#002452] shadow-none sm:p-8">
@@ -261,6 +266,39 @@ export default function TenantProfile({
                                             />
                                         </DialogContent>
                                     </Dialog>
+                                    {editingLease && (
+                                        <Dialog
+                                            open
+                                            onOpenChange={(open) =>
+                                                !open && setEditingLease(null)
+                                            }
+                                        >
+                                            <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-4xl">
+                                                <DialogHeader>
+                                                    <DialogTitle>
+                                                        {t(
+                                                            'tenants.lease.edit',
+                                                            'Edit assignment',
+                                                        )}
+                                                    </DialogTitle>
+                                                    <DialogDescription>
+                                                        {
+                                                            editingLease.contract_number
+                                                        }
+                                                    </DialogDescription>
+                                                </DialogHeader>
+                                                <AssignmentForm
+                                                    tenant={tenant}
+                                                    lease={editingLease}
+                                                    properties={properties}
+                                                    currencies={currencies}
+                                                    onDone={() =>
+                                                        setEditingLease(null)
+                                                    }
+                                                />
+                                            </DialogContent>
+                                        </Dialog>
+                                    )}
                                 </>
                             )}
                             <Button
@@ -290,7 +328,7 @@ export default function TenantProfile({
                     </div>
                 </section>
 
-                <section className="grid gap-6 xl:grid-cols-[1.1fr_1.4fr_0.9fr]">
+                <section className="grid gap-4 xl:grid-cols-[1.1fr_1.4fr_0.9fr]">
                     <Card className="rounded-2xl">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2 text-lg">
@@ -331,7 +369,7 @@ export default function TenantProfile({
                             />
                         </CardContent>
                     </Card>
-                    <Card className="rounded-2xl border-primary/20 bg-gradient-to-br from-card to-primary/5">
+                    <Card className="rounded-2xl">
                         <CardHeader>
                             <CardTitle className="flex items-center justify-between gap-2 text-lg">
                                 <span className="flex items-center gap-2">
@@ -363,7 +401,7 @@ export default function TenantProfile({
                                             label={t('tenants.lease.rent')}
                                             value={
                                                 lease.rent_amount
-                                                    ? `${formatNumber(lease.rent_amount)} ${lease.currency?.symbol ?? lease.currency?.code ?? ''}`
+                                                    ? `${formatNumber(lease.rent_amount)} ${formatCurrencySymbol(lease.currency)}`
                                                     : '—'
                                             }
                                         />
@@ -371,7 +409,7 @@ export default function TenantProfile({
                                             label={t('tenants.lease.deposit')}
                                             value={
                                                 lease.security_deposit
-                                                    ? `${formatNumber(lease.security_deposit)} ${lease.currency?.symbol ?? ''}`
+                                                    ? `${formatNumber(lease.security_deposit)} ${formatCurrencySymbol(lease.currency)}`
                                                     : '—'
                                             }
                                         />
@@ -420,7 +458,9 @@ export default function TenantProfile({
                                             ? formatNumber(lease.rent_amount)
                                             : '—'}{' '}
                                         <span className="text-sm font-normal">
-                                            {lease.currency?.code}
+                                            {formatCurrencySymbol(
+                                                lease.currency,
+                                            )}
                                         </span>
                                     </p>
                                 </div>
@@ -429,7 +469,7 @@ export default function TenantProfile({
                     </Card>
                 </section>
 
-                <section className="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
+                <section className="grid gap-4 xl:grid-cols-[1.5fr_1fr]">
                     <Card className="rounded-2xl">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2 text-lg">
@@ -454,7 +494,24 @@ export default function TenantProfile({
                                                 {item.contract_number}
                                             </p>
                                         </div>
-                                        <div className="flex items-center gap-3">
+                                        <div className="flex flex-wrap items-center gap-2">
+                                            {canManage && (
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="icon"
+                                                    className="bg-white"
+                                                    title={t(
+                                                        'tenants.lease.edit',
+                                                        'Edit assignment',
+                                                    )}
+                                                    onClick={() =>
+                                                        setEditingLease(item)
+                                                    }
+                                                >
+                                                    <Pencil className="size-4" />
+                                                </Button>
+                                            )}
                                             <Button
                                                 asChild
                                                 variant="ghost"
@@ -469,13 +526,31 @@ export default function TenantProfile({
                                                     )}
                                                 </Link>
                                             </Button>
+                                            <Button
+                                                asChild
+                                                variant="outline"
+                                                size="icon"
+                                                className="bg-white"
+                                                title={t(
+                                                    'tenants.lease.printCard',
+                                                    'Print card',
+                                                )}
+                                            >
+                                                <Link
+                                                    href={`/tenants/${tenant.id}/card?lease_id=${item.id}`}
+                                                >
+                                                    <Printer className="size-4" />
+                                                </Link>
+                                            </Button>
                                             <span className="font-medium">
                                                 {item.rent_amount
                                                     ? formatNumber(
                                                           item.rent_amount,
                                                       )
                                                     : '—'}{' '}
-                                                {item.currency?.code}
+                                                {formatCurrencySymbol(
+                                                    item.currency,
+                                                )}
                                             </span>
                                             <Badge variant="outline">
                                                 {t(
@@ -498,6 +573,7 @@ export default function TenantProfile({
                     <div className="flex justify-end">
                         <Button
                             variant="outline"
+                            className="bg-white"
                             onClick={() =>
                                 router.post(`/tenants/${tenant.id}/toggle`)
                             }
@@ -534,11 +610,14 @@ function Info({
             <Icon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
             <div>
                 <p className="text-xs text-muted-foreground">{label}</p>
-                <p className="mt-0.5 font-medium break-words">{value || '—'}</p>
+                <p className="mt-0.5 font-medium wrap-break-word">
+                    {value || '—'}
+                </p>
             </div>
         </div>
     );
 }
+
 function Metric({
     label,
     value,
@@ -702,38 +781,43 @@ function Documents({
 
 function AssignmentForm({
     tenant,
+    lease,
     properties,
     currencies,
     onDone,
 }: {
     tenant: Tenant;
+    lease?: Lease;
     properties: Property[];
     currencies: Currency[];
     onDone: () => void;
 }) {
     const { t } = useLocalization();
     const form = useForm<LeaseForm>({
-        property_id: '',
-        property_unit_id: '',
-        start_date: today(),
-        end_date: '',
-        rent_amount: '',
-        security_deposit: '',
-        currency_id: '',
-        payment_frequency: 'monthly',
-        status: 'active',
-        terms: '',
-        lease_notes: '',
+        property_id: lease ? String(lease.property_id) : '',
+        property_unit_id: lease?.property_unit_id
+            ? String(lease.property_unit_id)
+            : '',
+        start_date: lease?.start_date ?? today(),
+        end_date: lease?.end_date ?? '',
+        rent_amount: lease?.rent_amount ? String(lease.rent_amount) : '',
+        security_deposit: lease?.security_deposit
+            ? String(lease.security_deposit)
+            : '',
+        currency_id: lease?.currency_id ? String(lease.currency_id) : '',
+        payment_frequency: lease?.payment_frequency ?? 'monthly',
+        status: lease?.status ?? 'active',
+        terms: lease?.terms ?? '',
+        lease_notes: lease?.notes ?? '',
     });
     const property = properties.find(
         (item) => String(item.id) === form.data.property_id,
     );
-    const units = ['house', 'commercial_unit'].includes(
-        property?.property_type ?? '',
-    )
+    const behavior = propertyBehavior(property);
+    const units = ['house', 'commercial_unit'].includes(behavior ?? '')
         ? [{ value: '', label: t('tenants.lease.wholeProperty') }]
         : [
-              ...(property?.property_type === 'block'
+              ...(behavior === 'block'
                   ? [{ value: '', label: t('tenants.lease.wholeProperty') }]
                   : []),
               ...(property?.floors ?? []).flatMap((floor) =>
@@ -745,10 +829,23 @@ function AssignmentForm({
           ];
     const submit = (event: FormEvent) => {
         event.preventDefault();
-        form.post(`/tenants/${tenant.id}/leases`, {
+        const options = {
             preserveScroll: true,
-            onSuccess: onDone,
-        });
+            onSuccess: () => {
+                if (!lease) {
+                    form.reset();
+                }
+
+                onDone();
+            },
+        };
+
+        if (lease) {
+            form.put(`/tenants/${tenant.id}/leases/${lease.id}`, options);
+            return;
+        }
+
+        form.post(`/tenants/${tenant.id}/leases`, options);
     };
     return (
         <form onSubmit={submit} className="grid gap-4 md:grid-cols-2">
@@ -804,7 +901,7 @@ function AssignmentForm({
                 set={(value) => form.setData('currency_id', value)}
                 options={currencies.map((item) => ({
                     value: String(item.id),
-                    label: `${item.code} · ${item.symbol}`,
+                    label: formatCurrencySymbol(item),
                 }))}
                 t={t}
             />
@@ -822,7 +919,10 @@ function AssignmentForm({
                 label={t('tenants.lease.status')}
                 value={form.data.status}
                 set={(value) => form.setData('status', value)}
-                options={['active', 'draft'].map((value) => ({
+                options={(lease
+                    ? ['active', 'draft', 'ended', 'terminated']
+                    : ['active', 'draft']
+                ).map((value) => ({
                     value,
                     label: t(`tenants.lease.${value}`),
                 }))}
@@ -839,7 +939,9 @@ function AssignmentForm({
             </div>
             <div className="flex justify-end md:col-span-2">
                 <Button disabled={form.processing}>
-                    {t('tenants.lease.add')}
+                    {lease
+                        ? t('tenants.lease.save', 'Save assignment')
+                        : t('tenants.lease.add')}
                 </Button>
             </div>
         </form>

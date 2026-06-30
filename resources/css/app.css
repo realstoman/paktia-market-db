@@ -282,6 +282,10 @@ html[lang='ps'] {
         'App Digits', 'Bahij Nazanin', ui-sans-serif, system-ui, sans-serif,
         'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
         'Noto Color Emoji';
+    --app-form-font:
+        'App Digits', 'Bahij Nazanin', ui-sans-serif, system-ui, sans-serif,
+        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+        'Noto Color Emoji';
 }
 
 .dark {
@@ -340,11 +344,21 @@ html[lang='ps'] {
     input,
     textarea,
     select,
+    button,
     [contenteditable='true'],
     [data-slot='input'],
-    [data-slot='textarea'] {
+    [data-slot='textarea'],
+    [data-slot='select-trigger'],
+    [data-slot='dialog-content'],
+    [cmdk-input] {
         font-family: var(--app-form-font) !important;
         font-variant-numeric: tabular-nums lining-nums;
+    }
+
+    input::placeholder,
+    textarea::placeholder,
+    [cmdk-input]::placeholder {
+        font-family: var(--app-form-font) !important;
     }
 
     html[lang='fa'] body,

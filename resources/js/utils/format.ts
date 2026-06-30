@@ -67,3 +67,14 @@ export const formatAfn = (value: number | string): string => {
         useGrouping: true,
     }).format(Math.round(Number(value)))}`;
 };
+
+export const formatCurrencySymbol = (
+    currency?: { code?: string | null; symbol?: string | null } | null,
+): string => {
+    const code = currency?.code?.toUpperCase();
+
+    if (code === 'USD') return '$';
+    if (code === 'AFN') return '؋';
+
+    return currency?.symbol || currency?.code || '';
+};

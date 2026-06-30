@@ -149,7 +149,7 @@ class ShareholderController extends Controller
             'full_name' => ['required', 'string', 'max:255'],
             'father_name' => ['nullable', 'string', 'max:255'],
             'grandfather_name' => ['nullable', 'string', 'max:255'],
-            'gender' => ['nullable', Rule::in(['male', 'female', 'other'])],
+            'gender' => ['nullable', Rule::in(['male', 'female'])],
             'date_of_birth' => ['nullable', 'date', 'before_or_equal:today'],
             'country_of_birth_id' => ['nullable', 'exists:countries,id'],
             'citizenship_country_id' => ['nullable', 'exists:countries,id'],
