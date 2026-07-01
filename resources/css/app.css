@@ -73,22 +73,18 @@ body {
 
 .property-space-scroll {
     display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(230px, calc((100% - 3rem) / 4.25));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.75rem;
-    overflow-x: auto;
-    padding-bottom: 0.75rem;
+    max-height: 17.75rem;
+    overflow-y: auto;
+    padding-inline-end: 0.25rem;
+    padding-bottom: 0.25rem;
     scrollbar-color: rgb(0 36 82 / 42%) #edf1f4;
     scrollbar-width: thin;
-    scroll-snap-type: x proximity;
-}
-
-.property-space-scroll > * {
-    scroll-snap-align: start;
 }
 
 .property-space-scroll::-webkit-scrollbar {
-    height: 7px;
+    width: 7px;
 }
 
 .property-space-scroll::-webkit-scrollbar-track {
@@ -103,13 +99,13 @@ body {
 
 @media (max-width: 1023px) {
     .property-space-scroll {
-        grid-auto-columns: minmax(230px, 72%);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
 @media (max-width: 639px) {
     .property-space-scroll {
-        grid-auto-columns: 88%;
+        grid-template-columns: minmax(0, 1fr);
     }
 }
 
