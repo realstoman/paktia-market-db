@@ -13,7 +13,7 @@ import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option
 import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
 import { BreadcrumbItem, Property, SharedData } from '@/types';
-import { formatAfn, formatNumber } from '@/utils/format';
+import { formatAfn, formatCurrencySymbol, formatNumber } from '@/utils/format';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     ArrowDownRight,
@@ -122,6 +122,22 @@ interface FinanceDashboardData {
         expenses: number;
         net: number;
         currencyCode: string;
+        totalsByCurrency?: Record<
+            string,
+            {
+                sales: number;
+                income: number;
+                expenses: number;
+                net: number;
+            }
+        >;
+        latestValuationsByCurrency?: Record<
+            string,
+            {
+                valuation: number;
+                date?: string | null;
+            }
+        >;
     }>;
     shareholderPnl: Array<{
         id: number;
@@ -132,6 +148,7 @@ interface FinanceDashboardData {
         expenses: number;
         net: number;
         allocated: number;
+        currencyCode?: string;
     }>;
     topExpenseCategories: Array<{
         value: string;
@@ -667,8 +684,34 @@ function BusinessFinanceCard({
     business: FinanceDashboardData['businessCards'][number];
     t: (key: string, fallback?: string) => string;
 }) {
-    const money = (value: number) =>
-        `${formatNumber(value)} ${business.currencyCode}`;
+    const money = (value: number, currencyCode = business.currencyCode) =>
+        `${formatNumber(value)} ${formatCurrencySymbol({ code: currencyCode })}`;
+    const orderedCodes = (codes: string[]) => [
+        ...['AFN', 'USD'].filter((code) => codes.includes(code)),
+        ...codes.filter((code) => !['AFN', 'USD'].includes(code)),
+    ];
+    const moneyLines = (
+        source:
+            | Record<string, { valuation?: number; income?: number; expenses?: number; net?: number }>
+            | undefined,
+        key: 'valuation' | 'income' | 'expenses' | 'net',
+        fallback: number,
+    ) => {
+        const rows = orderedCodes(Object.keys(source ?? {})).map((code) =>
+            money(Number(source?.[code]?.[key] ?? 0), code),
+        );
+
+        return rows.length ? rows : [money(fallback)];
+    };
+    const renderMoneyLines = (lines: string[]) => (
+        <div className="space-y-0.5 font-semibold">
+            {lines.map((line) => (
+                <p key={line} dir="ltr">
+                    {line}
+                </p>
+            ))}
+        </div>
+    );
 
     return (
         <Card className="border-neutral-200/80 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
@@ -693,25 +736,49 @@ function BusinessFinanceCard({
                         <p className="text-xs text-neutral-500">
                             {t('financeDashboard.businessCards.valuation', 'Valuation')}
                         </p>
-                        <p className="font-semibold">{money(business.valuation)}</p>
+                        {renderMoneyLines(
+                            moneyLines(
+                                business.latestValuationsByCurrency,
+                                'valuation',
+                                business.valuation,
+                            ),
+                        )}
                     </div>
                     <div className="rounded-xl bg-neutral-50 p-3 dark:bg-neutral-950">
                         <p className="text-xs text-neutral-500">
                             {t('financeDashboard.businessCards.income', 'Income')}
                         </p>
-                        <p className="font-semibold">{money(business.income)}</p>
+                        {renderMoneyLines(
+                            moneyLines(
+                                business.totalsByCurrency,
+                                'income',
+                                business.income,
+                            ),
+                        )}
                     </div>
                     <div className="rounded-xl bg-neutral-50 p-3 dark:bg-neutral-950">
                         <p className="text-xs text-neutral-500">
                             {t('financeDashboard.businessCards.expenses', 'Expenses')}
                         </p>
-                        <p className="font-semibold">{money(business.expenses)}</p>
+                        {renderMoneyLines(
+                            moneyLines(
+                                business.totalsByCurrency,
+                                'expenses',
+                                business.expenses,
+                            ),
+                        )}
                     </div>
                     <div className="rounded-xl bg-neutral-50 p-3 dark:bg-neutral-950">
                         <p className="text-xs text-neutral-500">
                             {t('financeDashboard.businessCards.net', 'Net')}
                         </p>
-                        <p className="font-semibold">{money(business.net)}</p>
+                        {renderMoneyLines(
+                            moneyLines(
+                                business.totalsByCurrency,
+                                'net',
+                                business.net,
+                            ),
+                        )}
                     </div>
                 </div>
             </CardContent>
@@ -1571,7 +1638,7 @@ export default function FinancePage({
                                 </div>
                                 {dashboard.shareholderPnl.map((row) => (
                                     <div
-                                        key={row.id}
+                                        key={`${row.id}-${row.currencyCode ?? 'AFN'}`}
                                         className="grid min-w-[760px] grid-cols-[1.2fr_1.2fr_0.6fr_1fr_1fr] gap-3 border-t px-4 py-3 text-sm"
                                     >
                                         <span className="font-medium">
@@ -1581,15 +1648,26 @@ export default function FinancePage({
                                         <span>
                                             {formatNumber(row.percentage)}%
                                         </span>
-                                        <span>{formatAfn(row.net)}</span>
+                                        <span dir="ltr">
+                                            {formatNumber(row.net)}{' '}
+                                            {formatCurrencySymbol({
+                                                code:
+                                                    row.currencyCode ?? 'AFN',
+                                            })}
+                                        </span>
                                         <span
                                             className={
                                                 row.allocated >= 0
                                                     ? 'font-semibold text-emerald-700'
                                                     : 'font-semibold text-red-700'
                                             }
+                                            dir="ltr"
                                         >
-                                            {formatAfn(row.allocated)}
+                                            {formatNumber(row.allocated)}{' '}
+                                            {formatCurrencySymbol({
+                                                code:
+                                                    row.currencyCode ?? 'AFN',
+                                            })}
                                         </span>
                                     </div>
                                 ))}

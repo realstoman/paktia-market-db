@@ -41,7 +41,20 @@ interface BusinessConfig {
     descriptionKey: string;
     locationKey: string;
     defaultCurrency: string;
+    allowedCurrencies: string[];
     accent: 'restaurant' | 'sarafi';
+}
+
+interface BusinessCurrencyTotals {
+    sales: number;
+    income: number;
+    expenses: number;
+    net: number;
+}
+
+interface BusinessCurrencyValuation {
+    valuation: number;
+    date?: string | null;
 }
 
 interface BusinessEntry {
@@ -60,15 +73,18 @@ interface BusinessSummary {
     latestValuation: string | number | null;
     latestValuationDate: string | null;
     latestValuationCurrency: string;
+    latestValuationsByCurrency?: Record<string, BusinessCurrencyValuation>;
     totalSales: number;
     totalIncome: number;
     totalExpenses: number;
     netIncome: number;
+    totalsByCurrency?: Record<string, BusinessCurrencyTotals>;
     entryCount: number;
     monthSales: number;
     monthIncome: number;
     monthExpenses: number;
     monthNet: number;
+    monthByCurrency?: Record<string, BusinessCurrencyTotals>;
 }
 
 interface Props {
@@ -87,11 +103,6 @@ interface BusinessFormData {
     notes: string;
 }
 
-const currencyOptions = ['AED', 'AFN', 'USD', 'EUR'].map((currency) => ({
-    value: currency,
-    label: formatCurrencySymbol({ code: currency }),
-}));
-
 const localToday = () => {
     const date = new Date();
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -106,6 +117,28 @@ const money = (
     }
 
     return `${formatNumber(Number(value))} ${formatCurrencySymbol({ code: currencyCode })}`;
+};
+
+const orderedCurrencyCodes = (codes: string[]) => [
+    ...['AFN', 'USD'].filter((code) => codes.includes(code)),
+    ...codes.filter((code) => !['AFN', 'USD'].includes(code)),
+];
+
+const moneyLines = (
+    totals: Record<string, BusinessCurrencyTotals | BusinessCurrencyValuation> | undefined,
+    valueKey: keyof BusinessCurrencyTotals | 'valuation',
+    fallbackValue: string | number | null | undefined,
+    fallbackCurrency: string,
+): string[] => {
+    const codes = orderedCurrencyCodes(Object.keys(totals ?? {}));
+    const rows = codes.map((code) => {
+        const total = totals?.[code];
+        const amount = Number(total?.[valueKey] ?? 0);
+
+        return `${formatNumber(amount)} ${formatCurrencySymbol({ code })}`;
+    });
+
+    return rows.length ? rows : [money(fallbackValue, fallbackCurrency)];
 };
 
 export default function BusinessFinanceShow({
@@ -123,6 +156,10 @@ export default function BusinessFinanceShow({
         'Record daily valuation, sales, income, and expenses for this group-owned business.',
     );
     const location = t(business.locationKey, business.title);
+    const currencyOptions = business.allowedCurrencies.map((currency) => ({
+        value: currency,
+        label: formatCurrencySymbol({ code: currency }),
+    }));
     const form = useForm<BusinessFormData>({
         entry_date: localToday(),
         currency_code: business.defaultCurrency,
@@ -211,7 +248,9 @@ export default function BusinessFinanceShow({
                             'businessFinance.summary.latestValuation',
                             'Latest valuation',
                         )}
-                        value={money(
+                        value={moneyLines(
+                            summary.latestValuationsByCurrency,
+                            'valuation',
                             summary.latestValuation,
                             summary.latestValuationCurrency,
                         )}
@@ -229,7 +268,9 @@ export default function BusinessFinanceShow({
                             'businessFinance.summary.monthSales',
                             'This month sales',
                         )}
-                        value={money(
+                        value={moneyLines(
+                            summary.monthByCurrency,
+                            'sales',
                             summary.monthSales,
                             business.defaultCurrency,
                         )}
@@ -244,7 +285,9 @@ export default function BusinessFinanceShow({
                             'businessFinance.summary.monthExpenses',
                             'This month expenses',
                         )}
-                        value={money(
+                        value={moneyLines(
+                            summary.monthByCurrency,
+                            'expenses',
                             summary.monthExpenses,
                             business.defaultCurrency,
                         )}
@@ -259,7 +302,9 @@ export default function BusinessFinanceShow({
                             'businessFinance.summary.totalNet',
                             'Total net',
                         )}
-                        value={money(
+                        value={moneyLines(
+                            summary.totalsByCurrency,
+                            'net',
                             summary.netIncome,
                             business.defaultCurrency,
                         )}
@@ -609,10 +654,12 @@ function MetricCard({
     icon,
 }: {
     title: string;
-    value: string;
+    value: string | string[];
     subtitle: string;
     icon: ReactNode;
 }) {
+    const valueLines = Array.isArray(value) ? value : [value];
+
     return (
         <Card className="border-primary/10 bg-white shadow-none">
             <CardContent className="flex items-start gap-4 p-5">
@@ -621,9 +668,13 @@ function MetricCard({
                 </span>
                 <div className="min-w-0">
                     <p className="text-sm text-muted-foreground">{title}</p>
-                    <p className="mt-1 truncate text-2xl font-semibold text-[#002452]">
-                        {value}
-                    </p>
+                    <div className="mt-1 space-y-1 text-2xl font-semibold text-[#002452]">
+                        {valueLines.map((line) => (
+                            <p key={line} className="truncate" dir="ltr">
+                                {line}
+                            </p>
+                        ))}
+                    </div>
                     <p className="mt-1 text-xs text-muted-foreground">
                         {subtitle}
                     </p>

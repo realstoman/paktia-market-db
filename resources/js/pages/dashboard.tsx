@@ -83,6 +83,7 @@ interface ShareholderPnlRow {
     expenses: number;
     net: number;
     allocated: number;
+    currencyCode?: string;
 }
 
 interface PortfolioProject {
@@ -782,8 +783,8 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                     <tr>
                         <td>${escapeHtml(row.shareholder)}</td>
                         <td>${formatPrice(row.percentage)}%</td>
-                        <td>${formatPrice(row.net)} ؋</td>
-                        <td>${formatPrice(row.allocated)} ؋</td>
+                        <td>${formatPrice(row.net)} ${currencySymbol(row.currencyCode ?? 'AFN')}</td>
+                        <td>${formatPrice(row.allocated)} ${currencySymbol(row.currencyCode ?? 'AFN')}</td>
                     </tr>`,
             )
             .join('');
@@ -1678,7 +1679,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                                 selectedProject.shareholderPnl?.map(
                                                     (row) => (
                                                         <tr
-                                                            key={row.id}
+                                                            key={`${row.id}-${row.currencyCode ?? 'AFN'}`}
                                                             className="border-b border-[#f0f3f4] last:border-0 dark:border-neutral-800"
                                                         >
                                                             <td className="px-3 py-2 font-semibold">
@@ -1696,13 +1697,19 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                                                 {formatPrice(
                                                                     row.net,
                                                                 )}{' '}
-                                                                ؋
+                                                                {currencySymbol(
+                                                                    row.currencyCode ??
+                                                                        'AFN',
+                                                                )}
                                                             </td>
                                                             <td className="px-3 py-2 font-semibold">
                                                                 {formatPrice(
                                                                     row.allocated,
                                                                 )}{' '}
-                                                                ؋
+                                                                {currencySymbol(
+                                                                    row.currencyCode ??
+                                                                        'AFN',
+                                                                )}
                                                             </td>
                                                         </tr>
                                                     ),

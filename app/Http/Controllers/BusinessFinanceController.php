@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\BusinessFinanceEntry;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class BusinessFinanceController extends Controller
@@ -16,7 +17,8 @@ class BusinessFinanceController extends Controller
             'titleKey' => 'businessFinance.businesses.dubaiRestaurant.title',
             'descriptionKey' => 'businessFinance.businesses.dubaiRestaurant.description',
             'locationKey' => 'businessFinance.businesses.dubaiRestaurant.location',
-            'defaultCurrency' => 'AED',
+            'defaultCurrency' => 'USD',
+            'allowedCurrencies' => ['USD'],
             'accent' => 'restaurant',
         ],
         'kabul-sarafi' => [
@@ -26,6 +28,7 @@ class BusinessFinanceController extends Controller
             'descriptionKey' => 'businessFinance.businesses.kabulSarafi.description',
             'locationKey' => 'businessFinance.businesses.kabulSarafi.location',
             'defaultCurrency' => 'AFN',
+            'allowedCurrencies' => ['AFN', 'USD'],
             'accent' => 'sarafi',
         ],
     ];
@@ -55,6 +58,7 @@ class BusinessFinanceController extends Controller
             ->selectRaw('COALESCE(SUM(expenses), 0) as total_expenses')
             ->selectRaw('COUNT(*) as entry_count')
             ->first();
+        $summaryByCurrency = $this->totalsByCurrency($config['key']);
 
         $monthlySummary = BusinessFinanceEntry::query()
             ->where('business_key', $config['key'])
@@ -66,6 +70,12 @@ class BusinessFinanceController extends Controller
             ->selectRaw('COALESCE(SUM(income), 0) as income')
             ->selectRaw('COALESCE(SUM(expenses), 0) as expenses')
             ->first();
+        $monthlySummaryByCurrency = $this->totalsByCurrency(
+            businessKey: $config['key'],
+            startDate: now()->startOfMonth()->toDateString(),
+            endDate: now()->endOfMonth()->toDateString(),
+        );
+        $latestValuationsByCurrency = $this->latestValuationsByCurrency($config['key'], $config['allowedCurrencies']);
 
         return Inertia::render('finance/business-finance/show', [
             'business' => [
@@ -87,15 +97,18 @@ class BusinessFinanceController extends Controller
                 'latestValuation' => $latestValuation?->valuation,
                 'latestValuationDate' => $latestValuation?->entry_date?->toDateString(),
                 'latestValuationCurrency' => $latestValuation?->currency_code ?? $config['defaultCurrency'],
+                'latestValuationsByCurrency' => $latestValuationsByCurrency,
                 'totalSales' => (float) ($summary?->total_sales ?? 0),
                 'totalIncome' => (float) ($summary?->total_income ?? 0),
                 'totalExpenses' => (float) ($summary?->total_expenses ?? 0),
                 'netIncome' => (float) ($summary?->total_income ?? 0) - (float) ($summary?->total_expenses ?? 0),
+                'totalsByCurrency' => $summaryByCurrency,
                 'entryCount' => (int) ($summary?->entry_count ?? 0),
                 'monthSales' => (float) ($monthlySummary?->sales ?? 0),
                 'monthIncome' => (float) ($monthlySummary?->income ?? 0),
                 'monthExpenses' => (float) ($monthlySummary?->expenses ?? 0),
                 'monthNet' => (float) ($monthlySummary?->income ?? 0) - (float) ($monthlySummary?->expenses ?? 0),
+                'monthByCurrency' => $monthlySummaryByCurrency,
             ],
         ]);
     }
@@ -106,7 +119,7 @@ class BusinessFinanceController extends Controller
 
         $validated = $request->validate([
             'entry_date' => ['required', 'date_format:Y-m-d'],
-            'currency_code' => ['required', 'string', 'max:10'],
+            'currency_code' => ['required', 'string', Rule::in($config['allowedCurrencies'])],
             'valuation' => ['nullable', 'numeric', 'min:0'],
             'sales' => ['nullable', 'numeric', 'min:0'],
             'income' => ['nullable', 'numeric', 'min:0'],
@@ -114,13 +127,15 @@ class BusinessFinanceController extends Controller
             'notes' => ['nullable', 'string', 'max:2000'],
         ]);
 
+        $currencyCode = strtoupper($validated['currency_code']);
+
         BusinessFinanceEntry::query()->updateOrCreate(
             [
                 'business_key' => $config['key'],
                 'entry_date' => $validated['entry_date'],
+                'currency_code' => $currencyCode,
             ],
             [
-                'currency_code' => strtoupper($validated['currency_code']),
                 'valuation' => $validated['valuation'] ?? null,
                 'sales' => $validated['sales'] ?? 0,
                 'income' => $validated['income'] ?? 0,
@@ -186,6 +201,8 @@ class BusinessFinanceController extends Controller
                 'expenses' => 0.0,
                 'net' => 0.0,
                 'currencyCode' => $business['defaultCurrency'],
+                'totalsByCurrency' => [],
+                'latestValuationsByCurrency' => [],
             ])->values()->all();
         }
 
@@ -199,6 +216,12 @@ class BusinessFinanceController extends Controller
                 ->selectRaw('COALESCE(SUM(income), 0) as income')
                 ->selectRaw('COALESCE(SUM(expenses), 0) as expenses')
                 ->first();
+            $totalsByCurrency = self::totalsByCurrencyStatic(
+                businessKey: $business['key'],
+                startDate: $startDate,
+                endDate: $endDate,
+            );
+            $latestValuationsByCurrency = self::latestValuationsByCurrencyStatic($business['key'], $business['allowedCurrencies']);
 
             $latestValuation = BusinessFinanceEntry::query()
                 ->where('business_key', $business['key'])
@@ -218,8 +241,64 @@ class BusinessFinanceController extends Controller
                 'expenses' => (float) ($totals?->expenses ?? 0),
                 'net' => (float) ($totals?->income ?? 0) - (float) ($totals?->expenses ?? 0),
                 'currencyCode' => $latestValuation?->currency_code ?? $business['defaultCurrency'],
+                'totalsByCurrency' => $totalsByCurrency,
+                'latestValuationsByCurrency' => $latestValuationsByCurrency,
             ];
         })->values()->all();
+    }
+
+    private function totalsByCurrency(string $businessKey, ?string $startDate = null, ?string $endDate = null): array
+    {
+        return self::totalsByCurrencyStatic($businessKey, $startDate, $endDate);
+    }
+
+    private static function totalsByCurrencyStatic(string $businessKey, ?string $startDate = null, ?string $endDate = null): array
+    {
+        return BusinessFinanceEntry::query()
+            ->where('business_key', $businessKey)
+            ->when($startDate && $endDate, fn ($query) => $query->whereBetween('entry_date', [$startDate, $endDate]))
+            ->selectRaw('currency_code')
+            ->selectRaw('COALESCE(SUM(sales), 0) as sales')
+            ->selectRaw('COALESCE(SUM(income), 0) as income')
+            ->selectRaw('COALESCE(SUM(expenses), 0) as expenses')
+            ->groupBy('currency_code')
+            ->get()
+            ->mapWithKeys(fn (BusinessFinanceEntry $entry) => [
+                strtoupper($entry->currency_code) => [
+                    'sales' => (float) $entry->sales,
+                    'income' => (float) $entry->income,
+                    'expenses' => (float) $entry->expenses,
+                    'net' => (float) $entry->income - (float) $entry->expenses,
+                ],
+            ])
+            ->all();
+    }
+
+    private function latestValuationsByCurrency(string $businessKey, array $currencies): array
+    {
+        return self::latestValuationsByCurrencyStatic($businessKey, $currencies);
+    }
+
+    private static function latestValuationsByCurrencyStatic(string $businessKey, array $currencies): array
+    {
+        return collect($currencies)
+            ->mapWithKeys(function (string $currencyCode) use ($businessKey): array {
+                $entry = BusinessFinanceEntry::query()
+                    ->where('business_key', $businessKey)
+                    ->where('currency_code', strtoupper($currencyCode))
+                    ->whereNotNull('valuation')
+                    ->latest('entry_date')
+                    ->latest('id')
+                    ->first();
+
+                return [
+                    strtoupper($currencyCode) => [
+                        'valuation' => (float) ($entry?->valuation ?? 0),
+                        'date' => $entry?->entry_date?->toDateString(),
+                    ],
+                ];
+            })
+            ->all();
     }
 
     private function businessConfig(string $business): array
