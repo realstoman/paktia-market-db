@@ -70,6 +70,20 @@ export default function TenantCard({ tenant, selectedLeaseId = null }: Props) {
     };
     const propertyName = localizedPropertyName(lease) || branding.name;
     const spaceValue = leaseSpaceValue(lease);
+    const contactPhone =
+        (
+            branding as SharedData['branding'] & {
+                contactPhone?: string | null;
+                phone?: string | null;
+            }
+        ).contactPhone ||
+        (
+            branding as SharedData['branding'] & {
+                contactPhone?: string | null;
+                phone?: string | null;
+            }
+        ).phone ||
+        '+93 700 000 000';
 
     return (
         <main
@@ -83,7 +97,8 @@ export default function TenantCard({ tenant, selectedLeaseId = null }: Props) {
                 html, body { width: 85.6mm; height: 54mm; margin: 0 !important; padding: 0 !important; background: white !important; }
                 .print-controls { display: none !important; }
                 .card-stage { display: block !important; margin: 0 !important; padding: 0 !important; }
-                .tenant-id-card { box-shadow: none !important; border-radius: 0 !important; }
+                .tenant-id-card { box-shadow: none !important; border-radius: 0 !important; break-after: page; page-break-after: always; }
+                .tenant-id-card:last-child { break-after: auto; page-break-after: auto; }
             }
         `}</style>
             <div className="print-controls mx-auto mb-6 flex max-w-4xl items-center justify-between gap-3">
@@ -98,7 +113,7 @@ export default function TenantCard({ tenant, selectedLeaseId = null }: Props) {
                     {t('tenants.card.print')}
                 </Button>
             </div>
-            <div className="card-stage flex justify-center">
+            <div className="card-stage flex flex-col items-center gap-6">
                 <article className="tenant-id-card relative h-[54mm] w-[85.6mm] shrink-0 overflow-hidden rounded-[4mm] bg-white shadow-2xl">
                     <div className="absolute inset-x-0 top-0 h-[15mm] bg-[#002452]" />
                     <header className="relative flex h-[15mm] items-center gap-[2.5mm] px-[4mm] text-white">
@@ -190,6 +205,39 @@ export default function TenantCard({ tenant, selectedLeaseId = null }: Props) {
                                 {t('tenants.card.scanHelp')}
                             </p>
                         </div>
+                    </div>
+                </article>
+                <article
+                    className="tenant-id-card relative flex h-[54mm] w-[85.6mm] shrink-0 flex-col items-center justify-center overflow-hidden rounded-[4mm] bg-white px-[8mm] text-center shadow-2xl"
+                    dir="rtl"
+                >
+                    <div className="absolute inset-x-0 top-0 h-[3mm] bg-[#002452]" />
+                    <div className="absolute inset-x-0 bottom-0 h-[3mm] bg-[#d3a450]" />
+                    <div className="flex h-[19mm] w-[19mm] items-center justify-center overflow-hidden rounded-[4mm] border border-slate-200 bg-white p-[2mm] shadow-sm">
+                        {branding.logoUrl ? (
+                            <img
+                                src={branding.logoUrl}
+                                className="max-h-full max-w-full object-contain"
+                            />
+                        ) : (
+                            <Building2 className="h-[12mm] w-[12mm] text-[#002452]" />
+                        )}
+                    </div>
+                    <p className="mt-[4mm] text-[3mm] leading-[5mm] font-semibold text-[#002452]">
+                        این کارت مربوط به مستأجر {propertyName} می‌باشد.
+                    </p>
+                    <p className="mt-[1.5mm] text-[2.45mm] leading-[4.2mm] text-slate-600">
+                        اگر این کارت را پیدا کردید، لطفاً با ما به شماره زیر
+                        تماس بگیرید.
+                    </p>
+                    <div className="mt-[3mm] inline-flex items-center gap-[1.5mm] rounded-full border border-[#002452]/15 bg-[#f8f9fd] px-[4mm] py-[1.6mm] text-[#002452]">
+                        <Phone className="h-[3mm] w-[3mm]" />
+                        <span
+                            className="font-mono text-[3mm] font-bold"
+                            dir="ltr"
+                        >
+                            {contactPhone}
+                        </span>
                     </div>
                 </article>
             </div>
