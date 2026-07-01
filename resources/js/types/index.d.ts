@@ -466,6 +466,7 @@ export interface Property {
     property_type_behavior?: 'market' | 'block' | 'house' | 'commercial_unit';
     type_definition?: PropertyType | null;
     usage_type?: 'commercial' | 'residential' | 'mixed';
+    image_path?: string | null;
     image_url?: string | null;
     images?: PropertyImage[];
     distance_from_city_km?: string | null;

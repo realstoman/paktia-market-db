@@ -120,6 +120,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('properties/{property}/documents/{document}', [PropertyController::class, 'downloadDocument'])->name('properties.documents.download');
         Route::delete('properties/{property}/documents/{document}', [PropertyController::class, 'destroyDocument'])->name('properties.documents.destroy');
         Route::post('properties/{property}/images', [PropertyController::class, 'uploadImages'])->name('properties.images.store');
+        Route::patch('properties/{property}/images/{image}/cover', [PropertyController::class, 'setCoverImage'])->name('properties.images.cover');
+        Route::delete('properties/{property}/images/{image}', [PropertyController::class, 'destroyImage'])->name('properties.images.destroy');
 
         Route::get('contract-templates', [ContractTemplateController::class, 'index'])->name('contract-templates.index');
         Route::post('contract-templates', [ContractTemplateController::class, 'store'])->name('contract-templates.store');

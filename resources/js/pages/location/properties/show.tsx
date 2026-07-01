@@ -50,6 +50,7 @@ import {
     ChefHat,
     ChevronLeft,
     ChevronRight,
+    CheckCircle2,
     DoorOpen,
     FileText,
     Image as ImageIcon,
@@ -61,12 +62,13 @@ import {
     Ruler,
     Search,
     Store,
+    Star,
     Trash2,
     Upload,
     Users,
     X,
 } from 'lucide-react';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 
 interface PropertyShowProps {
     property: Property;
@@ -95,7 +97,7 @@ export default function PropertyShow({
     const propertyTypeLabel =
         property.type_definition?.name ??
         t(`propertyWorkspace.types.${property.property_type ?? 'market'}`);
-    const coverImageUrl = property.images?.[0]?.url ?? property.image_url;
+    const coverImageUrl = property.image_url ?? property.images?.[0]?.url;
     const breadcrumbs: BreadcrumbItem[] = [
         { title: t('propertyWorkspace.title'), href: '/properties' },
         { title: property.name, href: `/properties/${property.id}` },
@@ -662,6 +664,20 @@ function PropertyImageGallery({
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const form = useForm<{ images: File[] }>({ images: [] });
     const activeImage = images[activeIndex] ?? images[0];
+    const activeIsCover =
+        !!activeImage && activeImage.path === property.image_path;
+
+    useEffect(() => {
+        const coverIndex = images.findIndex(
+            (image) => image.path === property.image_path,
+        );
+
+        if (coverIndex >= 0) {
+            setActiveIndex(coverIndex);
+        } else if (activeIndex >= images.length) {
+            setActiveIndex(Math.max(0, images.length - 1));
+        }
+    }, [activeIndex, images, property.image_path]);
 
     const submit = (event: FormEvent) => {
         event.preventDefault();
@@ -753,6 +769,72 @@ function PropertyImageGallery({
                                     )}
                                 </span>
                             </button>
+                            <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border bg-white p-3">
+                                <div className="min-w-0">
+                                    <p className="truncate text-sm font-medium">
+                                        {activeImage.original_name ??
+                                            t(
+                                                'propertyWorkspace.images.image',
+                                                'Property image',
+                                            )}
+                                    </p>
+                                    {activeIsCover && (
+                                        <p className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-primary">
+                                            <CheckCircle2 className="size-3.5" />
+                                            {t(
+                                                'propertyWorkspace.images.cover',
+                                                'Current cover',
+                                            )}
+                                        </p>
+                                    )}
+                                </div>
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        variant={
+                                            activeIsCover
+                                                ? 'secondary'
+                                                : 'outline'
+                                        }
+                                        disabled={activeIsCover}
+                                        onClick={() =>
+                                            router.patch(
+                                                `/properties/${property.id}/images/${activeImage.id}/cover`,
+                                                {},
+                                                { preserveScroll: true },
+                                            )
+                                        }
+                                    >
+                                        <Star className="size-4" />
+                                        {t(
+                                            'propertyWorkspace.images.setCover',
+                                            'Set as cover',
+                                        )}
+                                    </Button>
+                                    <DeleteConfirmation
+                                        title={t(
+                                            'propertyWorkspace.images.deleteTitle',
+                                            'Delete image?',
+                                        )}
+                                        description={t(
+                                            'propertyWorkspace.images.deleteDescription',
+                                            'This image will be removed from the property gallery.',
+                                        )}
+                                        confirmLabel={t(
+                                            'propertyWorkspace.images.confirmDelete',
+                                            'Delete image',
+                                        )}
+                                        onConfirm={() =>
+                                            router.delete(
+                                                `/properties/${property.id}/images/${activeImage.id}`,
+                                                { preserveScroll: true },
+                                            )
+                                        }
+                                        compact
+                                    />
+                                </div>
+                            </div>
                             {images.length > 1 && (
                                 <div className="flex gap-2 overflow-x-auto pb-1">
                                     {images.map((image, index) => (
@@ -766,13 +848,19 @@ function PropertyImageGallery({
                                                 index === activeIndex
                                                     ? 'border-primary ring-2 ring-primary/20'
                                                     : 'border-slate-200'
-                                            }`}
+                                            } relative`}
                                         >
                                             <img
                                                 src={image.url}
                                                 alt={image.original_name ?? ''}
                                                 className="h-full w-full object-cover"
                                             />
+                                            {image.path ===
+                                                property.image_path && (
+                                                <span className="absolute top-1 left-1 inline-flex size-5 items-center justify-center rounded-full bg-primary text-white shadow-sm">
+                                                    <CheckCircle2 className="size-3" />
+                                                </span>
+                                            )}
                                         </button>
                                     ))}
                                 </div>

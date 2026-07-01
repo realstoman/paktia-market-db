@@ -7,6 +7,7 @@ use App\Models\Country;
 use App\Models\Property;
 use App\Models\PropertyDocument;
 use App\Models\PropertyFloor;
+use App\Models\PropertyImage;
 use App\Models\PropertyType;
 use App\Models\PropertyUnit;
 use App\Models\Province;
@@ -273,6 +274,31 @@ class PropertyController extends Controller
         $this->storeGalleryImages($request, $property);
 
         return back()->with('success', __('properties.actions.images_uploaded'));
+    }
+
+    public function setCoverImage(Property $property, PropertyImage $image)
+    {
+        abort_unless($image->property_id === $property->id, 404);
+
+        $property->forceFill(['image_path' => $image->path])->save();
+
+        return back()->with('success', __('properties.actions.cover_updated'));
+    }
+
+    public function destroyImage(Property $property, PropertyImage $image)
+    {
+        abort_unless($image->property_id === $property->id, 404);
+
+        Storage::disk('public')->delete($image->path);
+        $wasCover = $property->image_path === $image->path;
+        $image->delete();
+
+        if ($wasCover) {
+            $nextCover = $property->images()->value('path');
+            $property->forceFill(['image_path' => $nextCover])->save();
+        }
+
+        return back()->with('success', __('properties.actions.image_deleted'));
     }
 
     private function validateProperty(Request $request): array
