@@ -11,13 +11,16 @@ use App\Models\PayrollRunItem;
 use App\Models\Property;
 use App\Models\RentPayment;
 use App\Models\User;
+use App\Services\Finance\RentalFinanceService;
 use App\Services\Finance\ShareholderPnlService;
+use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 
 class DashboardService
 {
     public function __construct(
         private readonly ShareholderPnlService $shareholderPnl,
+        private readonly RentalFinanceService $rentalFinance,
     ) {}
 
     public function build(User $user): array
@@ -279,6 +282,32 @@ class DashboardService
                         'cashPositionByCurrency' => $cashPositionByCurrency,
                         'shareholderPnl' => $this->shareholderPnl
                             ->rows($monthStart, $monthEnd, $property->id)
+                            ->values(),
+                        'rentStatusRows' => $this->rentalFinance
+                            ->leaseRows(
+                                Carbon::parse($monthStart->toDateString()),
+                                Carbon::parse($monthEnd->toDateString()),
+                                $property->id,
+                            )
+                            ->map(function (array $row) use ($property): array {
+                                /** @var Lease $lease */
+                                $lease = $row['lease'];
+
+                                return [
+                                    'id' => $lease->id,
+                                    'tenant' => $lease->tenant?->business_name ?: $lease->tenant?->full_name,
+                                    'space' => $lease->unit?->unit_number
+                                        ?? $property->external_unit_number
+                                        ?? $lease->leased_space_type
+                                        ?? '—',
+                                    'contractNumber' => $lease->contract_number,
+                                    'expected' => (float) $row['expected'],
+                                    'received' => (float) $row['received'],
+                                    'outstanding' => (float) $row['outstanding'],
+                                    'status' => (float) $row['outstanding'] > 0 ? 'unpaid' : 'paid',
+                                    'currency' => $lease->currency?->symbol ?: ($lease->currency?->code ?? '؋'),
+                                ];
+                            })
                             ->values(),
                         'recentRentCollections' => $recentRentCollections,
                         'recentExpenses' => Expense::query()

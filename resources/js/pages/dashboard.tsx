@@ -55,6 +55,18 @@ interface RentCollectionRow {
     paymentMethod: string;
 }
 
+interface RentStatusRow {
+    id: number;
+    tenant?: string | null;
+    space?: string | null;
+    contractNumber?: string | null;
+    expected: number;
+    received: number;
+    outstanding: number;
+    status: 'paid' | 'unpaid';
+    currency: string;
+}
+
 type CurrencyTotals = Record<string, number | string | undefined>;
 
 interface ShareholderPnlRow {
@@ -104,6 +116,7 @@ interface PortfolioProject {
     cashPositionAfn: number;
     cashPositionByCurrency?: CurrencyTotals;
     shareholderPnl?: ShareholderPnlRow[];
+    rentStatusRows?: RentStatusRow[];
     recentRentCollections: RentCollectionRow[];
     recentExpenses: ExpenseRow[];
 }
@@ -697,16 +710,17 @@ export default function Dashboard({ data }: { data: DashboardData }) {
             'propertyDashboard.rentCollectionReport',
             'Rent collection report',
         );
-        const rows = selectedProject.recentRentCollections
+        const rows = (selectedProject.rentStatusRows ?? [])
             .map(
-                (payment) => `
+                (row) => `
                     <tr>
-                        <td>${escapeHtml(payment.receiptNumber)}</td>
-                        <td>${escapeHtml(payment.shopNumber || '—')}</td>
-                        <td>${escapeHtml(payment.tenant || '—')}</td>
-                        <td>${escapeHtml(payment.paymentDate || '—')}</td>
-                        <td>${formatPrice(payment.amount)} ${escapeHtml(payment.currency)}</td>
-                        <td>${escapeHtml(payment.periodStart || '—')}${payment.periodEnd ? ` - ${escapeHtml(payment.periodEnd)}` : ''}</td>
+                        <td>${escapeHtml(row.contractNumber || '—')}</td>
+                        <td>${escapeHtml(row.space || '—')}</td>
+                        <td>${escapeHtml(row.tenant || '—')}</td>
+                        <td>${formatPrice(row.expected)} ${escapeHtml(row.currency)}</td>
+                        <td>${formatPrice(row.received)} ${escapeHtml(row.currency)}</td>
+                        <td>${formatPrice(row.outstanding)} ${escapeHtml(row.currency)}</td>
+                        <td>${escapeHtml(row.status === 'paid' ? t('propertyDashboard.paid', 'Paid') : t('propertyDashboard.unpaid', 'Unpaid'))}</td>
                     </tr>`,
             )
             .join('');
@@ -716,15 +730,16 @@ export default function Dashboard({ data }: { data: DashboardData }) {
             `<table>
                 <thead>
                     <tr>
-                        <th>${escapeHtml(t('propertyDashboard.receipt', 'Receipt'))}</th>
+                        <th>${escapeHtml(t('propertyDashboard.contract', 'Contract'))}</th>
                         <th>${escapeHtml(t('propertyDashboard.shop', 'Shop'))}</th>
                         <th>${escapeHtml(t('propertyDashboard.tenant', 'Tenant'))}</th>
-                        <th>${escapeHtml(t('propertyDashboard.date', 'Date'))}</th>
-                        <th>${escapeHtml(t('propertyDashboard.amount', 'Amount'))}</th>
-                        <th>${escapeHtml(t('propertyDashboard.period', 'Period'))}</th>
+                        <th>${escapeHtml(t('propertyDashboard.expectedRent', 'Expected'))}</th>
+                        <th>${escapeHtml(t('propertyDashboard.receivedRent', 'Received'))}</th>
+                        <th>${escapeHtml(t('propertyDashboard.outstandingRent', 'Outstanding'))}</th>
+                        <th>${escapeHtml(t('propertyDashboard.status', 'Status'))}</th>
                     </tr>
                 </thead>
-                <tbody>${rows || `<tr><td colspan="6">${escapeHtml(t('propertyDashboard.noRecentRent', 'No rent has been collected for this property yet.'))}</td></tr>`}</tbody>
+                <tbody>${rows || `<tr><td colspan="7">${escapeHtml(t('propertyDashboard.noRentStatusRows', 'No active rent assignments were found for this property.'))}</td></tr>`}</tbody>
             </table>`,
         );
     };
