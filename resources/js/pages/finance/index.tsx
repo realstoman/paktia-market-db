@@ -83,14 +83,22 @@ interface FinanceFilters {
 interface FinanceDashboardData {
     summary: {
         sales: number;
+        salesByCurrency?: Record<string, number>;
         rentExpected: number;
+        rentExpectedByCurrency?: Record<string, number>;
         rentReceived: number;
+        rentReceivedByCurrency?: Record<string, number>;
         rentOutstanding: number;
+        rentOutstandingByCurrency?: Record<string, number>;
         activeLeases: number;
         expenses: number;
+        expensesByCurrency?: Record<string, number>;
         grossProfit: number | null;
+        grossProfitByCurrency?: Record<string, number>;
         netProfit: number;
+        netProfitByCurrency?: Record<string, number>;
         cashPosition: number;
+        cashPositionByCurrency?: Record<string, number>;
         unpaidSalaries: number;
         inventoryValue: number;
         supplierBalances: number;
@@ -629,6 +637,33 @@ function formatModuleStat(value: number, format: 'currency' | 'number') {
     return format === 'currency' ? formatAfn(value) : formatNumber(value);
 }
 
+function formatCurrencyTotals(
+    totals: Record<string, number> | undefined,
+    fallbackValue: number,
+    fallbackCurrency = 'AFN',
+) {
+    const codes = totals
+        ? [
+              ...['AFN', 'USD'].filter((code) => totals[code] !== undefined),
+              ...Object.keys(totals).filter(
+                  (code) => !['AFN', 'USD'].includes(code),
+              ),
+          ]
+        : [];
+    const lines = codes.map(
+        (code) =>
+            `${formatNumber(Number(totals?.[code] ?? 0))} ${formatCurrencySymbol({ code })}`,
+    );
+
+    return lines.length
+        ? lines
+        : [
+              `${formatNumber(fallbackValue)} ${formatCurrencySymbol({
+                  code: fallbackCurrency,
+              })}`,
+          ];
+}
+
 function ledgerStatusTone(status: string) {
     if (
         status.toLowerCase() === 'posted' ||
@@ -651,10 +686,12 @@ function SummaryCard({
     icon,
 }: {
     title: string;
-    value: string;
+    value: string | string[];
     subtitle: string;
     icon: React.ReactNode;
 }) {
+    const valueLines = Array.isArray(value) ? value : [value];
+
     return (
         <Card className="border-neutral-200/80 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
             <CardContent className="flex items-start justify-between p-5">
@@ -662,9 +699,13 @@ function SummaryCard({
                     <p className="text-xs font-medium tracking-[0.22em] text-neutral-500 uppercase">
                         {title}
                     </p>
-                    <p className="text-2xl font-semibold text-neutral-950 dark:text-neutral-50">
-                        {value}
-                    </p>
+                    <div className="space-y-1 text-2xl font-semibold text-neutral-950 dark:text-neutral-50">
+                        {valueLines.map((line) => (
+                            <p key={line} dir="ltr">
+                                {line}
+                            </p>
+                        ))}
+                    </div>
                     <p className="text-sm text-neutral-500 dark:text-neutral-400">
                         {subtitle}
                     </p>
@@ -1195,7 +1236,10 @@ export default function FinancePage({
                             'financeDashboard.summary.rentReceived',
                             'Received Rent',
                         )}
-                        value={formatAfn(dashboard.summary.rentReceived)}
+                        value={formatCurrencyTotals(
+                            dashboard.summary.rentReceivedByCurrency,
+                            dashboard.summary.rentReceived,
+                        )}
                         subtitle={t(
                             'financeDashboard.summary.rentReceivedSubtitle',
                             'Rent collected for the selected property and period',
@@ -1207,7 +1251,10 @@ export default function FinancePage({
                             'financeDashboard.summary.rentExpected',
                             'Contracted Rent',
                         )}
-                        value={formatAfn(dashboard.summary.rentExpected)}
+                        value={formatCurrencyTotals(
+                            dashboard.summary.rentExpectedByCurrency,
+                            dashboard.summary.rentExpected,
+                        )}
                         subtitle={t(
                             'financeDashboard.summary.rentExpectedSubtitle',
                             'Rent due from active contracts in this period',
@@ -1219,7 +1266,10 @@ export default function FinancePage({
                             'financeDashboard.summary.rentOutstanding',
                             'Outstanding Rent',
                         )}
-                        value={formatAfn(dashboard.summary.rentOutstanding)}
+                        value={formatCurrencyTotals(
+                            dashboard.summary.rentOutstandingByCurrency,
+                            dashboard.summary.rentOutstanding,
+                        )}
                         subtitle={t(
                             'financeDashboard.summary.rentOutstandingSubtitle',
                             'Contracted rent not yet received',
@@ -1243,7 +1293,10 @@ export default function FinancePage({
                             'financeDashboard.summary.expenses',
                             'Expenses',
                         )}
-                        value={formatAfn(dashboard.summary.expenses)}
+                        value={formatCurrencyTotals(
+                            dashboard.summary.expensesByCurrency,
+                            dashboard.summary.expenses,
+                        )}
                         subtitle={t(
                             'financeDashboard.summary.expensesSubtitle',
                             'Recorded operational expenses',
@@ -1261,7 +1314,10 @@ export default function FinancePage({
                                       'financeDashboard.summary.pending',
                                       'Pending',
                                   )
-                                : formatAfn(dashboard.summary.grossProfit)
+                                : formatCurrencyTotals(
+                                      dashboard.summary.grossProfitByCurrency,
+                                      dashboard.summary.grossProfit,
+                                  )
                         }
                         subtitle={localizeFinanceNote(
                             dashboard.notes.grossProfit,
@@ -1274,7 +1330,10 @@ export default function FinancePage({
                             'financeDashboard.summary.netProfit',
                             'Net Profit',
                         )}
-                        value={formatAfn(dashboard.summary.netProfit)}
+                        value={formatCurrencyTotals(
+                            dashboard.summary.netProfitByCurrency,
+                            dashboard.summary.netProfit,
+                        )}
                         subtitle={t(
                             'financeDashboard.summary.netProfitSubtitle',
                             'Sales minus expenses, before unposted finance adjustments',
@@ -1286,7 +1345,10 @@ export default function FinancePage({
                             'financeDashboard.summary.cashPosition',
                             'Cash Position',
                         )}
-                        value={formatAfn(dashboard.summary.cashPosition)}
+                        value={formatCurrencyTotals(
+                            dashboard.summary.cashPositionByCurrency,
+                            dashboard.summary.cashPosition,
+                        )}
                         subtitle={localizeFinanceNote(
                             dashboard.notes.cashPosition,
                             t,
