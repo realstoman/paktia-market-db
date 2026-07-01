@@ -1224,6 +1224,15 @@ const en = {
         tertiaryColorLabel: 'Tertiary color',
         logoLabel: 'Sidebar logo',
         logoFullLabel: 'Full auth logo',
+        tenantCardSettingsTitle: 'Tenant ID card',
+        tenantCardSettingsDescription:
+            'Configure the message, phone number, and logos printed on tenant ID cards.',
+        tenantCardMessageLabel: 'Back-side message',
+        tenantCardMessageHelp:
+            'Use :property where the market/property name should appear.',
+        tenantCardPhoneLabel: 'Contact phone number',
+        tenantCardFrontLogoLabel: 'Card front logo',
+        tenantCardBackLogoLabel: 'Card back logo',
         previewLabel: 'Live preview',
         systemBrandingHelp:
             'Save and reload to apply the updated branding across the system.',

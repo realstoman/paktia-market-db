@@ -39,6 +39,12 @@ export interface SharedData {
         logoFullUrl: string;
         logoPath?: string | null;
         logoFullPath?: string | null;
+        tenantCardFrontLogoUrl?: string | null;
+        tenantCardBackLogoUrl?: string | null;
+        tenantCardFrontLogoPath?: string | null;
+        tenantCardBackLogoPath?: string | null;
+        tenantCardMessage?: string | null;
+        tenantCardPhone?: string | null;
         primaryColor: string;
         secondaryColor: string;
         tertiaryColor: string;

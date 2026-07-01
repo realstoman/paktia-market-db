@@ -1223,6 +1223,15 @@ const fa = {
         tertiaryColorLabel: 'رنگ سوم',
         logoLabel: 'لوگوی سایدبار',
         logoFullLabel: 'لوگوی کامل صفحه ورود',
+        tenantCardSettingsTitle: 'کارت مستأجر',
+        tenantCardSettingsDescription:
+            'پیام، شماره تماس و لوگوهای چاپ‌شده روی کارت مستأجر را تنظیم کنید.',
+        tenantCardMessageLabel: 'پیام پشت کارت',
+        tenantCardMessageHelp:
+            'از :property برای نمایش نام مارکیت یا جایداد استفاده کنید.',
+        tenantCardPhoneLabel: 'شماره تماس',
+        tenantCardFrontLogoLabel: 'لوگوی روی کارت',
+        tenantCardBackLogoLabel: 'لوگوی پشت کارت',
         previewLabel: 'پیش‌نمایش زنده',
         systemBrandingHelp:
             'برای اعمال هویت جدید در سراسر سیستم، ذخیره نموده و صفحه را دوباره باز کنید.',

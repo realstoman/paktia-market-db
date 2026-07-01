@@ -70,20 +70,13 @@ export default function TenantCard({ tenant, selectedLeaseId = null }: Props) {
     };
     const propertyName = localizedPropertyName(lease) || branding.name;
     const spaceValue = leaseSpaceValue(lease);
-    const contactPhone =
-        (
-            branding as SharedData['branding'] & {
-                contactPhone?: string | null;
-                phone?: string | null;
-            }
-        ).contactPhone ||
-        (
-            branding as SharedData['branding'] & {
-                contactPhone?: string | null;
-                phone?: string | null;
-            }
-        ).phone ||
-        '+93 700 000 000';
+    const frontLogo = branding.tenantCardFrontLogoUrl || branding.logoUrl;
+    const backLogo = branding.tenantCardBackLogoUrl || branding.logoUrl;
+    const cardMessage = (
+        branding.tenantCardMessage ||
+        'این کارت مربوط به مستأجر :property می‌باشد. اگر این کارت را پیدا کردید، لطفاً با ما به شماره زیر تماس بگیرید.'
+    ).replace(':property', propertyName);
+    const contactPhone = branding.tenantCardPhone || '+93 700 000 000';
 
     return (
         <main
@@ -114,31 +107,21 @@ export default function TenantCard({ tenant, selectedLeaseId = null }: Props) {
                 </Button>
             </div>
             <div className="card-stage flex flex-col items-center gap-6">
-                <article className="tenant-id-card relative h-[54mm] w-[85.6mm] shrink-0 overflow-hidden rounded-[4mm] bg-white shadow-2xl">
-                    <div className="absolute inset-x-0 top-0 h-[15mm] bg-[#002452]" />
-                    <header className="relative flex h-[15mm] items-center gap-[2.5mm] px-[4mm] text-white">
-                        <div className="flex h-[9mm] w-[9mm] items-center justify-center overflow-hidden rounded-[2mm] bg-white p-[1mm]">
-                            {branding.logoUrl ? (
-                                <img
-                                    src={branding.logoUrl}
-                                    className="max-h-full max-w-full object-contain"
-                                />
-                            ) : (
-                                <Building2 className="h-[6mm] w-[6mm] text-[#002452]" />
-                            )}
-                        </div>
-                        <div className="min-w-0">
-                            <p className="truncate text-[3.2mm] leading-tight font-bold">
-                                {propertyName}
-                            </p>
-                            <p className="text-[2mm] text-[#d3a450]">
-                                {t('tenants.card.title')}
-                            </p>
-                        </div>
-                    </header>
-                    <div className="relative grid h-[39mm] grid-cols-[19mm_1fr] gap-[3mm] p-[3.5mm]">
-                        <div className="space-y-[2mm]">
-                            <div className="flex h-[21mm] w-[19mm] items-center justify-center overflow-hidden rounded-[2mm] border border-slate-200 bg-slate-100">
+                <article className="tenant-id-card relative h-[54mm] w-[85.6mm] shrink-0 overflow-hidden rounded-[4mm] border border-slate-200 bg-white shadow-2xl">
+                    <div className="absolute inset-x-0 top-0 h-[1.2mm] bg-[#002452]" />
+                    <div className="absolute top-[4mm] left-[4mm] flex h-[8mm] w-[8mm] items-center justify-center overflow-hidden rounded-[1.8mm] bg-[#002452] p-[1.2mm]">
+                        {frontLogo ? (
+                            <img
+                                src={frontLogo}
+                                className="max-h-full max-w-full object-contain brightness-0 invert"
+                            />
+                        ) : (
+                            <Building2 className="h-[5mm] w-[5mm] text-white" />
+                        )}
+                    </div>
+                    <div className="grid h-full grid-cols-[25mm_1fr] gap-[4mm] px-[4mm] pt-[8mm] pb-[3.5mm]">
+                        <div className="space-y-[2mm] pt-[5mm]">
+                            <div className="flex h-[25mm] w-[22mm] items-center justify-center overflow-hidden rounded-[2.2mm] border border-slate-200 bg-slate-100">
                                 {tenant.photo_url ? (
                                     <img
                                         src={tenant.photo_url}
@@ -148,7 +131,7 @@ export default function TenantCard({ tenant, selectedLeaseId = null }: Props) {
                                     <UserRound className="h-[9mm] w-[9mm] text-slate-400" />
                                 )}
                             </div>
-                            <div className="space-y-[0.8mm] text-[1.65mm] leading-tight text-slate-700">
+                            <div className="space-y-[1mm] text-[1.75mm] leading-tight text-slate-700">
                                 <p className="flex min-w-0 items-center gap-[0.8mm]">
                                     <Phone className="h-[2.2mm] w-[2.2mm] shrink-0 text-[#002452]" />
                                     <span className="truncate" dir="ltr">
@@ -166,10 +149,13 @@ export default function TenantCard({ tenant, selectedLeaseId = null }: Props) {
                             </div>
                         </div>
                         <div className="min-w-0">
-                            <h1 className="truncate text-[3.5mm] leading-tight font-extrabold text-slate-950">
+                            <p className="text-[2mm] font-semibold tracking-[0.35mm] text-[#d3a450] uppercase">
+                                {t('tenants.card.title')}
+                            </p>
+                            <h1 className="mt-[1mm] truncate text-[4.1mm] leading-tight font-extrabold text-slate-950">
                                 {tenant.business_name || tenant.full_name}
                             </h1>
-                            <div className="mt-[1mm] grid grid-cols-[17mm_1fr] gap-x-[1mm] text-[2mm] leading-[3.4mm]">
+                            <div className="mt-[2mm] grid grid-cols-[18mm_1fr] gap-x-[1.5mm] text-[2.05mm] leading-[3.7mm]">
                                 <span className="text-slate-500">
                                     {t('tenants.card.responsible')}
                                 </span>
@@ -190,7 +176,7 @@ export default function TenantCard({ tenant, selectedLeaseId = null }: Props) {
                                 </strong>
                             </div>
                             <div
-                                className="mt-[1.8mm] rounded-[1mm] border border-slate-200 bg-white p-[1mm]"
+                                className="mt-[2.2mm] rounded-[1.2mm] border border-slate-200 bg-white p-[1mm]"
                                 dir="ltr"
                             >
                                 <Code39Barcode
@@ -201,43 +187,43 @@ export default function TenantCard({ tenant, selectedLeaseId = null }: Props) {
                                     {tenant.card_code}
                                 </p>
                             </div>
-                            <p className="mt-[0.7mm] text-center text-[1.6mm] text-slate-500">
-                                {t('tenants.card.scanHelp')}
-                            </p>
                         </div>
                     </div>
                 </article>
                 <article
-                    className="tenant-id-card relative flex h-[54mm] w-[85.6mm] shrink-0 flex-col items-center justify-center overflow-hidden rounded-[4mm] bg-white px-[8mm] text-center shadow-2xl"
+                    className="tenant-id-card relative flex h-[54mm] w-[85.6mm] shrink-0 flex-col justify-center overflow-hidden rounded-[4mm] bg-[#002452] px-[8mm] text-center text-white shadow-2xl"
                     dir="rtl"
                 >
-                    <div className="absolute inset-x-0 top-0 h-[3mm] bg-[#002452]" />
-                    <div className="absolute inset-x-0 bottom-0 h-[3mm] bg-[#d3a450]" />
-                    <div className="flex h-[19mm] w-[19mm] items-center justify-center overflow-hidden rounded-[4mm] border border-slate-200 bg-white p-[2mm] shadow-sm">
-                        {branding.logoUrl ? (
+                    <div className="pointer-events-none absolute inset-0 opacity-25">
+                        <div className="absolute -top-[12mm] -left-[10mm] h-[60mm] w-[60mm] rotate-45 rounded-[14mm] border border-white/60" />
+                        <div className="absolute -top-[7mm] -left-[5mm] h-[50mm] w-[50mm] rotate-45 rounded-[12mm] border border-white/50" />
+                        <div className="absolute -top-[2mm] left-0 h-[40mm] w-[40mm] rotate-45 rounded-[10mm] border border-white/40" />
+                        <div className="absolute -right-[16mm] -bottom-[14mm] h-[58mm] w-[58mm] rotate-45 rounded-[14mm] border border-[#d3a450]/70" />
+                        <div className="absolute -right-[10mm] -bottom-[8mm] h-[46mm] w-[46mm] rotate-45 rounded-[12mm] border border-[#d3a450]/50" />
+                    </div>
+                    <div className="absolute top-[4mm] right-[4mm] flex h-[9mm] w-[9mm] items-center justify-center overflow-hidden rounded-[2mm] bg-white/95 p-[1.2mm] shadow-sm">
+                        {backLogo ? (
                             <img
-                                src={branding.logoUrl}
+                                src={backLogo}
                                 className="max-h-full max-w-full object-contain"
                             />
                         ) : (
-                            <Building2 className="h-[12mm] w-[12mm] text-[#002452]" />
+                            <Building2 className="h-[5.5mm] w-[5.5mm] text-[#002452]" />
                         )}
                     </div>
-                    <p className="mt-[4mm] text-[3mm] leading-[5mm] font-semibold text-[#002452]">
-                        این کارت مربوط به مستأجر {propertyName} می‌باشد.
-                    </p>
-                    <p className="mt-[1.5mm] text-[2.45mm] leading-[4.2mm] text-slate-600">
-                        اگر این کارت را پیدا کردید، لطفاً با ما به شماره زیر
-                        تماس بگیرید.
-                    </p>
-                    <div className="mt-[3mm] inline-flex items-center gap-[1.5mm] rounded-full border border-[#002452]/15 bg-[#f8f9fd] px-[4mm] py-[1.6mm] text-[#002452]">
-                        <Phone className="h-[3mm] w-[3mm]" />
-                        <span
-                            className="font-mono text-[3mm] font-bold"
-                            dir="ltr"
-                        >
-                            {contactPhone}
-                        </span>
+                    <div className="relative mx-auto max-w-[62mm]">
+                        <p className="text-[2.75mm] leading-[5mm] font-semibold text-white">
+                            {cardMessage}
+                        </p>
+                        <div className="mt-[4mm] inline-flex items-center gap-[1.5mm] rounded-full border border-white/20 bg-white/10 px-[4mm] py-[1.6mm] text-white backdrop-blur">
+                            <Phone className="h-[3mm] w-[3mm]" />
+                            <span
+                                className="font-mono text-[3mm] font-bold"
+                                dir="ltr"
+                            >
+                                {contactPhone}
+                            </span>
+                        </div>
                     </div>
                 </article>
             </div>

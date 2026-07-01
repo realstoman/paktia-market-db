@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { useLocalization } from '@/lib/localization';
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
@@ -39,6 +40,10 @@ export default function SystemBranding({
     const { auth } = usePage<SharedData>().props;
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
     const [logoFullPreview, setLogoFullPreview] = useState<string | null>(null);
+    const [tenantCardFrontLogoPreview, setTenantCardFrontLogoPreview] =
+        useState<string | null>(null);
+    const [tenantCardBackLogoPreview, setTenantCardBackLogoPreview] =
+        useState<string | null>(null);
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
     const breadcrumbs: BreadcrumbItem[] = [
         {
@@ -55,11 +60,25 @@ export default function SystemBranding({
         tertiary_color: branding.tertiaryColor,
         logo: null as File | null,
         logo_full: null as File | null,
+        tenant_card_message:
+            branding.tenantCardMessage ??
+            'این کارت مربوط به مستأجر :property می‌باشد. اگر این کارت را پیدا کردید، لطفاً با ما به شماره زیر تماس بگیرید.',
+        tenant_card_phone: branding.tenantCardPhone ?? '+93 700 000 000',
+        tenant_card_front_logo: null as File | null,
+        tenant_card_back_logo: null as File | null,
     });
 
     const canManageBranding = auth.is_super_admin === true;
     const currentLogo = logoPreview ?? branding.logoUrl;
     const currentLogoFull = logoFullPreview ?? branding.logoFullUrl;
+    const currentTenantCardFrontLogo =
+        tenantCardFrontLogoPreview ??
+        branding.tenantCardFrontLogoUrl ??
+        currentLogo;
+    const currentTenantCardBackLogo =
+        tenantCardBackLogoPreview ??
+        branding.tenantCardBackLogoUrl ??
+        currentLogo;
     const colorPreviewStyle = useMemo(
         () => ({
             background: `linear-gradient(135deg, ${form.data.primary_color} 0%, ${form.data.secondary_color} 55%, ${form.data.tertiary_color} 100%)`,
@@ -76,8 +95,15 @@ export default function SystemBranding({
         form.data.primary_color !== branding.primaryColor ||
         form.data.secondary_color !== branding.secondaryColor ||
         form.data.tertiary_color !== branding.tertiaryColor ||
+        form.data.tenant_card_message !==
+            (branding.tenantCardMessage ??
+                'این کارت مربوط به مستأجر :property می‌باشد. اگر این کارت را پیدا کردید، لطفاً با ما به شماره زیر تماس بگیرید.') ||
+        form.data.tenant_card_phone !==
+            (branding.tenantCardPhone ?? '+93 700 000 000') ||
         form.data.logo !== null ||
-        form.data.logo_full !== null;
+        form.data.logo_full !== null ||
+        form.data.tenant_card_front_logo !== null ||
+        form.data.tenant_card_back_logo !== null;
 
     const submit = () => {
         form.transform((data) => ({
@@ -163,6 +189,176 @@ export default function SystemBranding({
                                     </div>
                                 </div>
                             </div>
+
+                            <section className="rounded-2xl border border-border/70 bg-slate-50/70 p-5">
+                                    <div className="mb-5">
+                                        <h3 className="text-base font-semibold text-foreground">
+                                            {t(
+                                                'settings.tenantCardSettingsTitle',
+                                                'Tenant ID card',
+                                            )}
+                                        </h3>
+                                        <p className="mt-1 text-sm text-muted-foreground">
+                                            {t(
+                                                'settings.tenantCardSettingsDescription',
+                                                'Configure the message, phone number, and logos printed on tenant ID cards.',
+                                            )}
+                                        </p>
+                                    </div>
+
+                                    <div className="grid gap-5">
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="tenant_card_message">
+                                                {t(
+                                                    'settings.tenantCardMessageLabel',
+                                                    'Back-side message',
+                                                )}
+                                            </Label>
+                                            <Textarea
+                                                id="tenant_card_message"
+                                                className="min-h-24 bg-white"
+                                                value={
+                                                    form.data
+                                                        .tenant_card_message
+                                                }
+                                                onChange={(event) =>
+                                                    form.setData(
+                                                        'tenant_card_message',
+                                                        event.target.value,
+                                                    )
+                                                }
+                                            />
+                                            <p className="text-xs text-muted-foreground">
+                                                {t(
+                                                    'settings.tenantCardMessageHelp',
+                                                    'Use :property where the market/property name should appear.',
+                                                )}
+                                            </p>
+                                            <InputError
+                                                message={
+                                                    form.errors
+                                                        .tenant_card_message
+                                                }
+                                            />
+                                        </div>
+
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="tenant_card_phone">
+                                                {t(
+                                                    'settings.tenantCardPhoneLabel',
+                                                    'Contact phone number',
+                                                )}
+                                            </Label>
+                                            <Input
+                                                id="tenant_card_phone"
+                                                className="bg-white"
+                                                value={
+                                                    form.data.tenant_card_phone
+                                                }
+                                                onChange={(event) =>
+                                                    form.setData(
+                                                        'tenant_card_phone',
+                                                        event.target.value,
+                                                    )
+                                                }
+                                            />
+                                            <InputError
+                                                message={
+                                                    form.errors
+                                                        .tenant_card_phone
+                                                }
+                                            />
+                                        </div>
+
+                                        <div className="grid gap-4 sm:grid-cols-2">
+                                            <div className="grid gap-3 rounded-xl border border-border/70 bg-white p-4">
+                                                <Label htmlFor="tenant_card_front_logo">
+                                                    {t(
+                                                        'settings.tenantCardFrontLogoLabel',
+                                                        'Card front logo',
+                                                    )}
+                                                </Label>
+                                                <img
+                                                    src={
+                                                        currentTenantCardFrontLogo
+                                                    }
+                                                    alt={t(
+                                                        'settings.tenantCardFrontLogoLabel',
+                                                        'Card front logo',
+                                                    )}
+                                                    className="h-24 w-full rounded-xl border border-border/70 bg-slate-50 object-contain p-2"
+                                                />
+                                                <Input
+                                                    id="tenant_card_front_logo"
+                                                    type="file"
+                                                    accept="image/*"
+                                                    className="bg-white"
+                                                    onChange={(event) => {
+                                                        const file =
+                                                            event.target.files?.[0] ??
+                                                            null;
+                                                        form.setData(
+                                                            'tenant_card_front_logo',
+                                                            file,
+                                                        );
+                                                        setTenantCardFrontLogoPreview(
+                                                            previewFor(file),
+                                                        );
+                                                    }}
+                                                />
+                                                <InputError
+                                                    message={
+                                                        form.errors
+                                                            .tenant_card_front_logo
+                                                    }
+                                                />
+                                            </div>
+
+                                            <div className="grid gap-3 rounded-xl border border-border/70 bg-white p-4">
+                                                <Label htmlFor="tenant_card_back_logo">
+                                                    {t(
+                                                        'settings.tenantCardBackLogoLabel',
+                                                        'Card back logo',
+                                                    )}
+                                                </Label>
+                                                <img
+                                                    src={
+                                                        currentTenantCardBackLogo
+                                                    }
+                                                    alt={t(
+                                                        'settings.tenantCardBackLogoLabel',
+                                                        'Card back logo',
+                                                    )}
+                                                    className="h-24 w-full rounded-xl border border-border/70 bg-slate-50 object-contain p-2"
+                                                />
+                                                <Input
+                                                    id="tenant_card_back_logo"
+                                                    type="file"
+                                                    accept="image/*"
+                                                    className="bg-white"
+                                                    onChange={(event) => {
+                                                        const file =
+                                                            event.target.files?.[0] ??
+                                                            null;
+                                                        form.setData(
+                                                            'tenant_card_back_logo',
+                                                            file,
+                                                        );
+                                                        setTenantCardBackLogoPreview(
+                                                            previewFor(file),
+                                                        );
+                                                    }}
+                                                />
+                                                <InputError
+                                                    message={
+                                                        form.errors
+                                                            .tenant_card_back_logo
+                                                    }
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                            </section>
 
                             <div className="grid gap-6">
                                 <div className="grid gap-2">

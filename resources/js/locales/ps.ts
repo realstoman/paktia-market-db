@@ -1221,6 +1221,15 @@ const ps = {
         tertiaryColorLabel: 'درېيم رنګ',
         logoLabel: 'د سايډبار لوګو',
         logoFullLabel: 'د ننوتلو بشپړ لوګو',
+        tenantCardSettingsTitle: 'د مستأجر کارت',
+        tenantCardSettingsDescription:
+            'هغه پیغام، د اړیکې شمېره او لوګوګانې تنظیم کړئ چې د مستأجر پر کارت چاپېږي.',
+        tenantCardMessageLabel: 'د کارت د شا پیغام',
+        tenantCardMessageHelp:
+            'د مارکیټ يا جايداد نوم د ښودلو لپاره :property وکاروئ.',
+        tenantCardPhoneLabel: 'د اړیکې شمېره',
+        tenantCardFrontLogoLabel: 'د کارت د مخې لوګو',
+        tenantCardBackLogoLabel: 'د کارت د شا لوګو',
         previewLabel: 'ژوندی مخکتنه',
         systemBrandingHelp:
             'د نوي هويت د پلي کېدو لپاره خوندي او بيا پورته کړئ.',
