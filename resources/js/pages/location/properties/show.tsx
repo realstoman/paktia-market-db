@@ -958,6 +958,10 @@ function FloorCard({
             .toLowerCase()
             .includes(normalizedSearch),
     );
+    const spaceGridClass =
+        floorUsage === 'residential'
+            ? 'property-space-scroll property-space-scroll--residential'
+            : 'property-space-scroll';
     return (
         <Card>
             <CardHeader className="flex flex-col items-start justify-between gap-3 space-y-0 sm:flex-row">
@@ -1003,7 +1007,7 @@ function FloorCard({
                             />
                         </div>
                         {visibleUnits.length ? (
-                            <div className="property-space-scroll">
+                            <div className={spaceGridClass}>
                                 {visibleUnits.map((unit) => (
                                     <div
                                         key={unit.id}

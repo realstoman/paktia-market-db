@@ -83,6 +83,10 @@ body {
     scrollbar-width: thin;
 }
 
+.property-space-scroll--residential {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .property-space-scroll::-webkit-scrollbar {
     width: 7px;
 }
