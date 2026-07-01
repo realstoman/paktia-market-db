@@ -399,6 +399,20 @@ const en = {
         scanPlaceholder: 'Scan a card or enter its code…',
         scanHelp:
             'Scan a printed barcode to open the tenant profile instantly.',
+        scanCameraTitle: 'Scan barcode',
+        scanCameraDescription:
+            'Use the device camera to read the barcode printed on the tenant ID card.',
+        scanCameraStarting: 'Starting camera…',
+        scanCameraReady:
+            'Point the camera at the barcode on the tenant card.',
+        scanCameraUnavailable:
+            'Camera scanning is not available in this browser. Please scan with a hardware scanner or enter the card code manually.',
+        scanNotSupported:
+            'This browser cannot read barcodes from the camera. Please use the scan input or a hardware barcode scanner.',
+        scanPermissionDenied:
+            'Camera permission was denied or the camera could not be opened. Please enter the card code manually.',
+        scanDetected: 'Tenant card scanned.',
+        scanManualEntry: 'Enter code manually',
         searchPlaceholder: 'Search by person, business, phone or card code…',
         empty: 'No tenants match your search.',
         active: 'Active',

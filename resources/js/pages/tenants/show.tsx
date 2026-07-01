@@ -140,6 +140,14 @@ export default function TenantProfile({
     const [assignmentOpen, setAssignmentOpen] = useState(false);
     const [editingLease, setEditingLease] = useState<Lease | null>(null);
     const [editOpen, setEditOpen] = useState(openEdit);
+    const openPrintCard = (leaseId?: number) => {
+        const query = leaseId ? `?lease_id=${leaseId}` : '';
+        window.open(
+            `/tenants/${tenant.id}/card${query}`,
+            '_blank',
+            'noopener,noreferrer',
+        );
+    };
     const breadcrumbs: BreadcrumbItem[] = [
         { title: t('navigation.dashboard'), href: '/dashboard' },
         { title: t('tenants.title'), href: '/tenants' },
@@ -311,17 +319,12 @@ export default function TenantProfile({
                                 </>
                             )}
                             <Button
-                                asChild
+                                type="button"
                                 className="bg-[#002452] text-white hover:bg-[#002452]/90"
+                                onClick={() => openPrintCard()}
                             >
-                                <Link
-                                    href={`/tenants/${tenant.id}/card`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                >
-                                    <Printer className="me-2 h-4 w-4" />
-                                    {t('tenants.profile.printCard')}
-                                </Link>
+                                <Printer className="me-2 h-4 w-4" />
+                                {t('tenants.profile.printCard')}
                             </Button>
                             {lease && (
                                 <Button
@@ -577,18 +580,19 @@ export default function TenantProfile({
                                                             )}
                                                         </DropdownMenuItem>
                                                     )}
-                                                    <DropdownMenuItem asChild>
-                                                        <Link
-                                                            href={`/tenants/${tenant.id}/card?lease_id=${item.id}`}
-                                                            target="_blank"
-                                                            rel="noreferrer"
-                                                        >
-                                                            <Printer className="size-4" />
-                                                            {t(
-                                                                'tenants.lease.printCard',
-                                                                'Print card',
-                                                            )}
-                                                        </Link>
+                                                    <DropdownMenuItem
+                                                        onSelect={(event) => {
+                                                            event.preventDefault();
+                                                            openPrintCard(
+                                                                item.id,
+                                                            );
+                                                        }}
+                                                    >
+                                                        <Printer className="size-4" />
+                                                        {t(
+                                                            'tenants.lease.printCard',
+                                                            'Print card',
+                                                        )}
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>

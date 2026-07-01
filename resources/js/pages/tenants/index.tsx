@@ -57,6 +57,7 @@ import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import {
     Banknote,
     Building2,
+    Camera,
     ChevronLeft,
     ChevronRight,
     ContactRound,
@@ -73,7 +74,15 @@ import {
     Upload,
     UserRound,
 } from 'lucide-react';
-import { FormEvent, Fragment, useEffect, useMemo, useState } from 'react';
+import {
+    FormEvent,
+    Fragment,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from 'react';
+import { toast } from 'sonner';
 
 interface TenantPaginator {
     data: Tenant[];
@@ -84,6 +93,14 @@ interface TenantPaginator {
     to: number | null;
     total: number;
 }
+
+type BarcodeDetectorResult = { rawValue?: string };
+type BarcodeDetectorInstance = {
+    detect: (source: HTMLVideoElement) => Promise<BarcodeDetectorResult[]>;
+};
+type BarcodeDetectorConstructor = new (options?: {
+    formats?: string[];
+}) => BarcodeDetectorInstance;
 
 interface Props {
     tenants: TenantPaginator;
@@ -245,6 +262,8 @@ export default function TenantsIndex({
         filters.tenant_kind ?? 'all',
     );
     const [scan, setScan] = useState('');
+    const [scannerOpen, setScannerOpen] = useState(false);
+    const scanInputRef = useRef<HTMLInputElement | null>(null);
     const [open, setOpen] = useState(false);
     const pageNumbers = useMemo(
         () => buildPageNumbers(tenants.current_page, tenants.last_page),
@@ -312,10 +331,13 @@ export default function TenantsIndex({
             },
         );
     };
-    const openScannedProfile = () => {
-        const normalizedScan = scan.trim();
+    const normalizeScanCode = (value: string) =>
+        value.trim().replace(/^\*+|\*+$/g, '');
+    const openScannedProfile = (code = scan) => {
+        const normalizedScan = normalizeScanCode(code);
 
         if (!normalizedScan) {
+            setScannerOpen(true);
             return;
         }
 
@@ -330,6 +352,14 @@ export default function TenantsIndex({
         }
 
         router.get('/tenants', { scan: normalizedScan });
+    };
+    const openScanner = () => {
+        if (scan.trim()) {
+            openScannedProfile();
+            return;
+        }
+
+        setScannerOpen(true);
     };
     const breadcrumbs: BreadcrumbItem[] = [
         { title: t('navigation.dashboard'), href: '/dashboard' },
@@ -425,6 +455,7 @@ export default function TenantsIndex({
                         </Label>
                         <div className="flex gap-2">
                             <Input
+                                ref={scanInputRef}
                                 className="bg-white dark:bg-neutral-950"
                                 value={scan}
                                 onChange={(event) =>
@@ -439,7 +470,11 @@ export default function TenantsIndex({
                             />
                             <Button
                                 variant="outline"
-                                onClick={openScannedProfile}
+                                onClick={openScanner}
+                                title={t(
+                                    'tenants.scanCameraTitle',
+                                    'Scan barcode',
+                                )}
                             >
                                 <ScanLine className="h-4 w-4" />
                             </Button>
@@ -513,6 +548,19 @@ export default function TenantsIndex({
                         </div>
                     </div>
                 </section>
+                <TenantBarcodeScanner
+                    open={scannerOpen}
+                    onOpenChange={setScannerOpen}
+                    onDetected={(code) => {
+                        const normalized = normalizeScanCode(code);
+                        setScan(normalized);
+                        openScannedProfile(normalized);
+                    }}
+                    onManualEntry={() => {
+                        setScannerOpen(false);
+                        window.setTimeout(() => scanInputRef.current?.focus(), 0);
+                    }}
+                />
 
                 {tenants.data.length ? (
                     <section className="overflow-hidden rounded-xl border bg-card shadow-none">
@@ -831,6 +879,214 @@ export default function TenantsIndex({
     );
 }
 
+function TenantBarcodeScanner({
+    open,
+    onOpenChange,
+    onDetected,
+    onManualEntry,
+}: {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    onDetected: (code: string) => void;
+    onManualEntry: () => void;
+}) {
+    const { t, isRtl } = useLocalization();
+    const videoRef = useRef<HTMLVideoElement | null>(null);
+    const streamRef = useRef<MediaStream | null>(null);
+    const frameRef = useRef<number | null>(null);
+    const [message, setMessage] = useState('');
+    const [isCameraReady, setIsCameraReady] = useState(false);
+
+    useEffect(() => {
+        if (!open) {
+            return;
+        }
+
+        let cancelled = false;
+        const stopCamera = () => {
+            if (frameRef.current) {
+                window.cancelAnimationFrame(frameRef.current);
+                frameRef.current = null;
+            }
+
+            streamRef.current?.getTracks().forEach((track) => track.stop());
+            streamRef.current = null;
+            setIsCameraReady(false);
+        };
+        const startScanner = async () => {
+            setMessage(t('tenants.scanCameraStarting', 'Starting camera…'));
+
+            const detectorConstructor = (
+                window as Window & {
+                    BarcodeDetector?: BarcodeDetectorConstructor;
+                }
+            ).BarcodeDetector;
+
+            if (!navigator.mediaDevices?.getUserMedia) {
+                setMessage(
+                    t(
+                        'tenants.scanCameraUnavailable',
+                        'Camera scanning is not available in this browser. Please scan with a hardware scanner or enter the card code manually.',
+                    ),
+                );
+                return;
+            }
+
+            if (!detectorConstructor) {
+                setMessage(
+                    t(
+                        'tenants.scanNotSupported',
+                        'This browser cannot read barcodes from the camera. Please use the scan input or a hardware barcode scanner.',
+                    ),
+                );
+                return;
+            }
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        facingMode: { ideal: 'environment' },
+                    },
+                    audio: false,
+                });
+
+                if (cancelled) {
+                    stream.getTracks().forEach((track) => track.stop());
+                    return;
+                }
+
+                streamRef.current = stream;
+
+                if (videoRef.current) {
+                    videoRef.current.srcObject = stream;
+                    await videoRef.current.play();
+                }
+
+                const detector = new detectorConstructor({
+                    formats: [
+                        'qr_code',
+                        'code_39',
+                        'code_128',
+                        'ean_13',
+                        'ean_8',
+                        'upc_a',
+                        'upc_e',
+                    ],
+                });
+
+                setIsCameraReady(true);
+                setMessage(
+                    t(
+                        'tenants.scanCameraReady',
+                        'Point the camera at the barcode on the tenant card.',
+                    ),
+                );
+
+                const detect = async () => {
+                    if (cancelled || !videoRef.current) {
+                        return;
+                    }
+
+                    try {
+                        const results = await detector.detect(videoRef.current);
+                        const code = results[0]?.rawValue?.trim();
+
+                        if (code) {
+                            toast.success(
+                                t(
+                                    'tenants.scanDetected',
+                                    'Tenant card scanned.',
+                                ),
+                            );
+                            onDetected(code);
+                            onOpenChange(false);
+                            return;
+                        }
+                    } catch {
+                        // Keep scanning; some frames are unreadable while the camera focuses.
+                    }
+
+                    frameRef.current = window.requestAnimationFrame(detect);
+                };
+
+                detect();
+            } catch {
+                setMessage(
+                    t(
+                        'tenants.scanPermissionDenied',
+                        'Camera permission was denied or the camera could not be opened. Please enter the card code manually.',
+                    ),
+                );
+                setIsCameraReady(false);
+            }
+        };
+
+        startScanner();
+
+        return () => {
+            cancelled = true;
+            stopCamera();
+        };
+    }, [onDetected, onOpenChange, open, t]);
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent
+                dir={isRtl ? 'rtl' : 'ltr'}
+                className="sm:max-w-xl"
+            >
+                <DialogHeader className={isRtl ? 'text-right' : undefined}>
+                    <DialogTitle className="flex items-center gap-2">
+                        <ScanLine className="h-5 w-5 text-primary" />
+                        {t('tenants.scanCameraTitle', 'Scan barcode')}
+                    </DialogTitle>
+                    <DialogDescription>
+                        {t(
+                            'tenants.scanCameraDescription',
+                            'Use the device camera to read the barcode printed on the tenant ID card.',
+                        )}
+                    </DialogDescription>
+                </DialogHeader>
+
+                <div className="overflow-hidden rounded-2xl border bg-slate-950">
+                    <video
+                        ref={videoRef}
+                        className="aspect-video w-full object-cover"
+                        muted
+                        playsInline
+                    />
+                </div>
+
+                <div className="rounded-xl border bg-[#f8f9fd] p-3 text-sm text-muted-foreground">
+                    <div className="flex items-start gap-2">
+                        <Camera
+                            className={`mt-0.5 h-4 w-4 shrink-0 ${
+                                isCameraReady
+                                    ? 'text-emerald-600'
+                                    : 'text-[#002452]'
+                            }`}
+                        />
+                        <p>{message}</p>
+                    </div>
+                </div>
+
+                <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={onManualEntry}
+                    >
+                        {t('tenants.scanManualEntry', 'Enter code manually')}
+                    </Button>
+                    <Button type="button" onClick={() => onOpenChange(false)}>
+                        {t('common.close', 'Close')}
+                    </Button>
+                </div>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
 function TenantRowActions({
     tenant,
     lease,
@@ -857,6 +1113,9 @@ function TenantRowActions({
                 },
             },
         );
+    };
+    const openPrintCard = () => {
+        window.open(`/tenants/${tenant.id}/card`, '_blank', 'noopener,noreferrer');
     };
 
     return (
@@ -897,15 +1156,14 @@ function TenantRowActions({
                             {t('tenants.actions.financialStatus')}
                         </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                        <Link
-                            href={`/tenants/${tenant.id}/card`}
-                            target="_blank"
-                            rel="noreferrer"
-                        >
+                    <DropdownMenuItem
+                        onSelect={(event) => {
+                            event.preventDefault();
+                            openPrintCard();
+                        }}
+                    >
                             <Printer />
                             {t('tenants.actions.printCard')}
-                        </Link>
                     </DropdownMenuItem>
                     {lease && (
                         <DropdownMenuItem asChild>
