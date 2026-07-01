@@ -705,7 +705,7 @@ function PropertyImageGallery({
                     <p className="text-sm text-muted-foreground">
                         {t(
                             'propertyWorkspace.images.help',
-                            'Upload up to 10 gallery images. Each image must be exactly 1920×1080.',
+                            'Upload up to 10 gallery images from any angle. Cards and covers keep a fixed size and crop automatically.',
                         )}
                     </p>
                     <form
@@ -829,7 +829,8 @@ function PropertyImageGallery({
                                 </div>
                             </div>
                             {images.length > 1 && (
-                                <div className="flex gap-2 overflow-x-auto pb-1">
+                                <div className="max-w-[calc(4*4.5rem+3*0.5rem)] overflow-x-auto pb-1">
+                                    <div className="flex w-max gap-2">
                                     {images.map((image, index) => (
                                         <button
                                             key={image.id}
@@ -837,7 +838,7 @@ function PropertyImageGallery({
                                             onClick={() =>
                                                 setActiveIndex(index)
                                             }
-                                            className={`h-16 w-24 shrink-0 overflow-hidden rounded-xl border ${
+                                            className={`h-14 w-18 shrink-0 overflow-hidden rounded-xl border ${
                                                 index === activeIndex
                                                     ? 'border-primary ring-2 ring-primary/20'
                                                     : 'border-slate-200'
@@ -856,6 +857,7 @@ function PropertyImageGallery({
                                             )}
                                         </button>
                                     ))}
+                                    </div>
                                 </div>
                             )}
                         </div>

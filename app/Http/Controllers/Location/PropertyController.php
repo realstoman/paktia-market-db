@@ -352,7 +352,7 @@ class PropertyController extends Controller
             'notes' => ['nullable', 'string', 'max:3000'],
             'image' => ['nullable', 'image', 'max:5120'],
             'images' => ['nullable', 'array', 'max:10'],
-            'images.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:width=1920,height=1080'],
+            'images.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
         ]);
 
         if ($this->propertyTypeBehavior($validated['property_type']) === 'commercial_unit') {
@@ -380,7 +380,7 @@ class PropertyController extends Controller
 
         $request->validate([
             'images' => ['required', 'array', 'min:1', 'max:'.$remainingSlots],
-            'images.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:width=1920,height=1080'],
+            'images.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
         ]);
     }
 

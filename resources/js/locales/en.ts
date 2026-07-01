@@ -3367,7 +3367,7 @@ const en = {
             'Use this complete unit for employees and expenses while owner-operated, or assign it to one tenant when rented.',
         uploadPhoto: 'Upload a property photo',
         uploadPhotoHelp:
-            'PNG, JPG or WebP, up to 5 MB. Each image must be 1920×1080.',
+            'PNG, JPG or WebP, up to 5 MB. Any image size is accepted and cropped in cards automatically.',
         choosePhoto: 'Choose photo',
         selectedPhoto: 'Selected photo',
         selectedPhotos: ':count images selected',
@@ -3488,7 +3488,7 @@ const en = {
         },
         images: {
             title: 'Property images',
-            help: 'Upload up to 10 gallery images. Each image must be exactly 1920×1080.',
+            help: 'Upload up to 10 gallery images from any angle. Cards and covers keep a fixed size and crop automatically.',
             upload: 'Upload images',
             image: 'Property image',
             cover: 'Current cover',
