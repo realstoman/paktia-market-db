@@ -1136,34 +1136,43 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                 value={formatNumber(selectedProject.floors)}
                                 icon={Layers3}
                             />
-                            <StatCard
-                                label={t('propertyDashboard.shops', 'Shops')}
-                                value={formatNumber(selectedProject.shops)}
-                                icon={DoorOpen}
-                                accent="blue"
-                            />
-                            <StatCard
-                                label={t(
-                                    'propertyDashboard.occupied',
-                                    'Occupied shops',
-                                )}
-                                value={formatNumber(
-                                    selectedProject.occupiedShops,
-                                )}
-                                icon={Store}
-                                accent="green"
-                            />
-                            <StatCard
-                                label={t(
-                                    'propertyDashboard.available',
-                                    'Available shops',
-                                )}
-                                value={formatNumber(
-                                    selectedProject.availableShops,
-                                )}
-                                icon={Building2}
-                                accent="coral"
-                            />
+                            {selectedProjectHasShops ? (
+                                <>
+                                    <StatCard
+                                        label={t(
+                                            'propertyDashboard.shops',
+                                            'Shops',
+                                        )}
+                                        value={formatNumber(
+                                            selectedProject.shops,
+                                        )}
+                                        icon={DoorOpen}
+                                        accent="blue"
+                                    />
+                                    <StatCard
+                                        label={t(
+                                            'propertyDashboard.occupied',
+                                            'Occupied shops',
+                                        )}
+                                        value={formatNumber(
+                                            selectedProject.occupiedShops,
+                                        )}
+                                        icon={Store}
+                                        accent="green"
+                                    />
+                                    <StatCard
+                                        label={t(
+                                            'propertyDashboard.available',
+                                            'Available shops',
+                                        )}
+                                        value={formatNumber(
+                                            selectedProject.availableShops,
+                                        )}
+                                        icon={Building2}
+                                        accent="coral"
+                                    />
+                                </>
+                            ) : null}
                         </section>
 
                         <section className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
@@ -1172,7 +1181,10 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                     'propertyDashboard.totalCollectedRentThisMonth',
                                     'Collected rent this month',
                                 )}
-                                value={`${formatPrice(selectedProject.financeThisMonth.collectedRent)} ؋`}
+                                value={currencyTotalsText(
+                                    selectedProject.financeThisMonth
+                                        .collectedRentByCurrency,
+                                )}
                                 icon={Banknote}
                                 accent="green"
                                 actionHref={rentCollectionsHref}
@@ -1180,13 +1192,20 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                     'propertyDashboard.viewCollectedRents',
                                     'View rents',
                                 )}
+                                currencyTotals={
+                                    selectedProject.financeThisMonth
+                                        .collectedRentByCurrency
+                                }
                             />
                             <StatCard
                                 label={t(
                                     'propertyDashboard.totalExpensesThisMonth',
                                     'Expenses this month',
                                 )}
-                                value={`${formatPrice(selectedProject.financeThisMonth.expenses)} ؋`}
+                                value={currencyTotalsText(
+                                    selectedProject.financeThisMonth
+                                        .expensesByCurrency,
+                                )}
                                 icon={ReceiptText}
                                 accent="coral"
                                 actionHref={propertyExpensesHref}
@@ -1194,24 +1213,44 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                     'propertyDashboard.viewExpenses',
                                     'View expenses',
                                 )}
+                                currencyTotals={
+                                    selectedProject.financeThisMonth
+                                        .expensesByCurrency
+                                }
                             />
-                            <StatCard
-                                label={t(
-                                    'propertyDashboard.totalShareholderTakeoutsThisMonth',
-                                    'Shareholder takeouts this month',
-                                )}
-                                value={`${formatPrice(selectedProject.financeThisMonth.shareholderTakeouts)} ؋`}
-                                icon={UsersRound}
-                                accent="blue"
-                            />
+                            {selectedProjectHasShareholders ? (
+                                <StatCard
+                                    label={t(
+                                        'propertyDashboard.totalShareholderTakeoutsThisMonth',
+                                        'Shareholder takeouts this month',
+                                    )}
+                                    value={currencyTotalsText(
+                                        selectedProject.financeThisMonth
+                                            .shareholderTakeoutsByCurrency,
+                                    )}
+                                    icon={UsersRound}
+                                    accent="blue"
+                                    currencyTotals={
+                                        selectedProject.financeThisMonth
+                                            .shareholderTakeoutsByCurrency
+                                    }
+                                />
+                            ) : null}
                             <StatCard
                                 label={t(
                                     'propertyDashboard.totalAvailableCash',
                                     'Available cash',
                                 )}
-                                value={`${formatPrice(selectedProject.financeThisMonth.availableCash)} ؋`}
+                                value={currencyTotalsText(
+                                    selectedProject.financeThisMonth
+                                        .availableCashByCurrency,
+                                )}
                                 icon={CircleDollarSign}
                                 accent="teal"
+                                currencyTotals={
+                                    selectedProject.financeThisMonth
+                                        .availableCashByCurrency
+                                }
                             />
                         </section>
 
