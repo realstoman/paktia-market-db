@@ -462,6 +462,9 @@ export function EditPropertyDialog({
                                             ),
                                         }),
                                     )}
+                                    placeholder={t(
+                                        'propertyWorkspace.fields.ownershipType',
+                                    )}
                                     searchPlaceholder={t(
                                         'propertyWorkspace.searchOptions',
                                     )}
@@ -496,6 +499,9 @@ export function EditPropertyDialog({
                                             `propertyWorkspace.operatingMode.${value}`,
                                         ),
                                     }))}
+                                    placeholder={t(
+                                        'propertyWorkspace.fields.operatingMode',
+                                    )}
                                     searchPlaceholder={t(
                                         'propertyWorkspace.searchOptions',
                                     )}
