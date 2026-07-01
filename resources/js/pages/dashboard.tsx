@@ -327,6 +327,10 @@ export default function Dashboard({ data }: { data: DashboardData }) {
               end_date: currentMonthFilters.endDate,
           }).toString()}`
         : '/finance/expenses';
+    const selectedProjectHasShops = Number(selectedProject?.shops ?? 0) > 0;
+    const selectedProjectHasShareholders =
+        Number(selectedProject?.shareholders ?? 0) > 0 ||
+        Boolean(selectedProject?.shareholderPnl?.length);
 
     const overallProjectChart = useMemo(
         () =>
@@ -362,21 +366,31 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                   value: selectedProject.floors,
                   color: COLORS.blue,
               },
-              {
-                  name: t('propertyDashboard.shops', 'Shops'),
-                  value: selectedProject.shops,
-                  color: COLORS.teal,
-              },
-              {
-                  name: t('propertyDashboard.occupied', 'Occupied shops'),
-                  value: selectedProject.occupiedShops,
-                  color: COLORS.green,
-              },
-              {
-                  name: t('propertyDashboard.available', 'Available shops'),
-                  value: selectedProject.availableShops,
-                  color: COLORS.coral,
-              },
+              ...(selectedProjectHasShops
+                  ? [
+                        {
+                            name: t('propertyDashboard.shops', 'Shops'),
+                            value: selectedProject.shops,
+                            color: COLORS.teal,
+                        },
+                        {
+                            name: t(
+                                'propertyDashboard.occupied',
+                                'Occupied shops',
+                            ),
+                            value: selectedProject.occupiedShops,
+                            color: COLORS.green,
+                        },
+                        {
+                            name: t(
+                                'propertyDashboard.available',
+                                'Available shops',
+                            ),
+                            value: selectedProject.availableShops,
+                            color: COLORS.coral,
+                        },
+                    ]
+                  : []),
           ]
         : [];
     const propertyFinanceChart = selectedProject
@@ -397,14 +411,19 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                   value: selectedProject.financeThisMonth.expenses,
                   color: COLORS.coral,
               },
-              {
-                  name: t(
-                      'propertyDashboard.totalShareholderTakeoutsThisMonth',
-                      'Shareholder takeouts this month',
-                  ),
-                  value: selectedProject.financeThisMonth.shareholderTakeouts,
-                  color: COLORS.blue,
-              },
+              ...(selectedProjectHasShareholders
+                  ? [
+                        {
+                            name: t(
+                                'propertyDashboard.totalShareholderTakeoutsThisMonth',
+                                'Shareholder takeouts this month',
+                            ),
+                            value: selectedProject.financeThisMonth
+                                .shareholderTakeouts,
+                            color: COLORS.blue,
+                        },
+                    ]
+                  : []),
               {
                   name: t(
                       'propertyDashboard.totalAvailableCash',
@@ -571,6 +590,154 @@ export default function Dashboard({ data }: { data: DashboardData }) {
             </html>
         `);
         printWindow.document.close();
+    };
+    const printableStyles = `
+        @font-face { font-family: BahijNazanin; src: url('/fonts/bahij-nazanin.ttf') format('truetype'); font-weight: 400; }
+        @font-face { font-family: BahijNazanin; src: url('/fonts/bahij-nazanin-bold.ttf') format('truetype'); font-weight: 700; }
+        @font-face { font-family: Manrope; src: url('/fonts/Manrope-VariableFont_wght.ttf') format('truetype'); }
+        body {
+            font-family: ${direction === 'rtl' ? 'BahijNazanin' : 'Manrope'}, Arial, sans-serif;
+            color: #002452;
+            padding: 28px;
+            background: #fff;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            gap: 18px;
+            border-bottom: 2px solid #edf1f4;
+            padding-bottom: 18px;
+            margin-bottom: 18px;
+        }
+        h1 { margin: 0; font-size: 24px; }
+        .muted { color: #64748b; font-size: 11px; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th, td {
+            border: 1px solid #dfe7e9;
+            padding: 9px;
+            text-align: ${direction === 'rtl' ? 'right' : 'left'};
+            vertical-align: top;
+        }
+        th { background: #edf1f4; font-weight: 700; }
+        footer {
+            margin-top: 28px;
+            border-top: 1px solid #edf1f4;
+            padding-top: 12px;
+            color: #64748b;
+            font-size: 11px;
+        }
+        @page { margin: 14mm; }
+    `;
+    const writePrintableReport = (title: string, table: string) => {
+        const printWindow = window.open('', '_blank');
+
+        if (!printWindow) {
+            return;
+        }
+
+        const propertyName = selectedProject?.name ?? title;
+
+        printWindow.document.write(`
+            <!doctype html>
+            <html dir="${direction}">
+                <head>
+                    <meta charset="utf-8" />
+                    <title>${escapeHtml(title)}</title>
+                    <style>${printableStyles}</style>
+                </head>
+                <body>
+                    <header>
+                        <div>
+                            <h1>${escapeHtml(propertyName)}</h1>
+                            <div class="muted">${escapeHtml(title)}</div>
+                        </div>
+                        <div class="muted">${formatDateForQuery(new Date())}</div>
+                    </header>
+                    ${table}
+                    <footer>
+                        ${escapeHtml(propertyName)} · ${escapeHtml(t('propertyDashboard.generatedBySystem', 'Generated from the property finance system'))}
+                    </footer>
+                    <script>window.onload = function () { window.print(); };</script>
+                </body>
+            </html>
+        `);
+        printWindow.document.close();
+    };
+    const exportSelectedRentPdf = () => {
+        if (!selectedProject) {
+            return;
+        }
+
+        const title = t(
+            'propertyDashboard.rentCollectionReport',
+            'Rent collection report',
+        );
+        const rows = selectedProject.recentRentCollections
+            .map(
+                (payment) => `
+                    <tr>
+                        <td>${escapeHtml(payment.receiptNumber)}</td>
+                        <td>${escapeHtml(payment.shopNumber || '—')}</td>
+                        <td>${escapeHtml(payment.tenant || '—')}</td>
+                        <td>${escapeHtml(payment.paymentDate || '—')}</td>
+                        <td>${formatPrice(payment.amount)} ${escapeHtml(payment.currency)}</td>
+                        <td>${escapeHtml(payment.periodStart || '—')}${payment.periodEnd ? ` - ${escapeHtml(payment.periodEnd)}` : ''}</td>
+                    </tr>`,
+            )
+            .join('');
+
+        writePrintableReport(
+            title,
+            `<table>
+                <thead>
+                    <tr>
+                        <th>${escapeHtml(t('propertyDashboard.receipt', 'Receipt'))}</th>
+                        <th>${escapeHtml(t('propertyDashboard.shop', 'Shop'))}</th>
+                        <th>${escapeHtml(t('propertyDashboard.tenant', 'Tenant'))}</th>
+                        <th>${escapeHtml(t('propertyDashboard.date', 'Date'))}</th>
+                        <th>${escapeHtml(t('propertyDashboard.amount', 'Amount'))}</th>
+                        <th>${escapeHtml(t('propertyDashboard.period', 'Period'))}</th>
+                    </tr>
+                </thead>
+                <tbody>${rows || `<tr><td colspan="6">${escapeHtml(t('propertyDashboard.noRecentRent', 'No rent has been collected for this property yet.'))}</td></tr>`}</tbody>
+            </table>`,
+        );
+    };
+    const exportSelectedShareholderPnlPdf = () => {
+        if (!selectedProject) {
+            return;
+        }
+
+        const title = t(
+            'financeDashboard.shareholderPnl.title',
+            'Shareholder Profit & Loss',
+        );
+        const rows = (selectedProject.shareholderPnl ?? [])
+            .map(
+                (row) => `
+                    <tr>
+                        <td>${escapeHtml(row.shareholder)}</td>
+                        <td>${formatPrice(row.percentage)}%</td>
+                        <td>${formatPrice(row.net)} ؋</td>
+                        <td>${formatPrice(row.allocated)} ؋</td>
+                    </tr>`,
+            )
+            .join('');
+
+        writePrintableReport(
+            title,
+            `<table>
+                <thead>
+                    <tr>
+                        <th>${escapeHtml(t('financeDashboard.shareholderPnl.shareholder', 'Shareholder'))}</th>
+                        <th>${escapeHtml(t('financeDashboard.shareholderPnl.share', 'Share'))}</th>
+                        <th>${escapeHtml(t('financeDashboard.shareholderPnl.net', 'Net'))}</th>
+                        <th>${escapeHtml(t('financeDashboard.shareholderPnl.allocated', 'Allocated'))}</th>
+                    </tr>
+                </thead>
+                <tbody>${rows || `<tr><td colspan="4">${escapeHtml(t('financeDashboard.shareholderPnl.empty', 'No effective shareholder assignments were found for this period.'))}</td></tr>`}</tbody>
+            </table>`,
+        );
     };
 
     return (
