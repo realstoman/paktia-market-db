@@ -1007,7 +1007,7 @@ function FloorCard({
                                 {visibleUnits.map((unit) => (
                                     <div
                                         key={unit.id}
-                                        className="flex min-h-28 flex-col justify-between gap-3 rounded-xl border border-slate-200/80 bg-white p-3"
+                                        className="flex h-32 flex-col justify-between gap-3 overflow-hidden rounded-xl border border-slate-200/80 bg-white p-3"
                                     >
                                         <div>
                                             <div className="flex items-center gap-2 font-medium">
