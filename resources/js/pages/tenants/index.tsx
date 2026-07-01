@@ -307,20 +307,23 @@ export default function TenantsIndex({
         );
     };
     const openScannedProfile = () => {
+        const normalizedScan = scan.trim();
+
+        if (!normalizedScan) {
+            return;
+        }
+
         const match = tenants.data.find(
             (tenant) =>
-                tenant.card_code.toLowerCase() === scan.trim().toLowerCase(),
+                tenant.card_code.toLowerCase() ===
+                normalizedScan.toLowerCase(),
         );
         if (match) {
             router.visit(`/tenants/${match.id}`);
             return;
         }
 
-        router.get('/tenants', {
-            scan: scan.trim(),
-            property_id: selectedPropertyId,
-            tenant_kind: selectedTenantKind,
-        });
+        router.get('/tenants', { scan: normalizedScan });
     };
     const breadcrumbs: BreadcrumbItem[] = [
         { title: t('navigation.dashboard'), href: '/dashboard' },

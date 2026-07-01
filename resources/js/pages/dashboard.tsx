@@ -1406,7 +1406,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                         </section>
 
                         <section className="rounded-2xl border border-[#dfe7e9] bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-between gap-3">
                                 <div>
                                     <h2 className="font-bold text-[#002452] dark:text-white">
                                         {t(
@@ -1421,43 +1421,62 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                         )}
                                     </p>
                                 </div>
-                                <Banknote className="size-5 text-[#002452]" />
+                                <div className="flex items-center gap-2">
+                                    <Link
+                                        href={rentCollectionsHref}
+                                        className="inline-flex h-9 items-center gap-2 rounded-full border border-[#dfe7e9] bg-white px-3 text-xs font-semibold text-[#002452] transition hover:bg-[#edf1f4]"
+                                    >
+                                        <ExternalLink className="size-4" />
+                                        {t(
+                                            'propertyDashboard.viewCollectedRents',
+                                            'View rents',
+                                        )}
+                                    </Link>
+                                    <button
+                                        type="button"
+                                        onClick={exportSelectedRentPdf}
+                                        className="inline-flex h-9 items-center gap-2 rounded-full border border-[#dfe7e9] bg-white px-3 text-xs font-semibold text-[#002452] transition hover:bg-[#edf1f4]"
+                                    >
+                                        <Printer className="size-4" />
+                                        PDF
+                                    </button>
+                                </div>
                             </div>
                             <div className="mt-4 overflow-x-auto">
-                                <table className="w-full min-w-170 text-sm">
+                                <table className="w-full min-w-170 text-xs">
                                     <thead>
                                         <tr className="border-b border-[#edf1f2] text-slate-400 dark:border-neutral-800">
-                                            <th className="px-3 py-3 text-start font-medium">
+                                            <th className="px-3 py-2 text-start font-medium">
                                                 {t(
                                                     'propertyDashboard.receipt',
                                                     'Receipt',
                                                 )}
                                             </th>
-                                            <th className="px-3 py-3 text-start font-medium">
+                                            <th className="px-3 py-2 text-start font-medium">
                                                 {t(
                                                     'propertyDashboard.shop',
                                                     'Shop',
                                                 )}
                                             </th>
-                                            <th className="px-3 py-3 text-start font-medium">
+                                            <th className="px-3 py-2 text-start font-medium">
                                                 {t(
                                                     'propertyDashboard.tenant',
                                                     'Tenant',
                                                 )}
                                             </th>
-                                            <th className="px-3 py-3 text-start font-medium">
+                                            <th className="px-3 py-2 text-start font-medium">
                                                 {t(
                                                     'propertyDashboard.date',
                                                     'Date',
                                                 )}
                                             </th>
-                                            <th className="px-3 py-3 text-start font-medium">
+                                            <th className="px-3 py-2 text-start font-medium">
                                                 {t(
                                                     'propertyDashboard.amount',
                                                     'Amount',
                                                 )}
                                             </th>
-                                            <th className="px-3 py-3 text-start font-medium">
+                                            <th className="px-3 py-2 text-start font-medium">
                                                 {t(
                                                     'propertyDashboard.period',
                                                     'Period',
@@ -1474,12 +1493,12 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                                         key={payment.id}
                                                         className="border-b border-[#f0f3f4] last:border-0 dark:border-neutral-800"
                                                     >
-                                                        <td className="px-3 py-4 font-semibold">
+                                                        <td className="px-3 py-2 font-semibold">
                                                             {
                                                                 payment.receiptNumber
                                                             }
                                                         </td>
-                                                        <td className="px-3 py-4">
+                                                        <td className="px-3 py-2">
                                                             <strong>
                                                                 {
                                                                     payment.shopNumber
@@ -1493,22 +1512,22 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                                                 </p>
                                                             ) : null}
                                                         </td>
-                                                        <td className="px-3 py-4 text-slate-500">
+                                                        <td className="px-3 py-2 text-slate-500">
                                                             {payment.tenant ||
                                                                 '—'}
                                                         </td>
-                                                        <td className="px-3 py-4 text-slate-500">
+                                                        <td className="px-3 py-2 text-slate-500">
                                                             {
                                                                 payment.paymentDate
                                                             }
                                                         </td>
-                                                        <td className="px-3 py-4 font-semibold">
+                                                        <td className="px-3 py-2 font-semibold">
                                                             {formatPrice(
                                                                 payment.amount,
                                                             )}{' '}
                                                             {payment.currency}
                                                         </td>
-                                                        <td className="px-3 py-4 text-slate-500">
+                                                        <td className="px-3 py-2 text-slate-500">
                                                             {payment.periodStart ||
                                                                 '—'}
                                                             {payment.periodEnd
@@ -1535,6 +1554,116 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                 </table>
                             </div>
                         </section>
+
+                        {selectedProjectHasShareholders ? (
+                            <section className="rounded-2xl border border-[#dfe7e9] bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
+                                <div className="flex items-center justify-between gap-3">
+                                    <div>
+                                        <h2 className="font-bold text-[#002452] dark:text-white">
+                                            {t(
+                                                'financeDashboard.shareholderPnl.title',
+                                                'Shareholder Profit & Loss',
+                                            )}
+                                        </h2>
+                                        <p className="mt-1 text-xs text-slate-500">
+                                            {t(
+                                                'financeDashboard.shareholderPnl.description',
+                                                'Profit and loss allocation based on shareholder percentages.',
+                                            )}
+                                        </p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={exportSelectedShareholderPnlPdf}
+                                        className="inline-flex h-9 items-center gap-2 rounded-full border border-[#dfe7e9] bg-white px-3 text-xs font-semibold text-[#002452] transition hover:bg-[#edf1f4]"
+                                    >
+                                        <Printer className="size-4" />
+                                        PDF
+                                    </button>
+                                </div>
+                                <div className="mt-4 overflow-x-auto">
+                                    <table className="w-full min-w-150 text-xs">
+                                        <thead>
+                                            <tr className="border-b border-[#edf1f2] text-slate-400 dark:border-neutral-800">
+                                                <th className="px-3 py-2 text-start font-medium">
+                                                    {t(
+                                                        'financeDashboard.shareholderPnl.shareholder',
+                                                        'Shareholder',
+                                                    )}
+                                                </th>
+                                                <th className="px-3 py-2 text-start font-medium">
+                                                    {t(
+                                                        'financeDashboard.shareholderPnl.share',
+                                                        'Share',
+                                                    )}
+                                                </th>
+                                                <th className="px-3 py-2 text-start font-medium">
+                                                    {t(
+                                                        'financeDashboard.shareholderPnl.net',
+                                                        'Net',
+                                                    )}
+                                                </th>
+                                                <th className="px-3 py-2 text-start font-medium">
+                                                    {t(
+                                                        'financeDashboard.shareholderPnl.allocated',
+                                                        'Allocated',
+                                                    )}
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {(selectedProject.shareholderPnl ?? [])
+                                                .length ? (
+                                                selectedProject.shareholderPnl?.map(
+                                                    (row) => (
+                                                        <tr
+                                                            key={row.id}
+                                                            className="border-b border-[#f0f3f4] last:border-0 dark:border-neutral-800"
+                                                        >
+                                                            <td className="px-3 py-2 font-semibold">
+                                                                {
+                                                                    row.shareholder
+                                                                }
+                                                            </td>
+                                                            <td className="px-3 py-2 text-slate-500">
+                                                                {formatPrice(
+                                                                    row.percentage,
+                                                                )}
+                                                                %
+                                                            </td>
+                                                            <td className="px-3 py-2 text-slate-500">
+                                                                {formatPrice(
+                                                                    row.net,
+                                                                )}{' '}
+                                                                ؋
+                                                            </td>
+                                                            <td className="px-3 py-2 font-semibold">
+                                                                {formatPrice(
+                                                                    row.allocated,
+                                                                )}{' '}
+                                                                ؋
+                                                            </td>
+                                                        </tr>
+                                                    ),
+                                                )
+                                            ) : (
+                                                <tr>
+                                                    <td
+                                                        colSpan={4}
+                                                        className="py-8 text-center text-sm text-slate-400"
+                                                    >
+                                                        {t(
+                                                            'financeDashboard.shareholderPnl.empty',
+                                                            'No effective shareholder assignments were found for this period.',
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </section>
+                        ) : null}
                     </div>
                 ) : null}
             </div>
