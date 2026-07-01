@@ -540,13 +540,24 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                     <meta charset="utf-8" />
                     <title>${escapeHtml(title)}</title>
                     <style>
+                        @font-face { font-family: BahijNazanin; src: url('/fonts/bahij-nazanin.ttf') format('truetype'); font-weight: 400; }
+                        @font-face { font-family: BahijNazanin; src: url('/fonts/bahij-nazanin-bold.ttf') format('truetype'); font-weight: 700; }
+                        @font-face { font-family: Manrope; src: url('/fonts/Manrope-VariableFont_wght.ttf') format('truetype'); }
                         body {
-                            font-family: Arial, sans-serif;
+                            font-family: ${direction === 'rtl' ? 'BahijNazanin' : 'Manrope'}, Arial, sans-serif;
                             color: #002452;
                             padding: 28px;
                         }
+                        header {
+                            display: flex;
+                            justify-content: space-between;
+                            gap: 18px;
+                            border-bottom: 2px solid #edf1f4;
+                            padding-bottom: 18px;
+                            margin-bottom: 18px;
+                        }
                         h1 {
-                            margin: 0 0 18px;
+                            margin: 0;
                             font-size: 22px;
                         }
                         table {
@@ -569,10 +580,23 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                             color: #64748b;
                             font-size: 11px;
                         }
+                        footer {
+                            margin-top: 28px;
+                            border-top: 1px solid #edf1f4;
+                            padding-top: 12px;
+                            color: #64748b;
+                            font-size: 11px;
+                        }
                     </style>
                 </head>
                 <body>
-                    <h1>${escapeHtml(title)}</h1>
+                    <header>
+                        <div>
+                            <h1>${escapeHtml(title)}</h1>
+                            <div class="muted">${formatDateForQuery(new Date())}</div>
+                        </div>
+                        <div class="muted">Paktiawal Group</div>
+                    </header>
                     <table>
                         <thead>
                             <tr>
@@ -581,6 +605,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                         </thead>
                         <tbody>${rows}</tbody>
                     </table>
+                    <footer>Paktiawal Group · ${escapeHtml(t('propertyDashboard.generatedBySystem', 'Generated from the property finance system'))}</footer>
                     <script>
                         window.onload = function () {
                             window.print();

@@ -128,6 +128,9 @@ interface FormData {
     status: string;
     terms: string;
     lease_notes: string;
+    initial_rent_months: string;
+    initial_rent_payment_date: string;
+    initial_rent_payment_method: string;
 }
 
 const today = () => new Date().toLocaleDateString('en-CA');
@@ -158,6 +161,9 @@ const emptyForm = (): FormData => ({
     status: 'active',
     terms: '',
     lease_notes: '',
+    initial_rent_months: '',
+    initial_rent_payment_date: today(),
+    initial_rent_payment_method: 'cash',
 });
 const currentLease = (tenant: Tenant): Lease | undefined =>
     (tenant.leases ?? []).find(
@@ -1332,6 +1338,74 @@ function TenantForm({
                                 value,
                                 label: t(`tenants.lease.${value}`),
                             }))}
+                        />
+                    </div>
+                    <div className="space-y-1.5">
+                        <Label>
+                            {t(
+                                'tenants.lease.initialRentMonths',
+                                'Prepaid rent months',
+                            )}
+                        </Label>
+                        <NumericInput
+                            showControls={false}
+                            min="0"
+                            max="24"
+                            step="1"
+                            value={data.initial_rent_months}
+                            onValueChange={(value) =>
+                                setData('initial_rent_months', value)
+                            }
+                        />
+                        <InputError message={errors.initial_rent_months} />
+                    </div>
+                    <div className="space-y-1.5">
+                        <Label>
+                            {t(
+                                'tenants.lease.initialRentPaymentDate',
+                                'Initial rent payment date',
+                            )}
+                        </Label>
+                        <Input
+                            type="date"
+                            value={data.initial_rent_payment_date}
+                            onChange={(event) =>
+                                setData(
+                                    'initial_rent_payment_date',
+                                    event.target.value,
+                                )
+                            }
+                            className="bg-white"
+                        />
+                        <InputError
+                            message={errors.initial_rent_payment_date}
+                        />
+                    </div>
+                    <div className="space-y-1.5">
+                        <Label>
+                            {t(
+                                'tenants.lease.initialRentPaymentMethod',
+                                'Initial rent payment method',
+                            )}
+                        </Label>
+                        <SearchableDropdown
+                            value={data.initial_rent_payment_method}
+                            onValueChange={(value) =>
+                                setData('initial_rent_payment_method', value)
+                            }
+                            placeholder={t('tenants.fields.select')}
+                            options={[
+                                'cash',
+                                'bank_transfer',
+                                'credit_card',
+                                'other',
+                            ].map((value) => ({
+                                value,
+                                label: t(`paymentMethods.${value}`, value),
+                            }))}
+                        />
+                        <InputError
+                            message={errors.initial_rent_payment_method}
                         />
                     </div>
                     <div className="space-y-1.5 md:col-span-2 lg:col-span-4">
