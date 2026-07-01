@@ -889,7 +889,11 @@ function TenantRowActions({
                         </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                        <Link href={`/tenants/${tenant.id}/card`}>
+                        <Link
+                            href={`/tenants/${tenant.id}/card`}
+                            target="_blank"
+                            rel="noreferrer"
+                        >
                             <Printer />
                             {t('tenants.actions.printCard')}
                         </Link>

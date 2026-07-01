@@ -24,6 +24,14 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -49,6 +57,7 @@ import {
     IdCard,
     Mail,
     MapPin,
+    MoreHorizontal,
     Pencil,
     Phone,
     Plus,
@@ -305,7 +314,11 @@ export default function TenantProfile({
                                 asChild
                                 className="bg-[#002452] text-white hover:bg-[#002452]/90"
                             >
-                                <Link href={`/tenants/${tenant.id}/card`}>
+                                <Link
+                                    href={`/tenants/${tenant.id}/card`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                >
                                     <Printer className="me-2 h-4 w-4" />
                                     {t('tenants.profile.printCard')}
                                 </Link>
@@ -494,54 +507,7 @@ export default function TenantProfile({
                                                 {item.contract_number}
                                             </p>
                                         </div>
-                                        <div className="flex flex-wrap items-center gap-2">
-                                            {canManage && (
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    size="icon"
-                                                    className="bg-white"
-                                                    title={t(
-                                                        'tenants.lease.edit',
-                                                        'Edit assignment',
-                                                    )}
-                                                    onClick={() =>
-                                                        setEditingLease(item)
-                                                    }
-                                                >
-                                                    <Pencil className="size-4" />
-                                                </Button>
-                                            )}
-                                            <Button
-                                                asChild
-                                                variant="ghost"
-                                                size="sm"
-                                            >
-                                                <Link
-                                                    href={`/tenants/${tenant.id}/leases/${item.id}/contract`}
-                                                >
-                                                    <FileSignature className="me-2 size-4" />
-                                                    {t(
-                                                        'leaseContract.tableAction',
-                                                    )}
-                                                </Link>
-                                            </Button>
-                                            <Button
-                                                asChild
-                                                variant="outline"
-                                                size="icon"
-                                                className="bg-white"
-                                                title={t(
-                                                    'tenants.lease.printCard',
-                                                    'Print card',
-                                                )}
-                                            >
-                                                <Link
-                                                    href={`/tenants/${tenant.id}/card?lease_id=${item.id}`}
-                                                >
-                                                    <Printer className="size-4" />
-                                                </Link>
-                                            </Button>
+                                        <div className="flex flex-wrap items-center justify-end gap-2">
                                             <span className="font-medium">
                                                 {item.rent_amount
                                                     ? formatNumber(
@@ -557,6 +523,75 @@ export default function TenantProfile({
                                                     `tenants.lease.${item.status}`,
                                                 )}
                                             </Badge>
+                                            <Button
+                                                asChild
+                                                variant="outline"
+                                                size="sm"
+                                                className="bg-white"
+                                            >
+                                                <Link
+                                                    href={`/tenants/${tenant.id}/leases/${item.id}/contract`}
+                                                >
+                                                    <FileSignature className="me-2 size-4" />
+                                                    {t(
+                                                        'leaseContract.tableAction',
+                                                    )}
+                                                </Link>
+                                            </Button>
+                                            <DropdownMenu modal={false}>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="icon"
+                                                        className="bg-white"
+                                                        aria-label={t(
+                                                            'tenants.table.actions',
+                                                        )}
+                                                    >
+                                                        <MoreHorizontal className="size-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent
+                                                    align="end"
+                                                    className="min-w-52"
+                                                >
+                                                    <DropdownMenuLabel>
+                                                        {t(
+                                                            'tenants.table.actions',
+                                                        )}
+                                                    </DropdownMenuLabel>
+                                                    <DropdownMenuSeparator />
+                                                    {canManage && (
+                                                        <DropdownMenuItem
+                                                            onClick={() =>
+                                                                setEditingLease(
+                                                                    item,
+                                                                )
+                                                            }
+                                                        >
+                                                            <Pencil className="size-4" />
+                                                            {t(
+                                                                'tenants.lease.edit',
+                                                                'Edit assignment',
+                                                            )}
+                                                        </DropdownMenuItem>
+                                                    )}
+                                                    <DropdownMenuItem asChild>
+                                                        <Link
+                                                            href={`/tenants/${tenant.id}/card?lease_id=${item.id}`}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                        >
+                                                            <Printer className="size-4" />
+                                                            {t(
+                                                                'tenants.lease.printCard',
+                                                                'Print card',
+                                                            )}
+                                                        </Link>
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </div>
                                     </div>
                                 ))
@@ -932,6 +967,7 @@ function AssignmentForm({
                 <Label>{t('tenants.lease.terms')}</Label>
                 <Textarea
                     value={form.data.terms}
+                    className="bg-white"
                     onChange={(event) =>
                         form.setData('terms', event.target.value)
                     }
@@ -1173,6 +1209,7 @@ function NumberField({
         <div className="min-w-0 space-y-1.5">
             <Label>{label}</Label>
             <NumericInput
+                className="bg-white"
                 showControls={false}
                 min="0"
                 step="1"
@@ -1205,6 +1242,7 @@ function Drop({
                 onValueChange={set}
                 options={options}
                 placeholder={t('tenants.fields.select')}
+                className="bg-white"
             />
             <InputError message={error} />
         </div>

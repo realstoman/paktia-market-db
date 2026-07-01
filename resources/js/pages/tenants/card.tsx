@@ -3,7 +3,14 @@ import { Button } from '@/components/ui/button';
 import { useLocalization } from '@/lib/localization';
 import { Lease, SharedData, Tenant } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { ArrowLeft, Building2, Printer, UserRound } from 'lucide-react';
+import {
+    ArrowLeft,
+    Building2,
+    MessageCircle,
+    Phone,
+    Printer,
+    UserRound,
+} from 'lucide-react';
 
 interface Props {
     tenant: Tenant;
@@ -23,24 +30,61 @@ const propertyBehavior = (property?: Lease['property']) =>
     (property?.property_type === 'mall' ? 'market' : property?.property_type);
 
 export default function TenantCard({ tenant, selectedLeaseId = null }: Props) {
-    const { t, isRtl } = useLocalization();
+    const { t, isRtl, locale } = useLocalization();
     const { branding } = usePage<SharedData>().props;
     const selectedLease = selectedLeaseId
         ? (tenant.leases ?? []).find((lease) => lease.id === selectedLeaseId)
         : undefined;
-    const leases = selectedLease ? [selectedLease] : currentLeases(tenant);
-    const leaseLocation = (lease: Lease) => {
+    const lease =
+        selectedLease ?? currentLeases(tenant)[0] ?? (tenant.leases ?? [])[0];
+    const localizedPropertyName = (lease?: Lease) => {
+        const translations = lease?.property?.name_translations;
+
+        return (
+            translations?.[locale as keyof typeof translations] ??
+            lease?.property?.name ??
+            ''
+        );
+    };
+    const leaseSpaceLabel = (lease?: Lease) => {
+        if (!lease) {
+            return t('tenants.lease.noAssignment');
+        }
+
+        if (lease.unit) {
+            return t(`tenants.lease.${lease.unit.unit_type}`);
+        }
+
+        if (propertyBehavior(lease.property) === 'commercial_unit') {
+            return t('tenants.lease.shop');
+        }
+
+        return t(`tenants.lease.${lease.leased_space_type}`);
+    };
+    const leaseSpaceValue = (lease?: Lease) => {
+        if (!lease) {
+            return t('tenants.lease.noAssignment');
+        }
+
+        const propertyName = localizedPropertyName(lease);
         const externalUnit =
             propertyBehavior(lease.property) === 'commercial_unit'
-                ? lease.property.external_unit_number
+                ? lease.property?.external_unit_number
                 : null;
 
-        return `${lease.property?.name ?? ''}${lease.unit ? ` - ${t(`tenants.lease.${lease.unit.unit_type}`)} ${lease.unit.unit_number}` : externalUnit ? ` - ${t('tenants.lease.shop')} ${externalUnit}` : ''}`;
+        if (lease.unit) {
+            return `${propertyName} - ${t(`tenants.lease.${lease.unit.unit_type}`)} ${lease.unit.unit_number}`;
+        }
+
+        if (externalUnit) {
+            return `${propertyName} - ${t('tenants.lease.shop')} ${externalUnit}`;
+        }
+
+        return propertyName || t('tenants.lease.noAssignment');
     };
-    const locations = leases.map(leaseLocation).filter(Boolean);
-    const location = locations.length
-        ? `${locations.slice(0, 2).join(' | ')}${locations.length > 2 ? ` +${locations.length - 2}` : ''}`
-        : t('tenants.lease.noAssignment');
+    const propertyName = localizedPropertyName(lease) || branding.name;
+    const spaceLabel = leaseSpaceLabel(lease);
+    const spaceValue = leaseSpaceValue(lease);
 
     return (
         <main
@@ -71,8 +115,7 @@ export default function TenantCard({ tenant, selectedLeaseId = null }: Props) {
             </div>
             <div className="card-stage flex justify-center">
                 <article className="tenant-id-card relative h-[54mm] w-[85.6mm] shrink-0 overflow-hidden rounded-[4mm] bg-white shadow-2xl">
-                    <div className="absolute inset-x-0 top-0 h-[15mm] bg-gradient-to-r from-slate-950 via-emerald-950 to-slate-900" />
-                    <div className="absolute -end-[13mm] -top-[13mm] h-[34mm] w-[34mm] rounded-full border-[5mm] border-emerald-400/20" />
+                    <div className="absolute inset-x-0 top-0 h-[15mm] bg-[#002452]" />
                     <header className="relative flex h-[15mm] items-center gap-[2.5mm] px-[4mm] text-white">
                         <div className="flex h-[9mm] w-[9mm] items-center justify-center overflow-hidden rounded-[2mm] bg-white p-[1mm]">
                             {branding.logoUrl ? (
@@ -81,14 +124,14 @@ export default function TenantCard({ tenant, selectedLeaseId = null }: Props) {
                                     className="max-h-full max-w-full object-contain"
                                 />
                             ) : (
-                                <Building2 className="h-[6mm] w-[6mm] text-emerald-700" />
+                                <Building2 className="h-[6mm] w-[6mm] text-[#002452]" />
                             )}
                         </div>
                         <div className="min-w-0">
                             <p className="truncate text-[3.2mm] leading-tight font-bold">
-                                {branding.name}
+                                {propertyName}
                             </p>
-                            <p className="text-[2mm] text-emerald-200">
+                            <p className="text-[2mm] text-[#d3a450]">
                                 {t('tenants.card.title')}
                             </p>
                         </div>
@@ -105,13 +148,20 @@ export default function TenantCard({ tenant, selectedLeaseId = null }: Props) {
                                     <UserRound className="h-[9mm] w-[9mm] text-slate-400" />
                                 )}
                             </div>
-                            <div
-                                className={`rounded-full px-[1.5mm] py-[0.5mm] text-center text-[1.8mm] font-bold ${tenant.is_active ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'}`}
-                            >
-                                {t(
-                                    tenant.is_active
-                                        ? 'tenants.active'
-                                        : 'tenants.inactive',
+                            <div className="space-y-[0.8mm] text-[1.65mm] leading-tight text-slate-700">
+                                <p className="flex min-w-0 items-center gap-[0.8mm]">
+                                    <Phone className="h-[2.2mm] w-[2.2mm] shrink-0 text-[#002452]" />
+                                    <span className="truncate" dir="ltr">
+                                        {tenant.phone}
+                                    </span>
+                                </p>
+                                {tenant.whatsapp && (
+                                    <p className="flex min-w-0 items-center gap-[0.8mm]">
+                                        <MessageCircle className="h-[2.2mm] w-[2.2mm] shrink-0 text-[#002452]" />
+                                        <span className="truncate" dir="ltr">
+                                            {tenant.whatsapp}
+                                        </span>
+                                    </p>
                                 )}
                             </div>
                         </div>
@@ -130,7 +180,13 @@ export default function TenantCard({ tenant, selectedLeaseId = null }: Props) {
                                     {t('tenants.card.location')}
                                 </span>
                                 <strong className="truncate text-slate-800">
-                                    {location}
+                                    {spaceLabel}
+                                </strong>
+                                <span className="text-slate-500">
+                                    {t('tenants.lease.property')}
+                                </span>
+                                <strong className="truncate text-slate-800">
+                                    {spaceValue}
                                 </strong>
                             </div>
                             <div
