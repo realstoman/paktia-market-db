@@ -507,6 +507,13 @@ const ps = {
             endDate: 'د پای نېټه',
             rent: 'د کرایې اندازه',
             deposit: 'تضمین',
+            upfrontPayment: 'مخکینی / مخکې ورکړل شوی کرایه',
+            upfrontPaymentHelp:
+                'هغه کرایه ثبت کړئ چې د قرارداد پر وخت اخیستل کېږي، څو پوښل شوې میاشتې د ناتادیه په توګه ښکاره نه شي.',
+            initialRentMonths: 'د مخکې ورکړل شوې کرایې میاشتې',
+            initialRentAmount: 'د لومړنۍ / مخکې ورکړل شوې کرایې اندازه',
+            initialRentPaymentDate: 'د لومړنۍ کرایې د تادیې نېټه',
+            initialRentPaymentMethod: 'د لومړنۍ کرایې د تادیې طریقه',
             currency: 'پولي واحد',
             frequency: 'د تادیې موده',
             status: 'د قرارداد حالت',

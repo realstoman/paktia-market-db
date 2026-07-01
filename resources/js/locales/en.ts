@@ -508,6 +508,13 @@ const en = {
             endDate: 'End date',
             rent: 'Rent amount',
             deposit: 'Security deposit',
+            upfrontPayment: 'Upfront / prepaid rent',
+            upfrontPaymentHelp:
+                'Record any rent paid at contract signing so the covered months do not appear as unpaid.',
+            initialRentMonths: 'Prepaid rent months',
+            initialRentAmount: 'Initial/prepaid rent amount',
+            initialRentPaymentDate: 'Initial rent payment date',
+            initialRentPaymentMethod: 'Initial rent payment method',
             currency: 'Currency',
             frequency: 'Payment frequency',
             status: 'Contract status',

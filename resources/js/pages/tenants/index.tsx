@@ -146,6 +146,7 @@ interface FormData {
     terms: string;
     lease_notes: string;
     initial_rent_months: string;
+    initial_rent_amount: string;
     initial_rent_payment_date: string;
     initial_rent_payment_method: string;
 }
@@ -179,6 +180,7 @@ const emptyForm = (): FormData => ({
     terms: '',
     lease_notes: '',
     initial_rent_months: '',
+    initial_rent_amount: '',
     initial_rent_payment_date: today(),
     initial_rent_payment_method: 'cash',
 });
@@ -1616,6 +1618,24 @@ function TenantForm({
                             }
                         />
                         <InputError message={errors.initial_rent_months} />
+                    </div>
+                    <div className="space-y-1.5">
+                        <Label>
+                            {t(
+                                'tenants.lease.initialRentAmount',
+                                'Initial/prepaid rent amount',
+                            )}
+                        </Label>
+                        <NumericInput
+                            showControls={false}
+                            min="0"
+                            step="1"
+                            value={data.initial_rent_amount}
+                            onValueChange={(value) =>
+                                setData('initial_rent_amount', value)
+                            }
+                        />
+                        <InputError message={errors.initial_rent_amount} />
                     </div>
                     <div className="space-y-1.5">
                         <Label>

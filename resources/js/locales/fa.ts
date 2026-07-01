@@ -505,6 +505,13 @@ const fa = {
             endDate: 'تاریخ ختم قرارداد',
             rent: 'مبلغ کرایه',
             deposit: 'مبلغ تضمینی',
+            upfrontPayment: 'پیش‌پرداخت / کرایه پیشکی',
+            upfrontPaymentHelp:
+                'هر مبلغ کرایه‌ای را که هنگام عقد قرارداد دریافت می‌شود ثبت کنید تا ماه‌های پوشش‌شده به عنوان پرداخت‌نشده نمایش داده نشوند.',
+            initialRentMonths: 'تعداد ماه‌های کرایه پیشکی',
+            initialRentAmount: 'مبلغ کرایه پیشکی / ابتدایی',
+            initialRentPaymentDate: 'تاریخ پرداخت کرایه ابتدایی',
+            initialRentPaymentMethod: 'روش پرداخت کرایه ابتدایی',
             currency: 'واحد پولی',
             frequency: 'دوره پرداخت',
             status: 'وضعیت قرارداد',

@@ -46,44 +46,29 @@ export default function TenantCard({ tenant, selectedLeaseId = null }: Props) {
             ''
         );
     };
-    const leaseSpaceLabel = (lease?: Lease) => {
-        if (!lease) {
-            return t('tenants.lease.noAssignment');
-        }
-
-        if (lease.unit) {
-            return t(`tenants.lease.${lease.unit.unit_type}`);
-        }
-
-        if (propertyBehavior(lease.property) === 'commercial_unit') {
-            return t('tenants.lease.shop');
-        }
-
-        return t(`tenants.lease.${lease.leased_space_type}`);
-    };
     const leaseSpaceValue = (lease?: Lease) => {
         if (!lease) {
             return t('tenants.lease.noAssignment');
         }
 
-        const propertyName = localizedPropertyName(lease);
         const externalUnit =
             propertyBehavior(lease.property) === 'commercial_unit'
                 ? lease.property?.external_unit_number
                 : null;
 
         if (lease.unit) {
-            return `${propertyName} - ${t(`tenants.lease.${lease.unit.unit_type}`)} ${lease.unit.unit_number}`;
+            return `${t(`tenants.lease.${lease.unit.unit_type}`)} ${lease.unit.unit_number}`;
         }
 
         if (externalUnit) {
-            return `${propertyName} - ${t('tenants.lease.shop')} ${externalUnit}`;
+            return `${t('tenants.lease.shop')} ${externalUnit}`;
         }
 
-        return propertyName || t('tenants.lease.noAssignment');
+        return lease.leased_space_type
+            ? t(`tenants.lease.${lease.leased_space_type}`)
+            : t('tenants.lease.noAssignment');
     };
     const propertyName = localizedPropertyName(lease) || branding.name;
-    const spaceLabel = leaseSpaceLabel(lease);
     const spaceValue = leaseSpaceValue(lease);
 
     return (
@@ -180,13 +165,13 @@ export default function TenantCard({ tenant, selectedLeaseId = null }: Props) {
                                     {t('tenants.card.location')}
                                 </span>
                                 <strong className="truncate text-slate-800">
-                                    {spaceLabel}
+                                    {spaceValue}
                                 </strong>
                                 <span className="text-slate-500">
                                     {t('tenants.lease.property')}
                                 </span>
                                 <strong className="truncate text-slate-800">
-                                    {spaceValue}
+                                    {propertyName}
                                 </strong>
                             </div>
                             <div

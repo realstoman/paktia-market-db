@@ -88,6 +88,10 @@ interface LeaseForm {
     status: string;
     terms: string;
     lease_notes: string;
+    initial_rent_months: string;
+    initial_rent_amount: string;
+    initial_rent_payment_date: string;
+    initial_rent_payment_method: string;
 }
 interface ProfileForm {
     _method: string;
@@ -848,6 +852,10 @@ function AssignmentForm({
         status: lease?.status ?? 'active',
         terms: lease?.terms ?? '',
         lease_notes: lease?.notes ?? '',
+        initial_rent_months: '',
+        initial_rent_amount: '',
+        initial_rent_payment_date: today(),
+        initial_rent_payment_method: 'cash',
     });
     const property = properties.find(
         (item) => String(item.id) === form.data.property_id,
@@ -967,6 +975,77 @@ function AssignmentForm({
                 }))}
                 t={t}
             />
+            {!lease && (
+                <>
+                    <div className="space-y-1.5 md:col-span-2">
+                        <div className="rounded-2xl border bg-[#f8f9fd] p-4">
+                            <h3 className="text-sm font-semibold text-[#002452]">
+                                {t(
+                                    'tenants.lease.upfrontPayment',
+                                    'Upfront / prepaid rent',
+                                )}
+                            </h3>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                                {t(
+                                    'tenants.lease.upfrontPaymentHelp',
+                                    'Record any rent paid at contract signing so the covered months do not appear as unpaid.',
+                                )}
+                            </p>
+                        </div>
+                    </div>
+                    <NumberField
+                        label={t(
+                            'tenants.lease.initialRentMonths',
+                            'Prepaid rent months',
+                        )}
+                        value={form.data.initial_rent_months}
+                        set={(value) =>
+                            form.setData('initial_rent_months', value)
+                        }
+                    />
+                    <NumberField
+                        label={t(
+                            'tenants.lease.initialRentAmount',
+                            'Initial/prepaid rent amount',
+                        )}
+                        value={form.data.initial_rent_amount}
+                        set={(value) =>
+                            form.setData('initial_rent_amount', value)
+                        }
+                    />
+                    <Field
+                        label={t(
+                            'tenants.lease.initialRentPaymentDate',
+                            'Initial rent payment date',
+                        )}
+                        type="date"
+                        value={form.data.initial_rent_payment_date}
+                        set={(value) =>
+                            form.setData('initial_rent_payment_date', value)
+                        }
+                    />
+                    <Drop
+                        label={t(
+                            'tenants.lease.initialRentPaymentMethod',
+                            'Initial rent payment method',
+                        )}
+                        value={form.data.initial_rent_payment_method}
+                        set={(value) =>
+                            form.setData('initial_rent_payment_method', value)
+                        }
+                        options={[
+                            'cash',
+                            'bank_transfer',
+                            'credit_card',
+                            'other',
+                        ].map((value) => ({
+                            value,
+                            label: t(`paymentMethods.${value}`, value),
+                        }))}
+                        t={t}
+                    />
+                </>
+            )}
             <div className="space-y-1.5 md:col-span-2">
                 <Label>{t('tenants.lease.terms')}</Label>
                 <Textarea

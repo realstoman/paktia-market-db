@@ -206,7 +206,15 @@ class TenantController extends Controller
     public function storeLease(Request $request, Tenant $tenant, TenantLeaseService $leases)
     {
         $validated = $this->validateLease($request);
-        $leases->create([...$validated, 'tenant_id' => $tenant->id]);
+        $initialRent = $this->validateInitialRentPayment($request, $validated);
+
+        DB::transaction(function () use ($request, $tenant, $leases, $validated, $initialRent): void {
+            $lease = $leases->create([...$validated, 'tenant_id' => $tenant->id]);
+
+            if ($initialRent !== null) {
+                $this->recordInitialRentPayment($lease, $initialRent, $request);
+            }
+        });
 
         return back()->with('success', 'Property assignment created successfully.');
     }
@@ -339,17 +347,26 @@ class TenantController extends Controller
 
         $validated = $request->validate([
             'initial_rent_months' => ['nullable', 'integer', 'min:0', 'max:24'],
+            'initial_rent_amount' => ['nullable', 'numeric', 'min:0'],
             'initial_rent_payment_date' => ['nullable', 'date'],
             'initial_rent_payment_method' => ['nullable', Rule::enum(PaymentMethod::class)],
         ]);
         $months = (int) ($validated['initial_rent_months'] ?? 0);
+        $amount = (float) ($validated['initial_rent_amount'] ?? 0);
 
-        if ($months <= 0 || (float) ($lease['rent_amount'] ?? 0) <= 0) {
+        if ($months <= 0 && $amount > 0) {
+            $months = 1;
+        }
+
+        if ($months <= 0 || ((float) ($lease['rent_amount'] ?? 0) <= 0 && $amount <= 0)) {
             return null;
         }
 
         return [
             'months' => $months,
+            'amount' => $amount > 0
+                ? $amount
+                : (float) ($lease['rent_amount'] ?? 0) * $months,
             'payment_date' => $validated['initial_rent_payment_date'] ?? now()->toDateString(),
             'payment_method' => $validated['initial_rent_payment_method'] ?? PaymentMethod::CASH->value,
         ];
@@ -375,10 +392,10 @@ class TenantController extends Controller
             'period_start' => $periodStart->toDateString(),
             'period_end' => $periodEnd->toDateString(),
             'payment_date' => $initialRent['payment_date'],
-            'amount' => (float) $lease->rent_amount * (int) $initialRent['months'],
+            'amount' => (float) $initialRent['amount'],
             'payment_method' => $initialRent['payment_method'],
             'reference' => 'Initial prepaid rent',
-            'notes' => 'Initial prepaid rent collected during tenant registration.',
+            'notes' => 'Initial prepaid rent collected during lease assignment.',
             'status' => 'received',
             'created_by' => $request->user()?->id,
         ]);
