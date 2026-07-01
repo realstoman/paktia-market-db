@@ -281,7 +281,11 @@ class DashboardService
                         'cashPositionAfn' => $cashPosition,
                         'cashPositionByCurrency' => $cashPositionByCurrency,
                         'shareholderPnl' => $this->shareholderPnl
-                            ->rows($monthStart, $monthEnd, $property->id)
+                            ->rows(
+                                Carbon::parse($monthStart->toDateString()),
+                                Carbon::parse($monthEnd->toDateString()),
+                                $property->id,
+                            )
                             ->values(),
                         'rentStatusRows' => $this->rentalFinance
                             ->leaseRows(
