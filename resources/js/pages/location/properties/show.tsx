@@ -942,10 +942,16 @@ function FloorCard({
     const apartmentCount = (floor.units ?? []).filter(
         (unit) => unit.unit_type === 'apartment',
     ).length;
-    const spacesSummary = [
-        `${shopCount} ${t('propertyWorkspace.shops')}`,
-        `${apartmentCount} ${t('propertyWorkspace.apartments')}`,
-    ].join(' / ');
+    const floorUsage = floor.usage_type ?? property.usage_type ?? 'mixed';
+    const spacesSummary =
+        floorUsage === 'commercial'
+            ? `${shopCount} ${t('propertyWorkspace.shops')}`
+            : floorUsage === 'residential'
+              ? `${apartmentCount} ${t('propertyWorkspace.apartments')}`
+              : [
+                    `${shopCount} ${t('propertyWorkspace.shops')}`,
+                    `${apartmentCount} ${t('propertyWorkspace.apartments')}`,
+                ].join(' / ');
     const normalizedSearch = spaceSearch.trim().toLowerCase();
     const visibleUnits = (floor.units ?? []).filter((unit) =>
         `${unit.unit_number} ${unit.description ?? ''} ${unit.electricity_meter ?? ''} ${unit.water_meter ?? ''}`
@@ -958,10 +964,9 @@ function FloorCard({
                 <div>
                     <CardTitle>{floor.name}</CardTitle>
                     <p className="mt-1 text-sm text-muted-foreground">
-                        {floor.level_number} ·{' '}
                         {floor.area_sqm
                             ? `${formatNumber(floor.area_sqm)} m²`
-                            : '—'}{' '}
+                            : '—'}
                         · {spacesSummary}
                     </p>
                 </div>
