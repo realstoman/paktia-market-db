@@ -35,8 +35,8 @@ class SystemBrandingController extends Controller
             'tertiary_color' => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,svg,webp', 'max:5120'],
             'logo_full' => ['nullable', 'image', 'mimes:jpg,jpeg,png,svg,webp', 'max:5120'],
-            'tenant_card_message' => ['required', 'string', 'max:500'],
-            'tenant_card_phone' => ['required', 'string', 'max:80'],
+            'tenant_card_message' => ['nullable', 'string', 'max:500'],
+            'tenant_card_phone' => ['nullable', 'string', 'max:80'],
             'tenant_card_front_logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,svg,webp', 'max:5120'],
             'tenant_card_back_logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,svg,webp', 'max:5120'],
         ]);

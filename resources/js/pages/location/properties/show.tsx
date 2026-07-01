@@ -24,6 +24,12 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -56,6 +62,7 @@ import {
     Image as ImageIcon,
     Layers3,
     MapPin,
+    MoreHorizontal,
     Pencil,
     Plus,
     ReceiptText,
@@ -68,7 +75,7 @@ import {
     Users,
     X,
 } from 'lucide-react';
-import { FormEvent, useState } from 'react';
+import { FormEvent, ReactNode, useState } from 'react';
 
 interface PropertyShowProps {
     property: Property;
@@ -968,26 +975,17 @@ function FloorCard({
                 <div>
                     <CardTitle>{floor.name}</CardTitle>
                     <p className="mt-1 text-sm text-muted-foreground">
-                        {floor.area_sqm
-                            ? `${formatNumber(floor.area_sqm)} m²`
-                            : '—'}
-                        · {spacesSummary}
+                        {[
+                            floor.area_sqm
+                                ? `${formatNumber(floor.area_sqm)} m²`
+                                : '—',
+                            spacesSummary,
+                        ].join(' - ')}
                     </p>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                     <AddUnit property={property} floor={floor} />
-                    <EditFloor property={property} floor={floor} />
-                    <DeleteConfirmation
-                        title={t('propertyWorkspace.deleteFloorTitle')}
-                        description={t('propertyWorkspace.deleteFloor')}
-                        confirmLabel={t('propertyWorkspace.confirmDeleteFloor')}
-                        onConfirm={() =>
-                            router.delete(
-                                `/properties/${property.id}/floors/${floor.id}`,
-                                { preserveScroll: true },
-                            )
-                        }
-                    />
+                    <FloorActions property={property} floor={floor} />
                 </div>
             </CardHeader>
             <CardContent>
@@ -1033,7 +1031,7 @@ function FloorCard({
                                                     : '—'}
                                                 {unit.unit_type ===
                                                     'apartment' &&
-                                                    ` · ${unit.rooms_count ?? 0} ${t('propertyWorkspace.rooms')} · ${unit.bathrooms_count ?? 0} ${t('propertyWorkspace.bathrooms')}`}
+                                                    ` - ${unit.rooms_count ?? 0} ${t('propertyWorkspace.rooms')} - ${unit.bathrooms_count ?? 0} ${t('propertyWorkspace.bathrooms')}`}
                                             </p>
                                             {unit.description && (
                                                 <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">
@@ -1055,33 +1053,11 @@ function FloorCard({
                                                     unit.occupancy_status,
                                                 )}
                                             </Badge>
-                                            <div className="flex gap-1.5">
-                                                <EditUnit
-                                                    property={property}
-                                                    floor={floor}
-                                                    unit={unit}
-                                                />
-                                                <DeleteConfirmation
-                                                    title={t(
-                                                        'propertyWorkspace.deleteSpaceTitle',
-                                                    )}
-                                                    description={t(
-                                                        'propertyWorkspace.deleteSpace',
-                                                    )}
-                                                    confirmLabel={t(
-                                                        'propertyWorkspace.confirmDeleteSpace',
-                                                    )}
-                                                    onConfirm={() =>
-                                                        router.delete(
-                                                            `/properties/${property.id}/floors/${floor.id}/units/${unit.id}`,
-                                                            {
-                                                                preserveScroll: true,
-                                                            },
-                                                        )
-                                                    }
-                                                    compact
-                                                />
-                                            </div>
+                                            <UnitActions
+                                                property={property}
+                                                floor={floor}
+                                                unit={unit}
+                                            />
                                         </div>
                                     </div>
                                 ))}
@@ -1104,6 +1080,150 @@ function FloorCard({
         </Card>
     );
 }
+
+function FloorActions({
+    property,
+    floor,
+}: {
+    property: Property;
+    floor: PropertyFloor;
+}) {
+    const { t, isRtl } = useLocalization();
+    const [editOpen, setEditOpen] = useState(false);
+    const [deleteOpen, setDeleteOpen] = useState(false);
+
+    return (
+        <>
+            <DropdownMenu dir={isRtl ? 'rtl' : 'ltr'}>
+                <DropdownMenuTrigger asChild>
+                    <Button
+                        type="button"
+                        size="icon"
+                        variant="outline"
+                        className="size-8 border-primary/15 bg-primary/8 text-primary hover:bg-primary/15 hover:text-primary"
+                        aria-label={t('common.actions', 'Actions')}
+                    >
+                        <MoreHorizontal className="size-4" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align={isRtl ? 'start' : 'end'}>
+                    <DropdownMenuItem
+                        onSelect={() => {
+                            setEditOpen(true);
+                        }}
+                    >
+                        <Pencil className="size-4" />
+                        {t('propertyWorkspace.editFloor')}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onSelect={() => {
+                            setDeleteOpen(true);
+                        }}
+                    >
+                        <Trash2 className="size-4" />
+                        {t('propertyWorkspace.confirmDeleteFloor')}
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+            <EditFloor
+                property={property}
+                floor={floor}
+                open={editOpen}
+                onOpenChange={setEditOpen}
+                trigger={null}
+            />
+            <DeleteConfirmation
+                title={t('propertyWorkspace.deleteFloorTitle')}
+                description={t('propertyWorkspace.deleteFloor')}
+                confirmLabel={t('propertyWorkspace.confirmDeleteFloor')}
+                onConfirm={() =>
+                    router.delete(`/properties/${property.id}/floors/${floor.id}`, {
+                        preserveScroll: true,
+                    })
+                }
+                open={deleteOpen}
+                onOpenChange={setDeleteOpen}
+                trigger={null}
+            />
+        </>
+    );
+}
+
+function UnitActions({
+    property,
+    floor,
+    unit,
+}: {
+    property: Property;
+    floor: PropertyFloor;
+    unit: PropertyUnit;
+}) {
+    const { t, isRtl } = useLocalization();
+    const [editOpen, setEditOpen] = useState(false);
+    const [deleteOpen, setDeleteOpen] = useState(false);
+
+    return (
+        <>
+            <DropdownMenu dir={isRtl ? 'rtl' : 'ltr'}>
+                <DropdownMenuTrigger asChild>
+                    <Button
+                        type="button"
+                        size="icon"
+                        variant="outline"
+                        className="size-7 border-primary/15 bg-primary/8 text-primary hover:bg-primary/15 hover:text-primary"
+                        aria-label={t('common.actions', 'Actions')}
+                    >
+                        <MoreHorizontal className="size-3.5" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align={isRtl ? 'start' : 'end'}>
+                    <DropdownMenuItem
+                        onSelect={() => {
+                            setEditOpen(true);
+                        }}
+                    >
+                        <Pencil className="size-4" />
+                        {t('propertyWorkspace.editSpace')}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onSelect={() => {
+                            setDeleteOpen(true);
+                        }}
+                    >
+                        <Trash2 className="size-4" />
+                        {t('propertyWorkspace.confirmDeleteSpace')}
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+            <EditUnit
+                property={property}
+                floor={floor}
+                unit={unit}
+                open={editOpen}
+                onOpenChange={setEditOpen}
+                trigger={null}
+            />
+            <DeleteConfirmation
+                title={t('propertyWorkspace.deleteSpaceTitle')}
+                description={t('propertyWorkspace.deleteSpace')}
+                confirmLabel={t('propertyWorkspace.confirmDeleteSpace')}
+                onConfirm={() =>
+                    router.delete(
+                        `/properties/${property.id}/floors/${floor.id}/units/${unit.id}`,
+                        { preserveScroll: true },
+                    )
+                }
+                compact
+                open={deleteOpen}
+                onOpenChange={setDeleteOpen}
+                trigger={null}
+            />
+        </>
+    );
+}
+
 function AddFloor({ property }: { property: Property }) {
     const { t } = useLocalization();
     const [open, setOpen] = useState(false);
@@ -1390,12 +1510,20 @@ function AddUnit({
 function EditFloor({
     property,
     floor,
+    open: controlledOpen,
+    onOpenChange,
+    trigger,
 }: {
     property: Property;
     floor: PropertyFloor;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+    trigger?: ReactNode | null;
 }) {
     const { t } = useLocalization();
-    const [open, setOpen] = useState(false);
+    const [internalOpen, setInternalOpen] = useState(false);
+    const open = controlledOpen ?? internalOpen;
+    const setOpen = onOpenChange ?? setInternalOpen;
     const form = useForm({
         name: floor.name,
         level_number: String(floor.level_number),
@@ -1414,17 +1542,21 @@ function EditFloor({
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                <Button
-                    type="button"
-                    size="icon"
-                    variant="outline"
-                    className="size-8 border-primary/15 bg-primary/8 text-primary hover:bg-primary/15 hover:text-primary"
-                    aria-label={t('propertyWorkspace.editFloor')}
-                >
-                    <Pencil className="size-3.5" />
-                </Button>
-            </DialogTrigger>
+            {trigger !== null && (
+                <DialogTrigger asChild>
+                    {trigger ?? (
+                        <Button
+                            type="button"
+                            size="icon"
+                            variant="outline"
+                            className="size-8 border-primary/15 bg-primary/8 text-primary hover:bg-primary/15 hover:text-primary"
+                            aria-label={t('propertyWorkspace.editFloor')}
+                        >
+                            <Pencil className="size-3.5" />
+                        </Button>
+                    )}
+                </DialogTrigger>
+            )}
             <DialogContent className="bg-[#f8f9fd] sm:max-w-xl [&_input]:bg-white [&_textarea]:bg-white">
                 <DialogHeader>
                     <DialogTitle>
@@ -1510,13 +1642,21 @@ function EditUnit({
     property,
     floor,
     unit,
+    open: controlledOpen,
+    onOpenChange,
+    trigger,
 }: {
     property: Property;
     floor: PropertyFloor;
     unit: PropertyUnit;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+    trigger?: ReactNode | null;
 }) {
     const { t } = useLocalization();
-    const [open, setOpen] = useState(false);
+    const [internalOpen, setInternalOpen] = useState(false);
+    const open = controlledOpen ?? internalOpen;
+    const setOpen = onOpenChange ?? setInternalOpen;
     const form = useForm({
         unit_type: unit.unit_type,
         unit_number: unit.unit_number,
@@ -1547,17 +1687,21 @@ function EditUnit({
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                <Button
-                    type="button"
-                    size="icon"
-                    variant="outline"
-                    className="size-7 border-primary/15 bg-primary/8 text-primary hover:bg-primary/15 hover:text-primary"
-                    aria-label={editLabel}
-                >
-                    <Pencil className="size-3" />
-                </Button>
-            </DialogTrigger>
+            {trigger !== null && (
+                <DialogTrigger asChild>
+                    {trigger ?? (
+                        <Button
+                            type="button"
+                            size="icon"
+                            variant="outline"
+                            className="size-7 border-primary/15 bg-primary/8 text-primary hover:bg-primary/15 hover:text-primary"
+                            aria-label={editLabel}
+                        >
+                            <Pencil className="size-3" />
+                        </Button>
+                    )}
+                </DialogTrigger>
+            )}
             <DialogContent className="max-h-[92vh] overflow-y-auto bg-[#f8f9fd] sm:max-w-2xl [&_input]:bg-white [&_textarea]:bg-white">
                 <DialogHeader>
                     <DialogTitle>{editLabel}</DialogTitle>
@@ -1764,32 +1908,47 @@ function DeleteConfirmation({
     confirmLabel,
     onConfirm,
     compact = false,
+    open: controlledOpen,
+    onOpenChange,
+    trigger,
 }: {
     title: string;
     description: string;
     confirmLabel: string;
     onConfirm: () => void;
     compact?: boolean;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+    trigger?: ReactNode | null;
 }) {
     const { t, isRtl } = useLocalization();
+    const [internalOpen, setInternalOpen] = useState(false);
+    const open = controlledOpen ?? internalOpen;
+    const setOpen = onOpenChange ?? setInternalOpen;
 
     return (
-        <AlertDialog>
-            <AlertDialogTrigger asChild>
-                <Button
-                    type="button"
-                    size="icon"
-                    variant="outline"
-                    className={
-                        compact
-                            ? 'size-7 border-destructive/15 bg-destructive/8 text-destructive hover:bg-destructive/15 hover:text-destructive'
-                            : 'size-8 border-destructive/15 bg-destructive/8 text-destructive hover:bg-destructive/15 hover:text-destructive'
-                    }
-                    aria-label={confirmLabel}
-                >
-                    <Trash2 className={compact ? 'size-3' : 'size-3.5'} />
-                </Button>
-            </AlertDialogTrigger>
+        <AlertDialog open={open} onOpenChange={setOpen}>
+            {trigger !== null && (
+                <AlertDialogTrigger asChild>
+                    {trigger ?? (
+                        <Button
+                            type="button"
+                            size="icon"
+                            variant="outline"
+                            className={
+                                compact
+                                    ? 'size-7 border-destructive/15 bg-destructive/8 text-destructive hover:bg-destructive/15 hover:text-destructive'
+                                    : 'size-8 border-destructive/15 bg-destructive/8 text-destructive hover:bg-destructive/15 hover:text-destructive'
+                            }
+                            aria-label={confirmLabel}
+                        >
+                            <Trash2
+                                className={compact ? 'size-3' : 'size-3.5'}
+                            />
+                        </Button>
+                    )}
+                </AlertDialogTrigger>
+            )}
             <AlertDialogContent dir={isRtl ? 'rtl' : 'ltr'}>
                 <AlertDialogHeader
                     className={isRtl ? 'text-right sm:text-right' : ''}

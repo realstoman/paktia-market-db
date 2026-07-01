@@ -168,7 +168,7 @@ class PropertyController extends Controller
         abort_if(in_array($behavior, ['house', 'commercial_unit'], true), 422);
 
         $validated = $request->validate([
-            'unit_type' => ['required', Rule::in(['shop', 'apartment'])],
+            'unit_type' => ['nullable', Rule::in(['shop', 'apartment'])],
             'unit_number' => [
                 'required', 'string', 'max:50',
                 Rule::unique('property_units')->where('property_floor_id', $floor->id),
@@ -185,6 +185,8 @@ class PropertyController extends Controller
             'water_meter' => ['nullable', 'string', 'max:100'],
             'description' => ['nullable', 'string', 'max:1000'],
         ]);
+
+        $validated['unit_type'] = $this->normalizeUnitType($property, $validated['unit_type'] ?? null);
 
         $floor->units()->create($validated);
 
@@ -206,7 +208,7 @@ class PropertyController extends Controller
     {
         abort_unless($floor->property_id === $property->id && $unit->property_floor_id === $floor->id, 404);
         $validated = $request->validate([
-            'unit_type' => ['required', Rule::in(['shop', 'apartment'])],
+            'unit_type' => ['nullable', Rule::in(['shop', 'apartment'])],
             'unit_number' => [
                 'required', 'string', 'max:50',
                 Rule::unique('property_units')->where('property_floor_id', $floor->id)->ignore($unit->id),
@@ -223,9 +225,35 @@ class PropertyController extends Controller
             'water_meter' => ['nullable', 'string', 'max:100'],
             'description' => ['nullable', 'string', 'max:1000'],
         ]);
+        $validated['unit_type'] = $this->normalizeUnitType($property, $validated['unit_type'] ?? $unit->unit_type);
+
         $unit->update($validated);
 
         return back()->with('success', __('properties.actions.space_updated'));
+    }
+
+    private function normalizeUnitType(Property $property, ?string $unitType): string
+    {
+        $unitType = in_array($unitType, ['shop', 'apartment'], true) ? $unitType : null;
+        $behavior = $property->typeBehavior();
+
+        if ($behavior === 'block') {
+            return 'apartment';
+        }
+
+        if ($behavior === 'market') {
+            if ($property->usage_type === 'residential') {
+                return 'apartment';
+            }
+
+            if ($property->usage_type === 'mixed') {
+                return $unitType ?? 'shop';
+            }
+
+            return 'shop';
+        }
+
+        return $unitType ?? 'shop';
     }
 
     public function uploadDocuments(Request $request, Property $property)

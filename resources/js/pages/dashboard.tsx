@@ -156,6 +156,69 @@ const COLORS = {
     mist: '#edf1f4',
 };
 
+type ChartTooltipPayloadItem = {
+    name?: string | number;
+    value?: string | number;
+    color?: string;
+    fill?: string;
+    payload?: {
+        name?: string;
+    };
+};
+
+function DashboardChartTooltip({
+    active,
+    payload,
+    label,
+    currency = false,
+}: {
+    active?: boolean;
+    payload?: ChartTooltipPayloadItem[];
+    label?: string | number;
+    currency?: boolean;
+}) {
+    if (!active || !payload?.length) {
+        return null;
+    }
+
+    return (
+        <div className="rounded-xl border border-[#dfe7e9] bg-white px-3 py-2 text-xs shadow-sm">
+            {label ? (
+                <p className="mb-2 font-semibold text-[#002452]">{label}</p>
+            ) : null}
+            <div className="space-y-1.5">
+                {payload.map((item, index) => {
+                    const name = String(item.name ?? item.payload?.name ?? '');
+                    const visibleName = name === 'value' ? '' : name;
+                    const numericValue = Number(item.value ?? 0);
+                    const color = item.color ?? item.fill ?? COLORS.teal;
+                    const formattedValue = currency
+                        ? `${formatPrice(numericValue)} ${name === 'USD' ? '$' : name === 'AFN' ? '؋' : visibleName}`
+                        : formatNumber(numericValue);
+
+                    return (
+                        <div
+                            key={`${name || 'item'}-${index}`}
+                            className="flex items-center justify-between gap-4"
+                        >
+                            <span className="flex items-center gap-2 text-slate-500">
+                                <span
+                                    className="size-2 rounded-full"
+                                    style={{ backgroundColor: color }}
+                                />
+                                {visibleName ? <span>{visibleName}</span> : null}
+                            </span>
+                            <span className="font-semibold text-slate-900">
+                                {formattedValue}
+                            </span>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
 function StatCard({
     label,
     value,
@@ -1367,6 +1430,17 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                                         formatNumber(value)
                                                     }
                                                 />
+                                                <Tooltip
+                                                    content={
+                                                        <DashboardChartTooltip
+                                                            currency
+                                                        />
+                                                    }
+                                                    cursor={{
+                                                        fill: '#edf1f4',
+                                                        opacity: 0.5,
+                                                    }}
+                                                />
                                                 <Bar
                                                     dataKey="AFN"
                                                     name="؋"
@@ -1434,6 +1508,15 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                                     tickFormatter={(value) =>
                                                         formatNumber(value)
                                                     }
+                                                />
+                                                <Tooltip
+                                                    content={
+                                                        <DashboardChartTooltip />
+                                                    }
+                                                    cursor={{
+                                                        fill: '#edf1f4',
+                                                        opacity: 0.5,
+                                                    }}
                                                 />
                                                 <Bar
                                                     dataKey="value"
