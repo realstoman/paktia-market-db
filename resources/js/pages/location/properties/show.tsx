@@ -68,7 +68,7 @@ import {
     Users,
     X,
 } from 'lucide-react';
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useState } from 'react';
 
 interface PropertyShowProps {
     property: Property;
@@ -660,28 +660,17 @@ function PropertyImageGallery({
     images: PropertyImage[];
 }) {
     const { t, isRtl } = useLocalization();
-    const [activeIndex, setActiveIndex] = useState(0);
+    const [activeIndex, setActiveIndex] = useState(() =>
+        Math.max(
+            0,
+            images.findIndex((image) => image.path === property.image_path),
+        ),
+    );
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const form = useForm<{ images: File[] }>({ images: [] });
     const activeImage = images[activeIndex] ?? images[0];
     const activeIsCover =
         !!activeImage && activeImage.path === property.image_path;
-
-    useEffect(() => {
-        const coverIndex = images.findIndex(
-            (image) => image.path === property.image_path,
-        );
-
-        setActiveIndex((current) => {
-            if (coverIndex >= 0) {
-                return coverIndex;
-            }
-
-            return current >= images.length
-                ? Math.max(0, images.length - 1)
-                : current;
-        });
-    }, [images, property.image_path]);
 
     const submit = (event: FormEvent) => {
         event.preventDefault();
