@@ -19,12 +19,9 @@ import {
     ArrowDownRight,
     ArrowUpRight,
     Banknote,
-    BookOpenText,
-    Building2,
     CalendarRange,
     ChartNoAxesCombined,
     Check,
-    Coins,
     CreditCard,
     ExternalLink,
     FileSignature,
@@ -1956,92 +1953,6 @@ export default function FinancePage({
                     </CardContent>
                 </Card>
 
-                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                    <Card className="border-neutral-200/80 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
-                        <CardContent className="flex items-center gap-4 p-5">
-                            <div className="rounded-2xl bg-neutral-950 p-3 text-white dark:bg-neutral-100 dark:text-neutral-950">
-                                <BookOpenText className="h-5 w-5" />
-                            </div>
-                            <div>
-                                <p className="text-sm font-medium">
-                                    {t(
-                                        'financeDashboard.quickCards.chartOfAccounts.title',
-                                        'Chart of Accounts',
-                                    )}
-                                </p>
-                                <p className="text-xs text-neutral-500">
-                                    {t(
-                                        'financeDashboard.quickCards.chartOfAccounts.description',
-                                        'Assets, liabilities, equity, revenue, COGS, and expenses',
-                                    )}
-                                </p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card className="border-neutral-200/80 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
-                        <CardContent className="flex items-center gap-4 p-5">
-                            <div className="rounded-2xl bg-neutral-950 p-3 text-white dark:bg-neutral-100 dark:text-neutral-950">
-                                <Building2 className="h-5 w-5" />
-                            </div>
-                            <div>
-                                <p className="text-sm font-medium">
-                                    {t(
-                                        'financeDashboard.quickCards.propertyControl.title',
-                                        'Property-wise Control',
-                                    )}
-                                </p>
-                                <p className="text-xs text-neutral-500">
-                                    {t(
-                                        'financeDashboard.quickCards.propertyControl.description',
-                                        'Consolidated reporting with property-level filters and balances',
-                                    )}
-                                </p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card className="border-neutral-200/80 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
-                        <CardContent className="flex items-center gap-4 p-5">
-                            <div className="rounded-2xl bg-neutral-950 p-3 text-white dark:bg-neutral-100 dark:text-neutral-950">
-                                <Coins className="h-5 w-5" />
-                            </div>
-                            <div>
-                                <p className="text-sm font-medium">
-                                    {t(
-                                        'financeDashboard.quickCards.cashBank.title',
-                                        'Cash & Bank',
-                                    )}
-                                </p>
-                                <p className="text-xs text-neutral-500">
-                                    {t(
-                                        'financeDashboard.quickCards.cashBank.description',
-                                        'Cash drawers, deposits, petty cash, and manual movements',
-                                    )}
-                                </p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card className="border-neutral-200/80 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
-                        <CardContent className="flex items-center gap-4 p-5">
-                            <div className="rounded-2xl bg-neutral-950 p-3 text-white dark:bg-neutral-100 dark:text-neutral-950">
-                                <Package className="h-5 w-5" />
-                            </div>
-                            <div>
-                                <p className="text-sm font-medium">
-                                    {t(
-                                        'financeDashboard.quickCards.inventoryValuation.title',
-                                        'Inventory Valuation',
-                                    )}
-                                </p>
-                                <p className="text-xs text-neutral-500">
-                                    {t(
-                                        'financeDashboard.quickCards.inventoryValuation.description',
-                                        'Weighted average costing for stock value and COGS',
-                                    )}
-                                </p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
             </div>
         </AppLayout>
     );

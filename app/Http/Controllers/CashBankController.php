@@ -17,6 +17,10 @@ class CashBankController extends Controller
 {
     public function index()
     {
+        $properties = Property::query()
+            ->orderBy('name')
+            ->get(['id', 'name', 'name_translations', 'address', 'address_translations']);
+        $this->ensureDefaultCashOnHandAccounts($properties);
         $sourceAccounts = $this->liquidityAccounts();
 
         return Inertia::render('finance/cash-bank/index', [
@@ -31,9 +35,7 @@ class CashBankController extends Controller
                 ->orderByDesc('movement_date')
                 ->orderByDesc('id')
                 ->get(),
-            'properties' => Property::query()
-                ->orderBy('name')
-                ->get(['id', 'name', 'name_translations', 'address', 'address_translations']),
+            'properties' => $properties,
             'sourceAccounts' => $sourceAccounts,
             'targetAccounts' => $sourceAccounts,
             'movementTypes' => CashMovementType::query()
@@ -389,7 +391,33 @@ class CashBankController extends Controller
             })
             ->orderBy('code')
             ->orderBy('name')
-            ->get(['id', 'code', 'name', 'type']);
+            ->get(['id', 'code', 'name', 'type', 'property_id', 'currency_code']);
+    }
+
+    protected function ensureDefaultCashOnHandAccounts($properties): void
+    {
+        foreach (collect([null])->merge($properties) as $property) {
+            foreach (['AFN', 'USD'] as $currencyCode) {
+                $propertyId = $property?->id;
+                $scope = $propertyId ? "P{$propertyId}" : 'GROUP';
+                $code = "CASH-{$scope}-{$currencyCode}";
+
+                FinanceAccount::query()->firstOrCreate(
+                    ['code' => $code],
+                    [
+                        'name' => trim('Cash on Hand '.$currencyCode.($property?->name ? ' - '.$property->name : '')),
+                        'type' => 'asset',
+                        'parent_id' => null,
+                        'property_id' => $propertyId,
+                        'currency_code' => $currencyCode,
+                        'is_postable' => true,
+                        'is_system' => true,
+                        'status' => 'active',
+                        'description' => 'Cash-on-hand account for property-level finance tracking.',
+                    ],
+                );
+            }
+        }
     }
 
     protected function resolveAttachmentPath(Request $request, CashMovement $cashMovement): ?string

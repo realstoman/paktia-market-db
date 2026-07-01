@@ -3,12 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Enums\PaymentMethod;
+use App\Models\CashMovement;
+use App\Models\FinanceAccount;
 use App\Models\Lease;
 use App\Models\Property;
 use App\Models\RentPayment;
 use App\Services\Finance\RentalFinanceService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -82,7 +85,9 @@ class RentPaymentController extends Controller
             'reference' => ['nullable', 'string', 'max:255'],
             'notes' => ['nullable', 'string', 'max:2000'],
         ]);
-        $lease = Lease::query()->findOrFail($validated['lease_id']);
+        $lease = Lease::query()
+            ->with(['currency:id,code,symbol', 'property:id,name'])
+            ->findOrFail($validated['lease_id']);
         $periodStart = Carbon::parse($validated['period_start']);
         $periodEnd = isset($validated['period_end'])
             ? Carbon::parse($validated['period_end'])
@@ -96,14 +101,18 @@ class RentPaymentController extends Controller
             ]);
         }
 
-        RentPayment::query()->create([
-            ...$validated,
-            'tenant_id' => $lease->tenant_id,
-            'property_id' => $lease->property_id,
-            'currency_id' => $lease->currency_id,
-            'status' => 'received',
-            'created_by' => $request->user()?->id,
-        ]);
+        DB::transaction(function () use ($request, $validated, $lease): void {
+            $payment = RentPayment::query()->create([
+                ...$validated,
+                'tenant_id' => $lease->tenant_id,
+                'property_id' => $lease->property_id,
+                'currency_id' => $lease->currency_id,
+                'status' => 'received',
+                'created_by' => $request->user()?->id,
+            ]);
+
+            $this->recordRentCashMovement($payment, $lease, $request);
+        });
 
         return back()->with('success', __('rentals.actions.created'));
     }
@@ -121,6 +130,65 @@ class RentPaymentController extends Controller
             'void_reason' => $validated['void_reason'],
         ]);
 
+        CashMovement::query()
+            ->where('reference_type', 'rent_payment')
+            ->where('reference_id', $rentPayment->id)
+            ->update([
+                'approval_status' => 'draft',
+                'approved_by' => null,
+                'description' => trim(($rentPayment->reference ? "{$rentPayment->reference} - " : '').'Voided rent receipt: '.$validated['void_reason']),
+            ]);
+
         return back()->with('success', __('rentals.actions.voided'));
+    }
+
+    private function recordRentCashMovement(RentPayment $payment, Lease $lease, Request $request): void
+    {
+        $currencyCode = strtoupper($lease->currency?->code ?? 'AFN');
+        $account = $this->cashOnHandAccount(
+            propertyId: $lease->property_id,
+            propertyName: $lease->property?->name,
+            currencyCode: $currencyCode,
+        );
+
+        CashMovement::query()->create([
+            'property_id' => $lease->property_id,
+            'movement_type' => 'rent_collection',
+            'direction' => 'in',
+            'movement_date' => $payment->payment_date,
+            'amount' => $payment->amount,
+            'payment_method' => $payment->payment_method,
+            'account_id' => $account->id,
+            'counterparty_account_id' => null,
+            'reference_type' => 'rent_payment',
+            'reference_id' => $payment->id,
+            'created_by' => $request->user()?->id,
+            'approved_by' => $request->user()?->id,
+            'approval_status' => 'approved',
+            'description' => $payment->reference
+                ? 'Rent receipt '.$payment->reference
+                : 'Rent receipt '.$payment->receipt_number,
+        ]);
+    }
+
+    private function cashOnHandAccount(?int $propertyId, ?string $propertyName, string $currencyCode): FinanceAccount
+    {
+        $scope = $propertyId ? "P{$propertyId}" : 'GROUP';
+        $code = "CASH-{$scope}-{$currencyCode}";
+
+        return FinanceAccount::query()->firstOrCreate(
+            ['code' => $code],
+            [
+                'name' => trim('Cash on Hand '.$currencyCode.($propertyName ? ' - '.$propertyName : '')),
+                'type' => 'asset',
+                'parent_id' => null,
+                'property_id' => $propertyId,
+                'currency_code' => $currencyCode,
+                'is_postable' => true,
+                'is_system' => true,
+                'status' => 'active',
+                'description' => 'Auto-created cash-on-hand account for received rent.',
+            ],
+        );
     }
 }

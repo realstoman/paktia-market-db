@@ -327,6 +327,12 @@ class FinanceController extends Controller
         $cashPosition += (float) RentPayment::query()
             ->where('status', 'received')
             ->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))
+            ->whereNotExists(function ($query) {
+                $query->selectRaw('1')
+                    ->from('cash_movements')
+                    ->whereColumn('cash_movements.reference_id', 'rent_payments.id')
+                    ->where('cash_movements.reference_type', 'rent_payment');
+            })
             ->sum('amount');
         $unpaidSalaries = Schema::hasTable('payroll_run_items')
             ? (float) DB::table('payroll_run_items')->where('payment_status', '!=', 'paid')->sum('net_salary')
@@ -482,7 +488,8 @@ class FinanceController extends Controller
                 'debit' => (float) $expense->amount,
                 'credit' => 0,
                 'status' => $expense->approval_status ?? 'draft',
-            ]);
+            ])
+            ->toBase();
 
         $movements = CashMovement::query()
             ->with('property:id,name,name_translations')
@@ -499,12 +506,19 @@ class FinanceController extends Controller
                 'debit' => $movement->direction === 'out' ? (float) $movement->amount : 0,
                 'credit' => $movement->direction === 'in' ? (float) $movement->amount : 0,
                 'status' => $movement->approval_status ?? 'draft',
-            ]);
+            ])
+            ->toBase();
 
         $rentPayments = RentPayment::query()
             ->with(['property:id,name,name_translations', 'tenant:id,full_name,business_name'])
             ->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))
             ->where('status', 'received')
+            ->whereNotExists(function ($query) {
+                $query->selectRaw('1')
+                    ->from('cash_movements')
+                    ->whereColumn('cash_movements.reference_id', 'rent_payments.id')
+                    ->where('cash_movements.reference_type', 'rent_payment');
+            })
             ->whereBetween('payment_date', [$startDate->toDateString(), $endDate->toDateString()])
             ->get()
             ->map(fn (RentPayment $payment) => [
@@ -517,7 +531,8 @@ class FinanceController extends Controller
                 'debit' => 0,
                 'credit' => (float) $payment->amount,
                 'status' => 'received',
-            ]);
+            ])
+            ->toBase();
 
         $entries = $expenses->merge($movements)->merge($rentPayments)->sortByDesc('date')->values();
 

@@ -541,6 +541,7 @@ function PaymentForm({
                     }}
                     placeholder={t('rentals.selectLease')}
                     options={leaseOptions}
+                    className="bg-white"
                 />
                 <InputError message={form.errors.lease_id} />
             </div>
@@ -600,6 +601,7 @@ function PaymentForm({
                             value,
                             label: t(`paymentMethods.${value}`, value),
                         }))}
+                        className="bg-white"
                     />
                 </div>
                 <div className="space-y-1.5">
@@ -688,6 +690,7 @@ function VoidForm({
             <div className="space-y-1.5">
                 <Label>{t('rentals.voidReason')}</Label>
                 <Textarea
+                    className="bg-white"
                     value={form.data.void_reason}
                     onChange={(event) =>
                         form.setData('void_reason', event.target.value)
