@@ -102,8 +102,8 @@ const en = {
         tools: 'Other Sections',
         managementTools: 'Tools',
         toolInventory: 'Inventory',
-        toolDubaiRestaurant: 'Dubai Restaurant',
-        toolKabulSarafi: 'Kabul Gold & Sarafi',
+        toolDubaiRestaurant: 'Kabul Darbar Restaurant',
+        toolKabulSarafi: 'Abdul Hanan Paktiawal Sarafi',
         toolContracts: 'Contract Templates',
         toolEmployees: 'Employees',
         toolShareholders: 'Shareholders',
@@ -3620,20 +3620,20 @@ const en = {
         },
         businesses: {
             dubaiRestaurant: {
-                title: 'Dubai Restaurant',
+                title: 'Kabul Darbar Restaurant',
                 location: 'Dubai, UAE',
                 description:
-                    'Record daily valuation, sales, income, and expenses for the group-owned restaurant business in Dubai.',
+                    'Record daily valuation, sales, income, and expenses for Kabul Darbar Restaurant.',
                 moduleDescription:
                     'Daily restaurant valuation, sales, income, and expenses.',
             },
             kabulSarafi: {
-                title: 'Kabul Gold & Sarafi',
+                title: 'Abdul Hanan Paktiawal Sarafi',
                 location: 'Kabul, Afghanistan',
                 description:
-                    'Record daily valuation, sales, income, and expenses for the gold and Sarafi business in Kabul.',
+                    'Record daily valuation, sales, income, and expenses for Abdul Hanan Paktiawal Sarafi.',
                 moduleDescription:
-                    'Daily gold and Sarafi valuation, sales, income, and expenses.',
+                    'Daily Sarafi valuation, sales, income, and expenses.',
             },
         },
         actions: {
