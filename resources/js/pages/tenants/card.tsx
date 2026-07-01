@@ -175,19 +175,19 @@ export default function TenantCard({ tenant, selectedLeaseId = null }: Props) {
                                     {propertyName}
                                 </strong>
                             </div>
-                            <div className="mt-[1.8mm] flex items-center gap-[2mm] rounded-[1.4mm] border border-slate-200 bg-white p-[1mm]">
+                            <div
+                                className="mt-[1.6mm] flex items-center justify-between gap-[2mm] rounded-[1.4mm] bg-slate-50/80 p-[0.8mm]"
+                                dir="ltr"
+                            >
                                 <QrCode
                                     value={tenant.card_code}
-                                    className="h-[13mm] w-[13mm] shrink-0"
+                                    className="h-[15mm] w-[15mm] shrink-0"
                                 />
-                                <div className="min-w-0 text-start">
+                                <div className="min-w-0 text-left">
                                     <p className="text-[1.55mm] font-semibold text-slate-500">
                                         {t('tenants.card.code')}
                                     </p>
-                                    <p
-                                        className="mt-[0.5mm] truncate font-mono text-[1.8mm] font-bold tracking-[0.3mm] text-slate-900"
-                                        dir="ltr"
-                                    >
+                                    <p className="mt-[0.5mm] max-w-[23mm] truncate font-mono text-[1.85mm] font-bold tracking-[0.3mm] text-slate-900">
                                         {tenant.card_code}
                                     </p>
                                 </div>

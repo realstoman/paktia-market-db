@@ -1,5 +1,10 @@
 import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
+import {
+    formatAfghanDate,
+    formatAfghanMonthLabel,
+    formatAfghanPeriodLabel,
+} from '@/utils/afghan-calendar';
 import { formatNumber, formatPrice } from '@/utils/format';
 import { Head, Link } from '@inertiajs/react';
 import {
@@ -271,6 +276,10 @@ function currencyTotalsText(totals: CurrencyTotals = {}) {
         .join(' / ');
 }
 
+function currencyAmount(totals: CurrencyTotals = {}, code: string) {
+    return Number(totals[code] ?? totals[code.toLowerCase()] ?? 0);
+}
+
 function EmptyChart({ label }: { label: string }) {
     return (
         <div className="flex h-full items-center justify-center rounded-xl bg-[#edf1f4] text-sm text-slate-400 dark:bg-neutral-950">
@@ -310,7 +319,7 @@ function downloadBlob(content: BlobPart, filename: string, type: string) {
 }
 
 export default function Dashboard({ data }: { data: DashboardData }) {
-    const { direction, t } = useLocalization();
+    const { direction, locale, t } = useLocalization();
     const [activeTab, setActiveTab] = useState<string>('overall');
     const projects = data.portfolio.projects;
     const selectedProject = projects.find(
@@ -326,6 +335,10 @@ export default function Dashboard({ data }: { data: DashboardData }) {
             endDate: formatDateForQuery(monthEnd),
         };
     }, []);
+    const currentAfghanMonthLabel = useMemo(
+        () => formatAfghanMonthLabel(currentMonthFilters.startDate),
+        [currentMonthFilters.startDate],
+    );
     const rentCollectionsHref = selectedProject
         ? `/finance/rentals?${new URLSearchParams({
               property_id: String(selectedProject.id),
@@ -413,16 +426,28 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                       'propertyDashboard.totalCollectedRentThisMonth',
                       'Collected rent this month',
                   ),
-                  value: selectedProject.financeThisMonth.collectedRent,
-                  color: COLORS.green,
+                  AFN: currencyAmount(
+                      selectedProject.financeThisMonth.collectedRentByCurrency,
+                      'AFN',
+                  ),
+                  USD: currencyAmount(
+                      selectedProject.financeThisMonth.collectedRentByCurrency,
+                      'USD',
+                  ),
               },
               {
                   name: t(
                       'propertyDashboard.totalExpensesThisMonth',
                       'Expenses this month',
                   ),
-                  value: selectedProject.financeThisMonth.expenses,
-                  color: COLORS.coral,
+                  AFN: currencyAmount(
+                      selectedProject.financeThisMonth.expensesByCurrency,
+                      'AFN',
+                  ),
+                  USD: currencyAmount(
+                      selectedProject.financeThisMonth.expensesByCurrency,
+                      'USD',
+                  ),
               },
               ...(selectedProjectHasShareholders
                   ? [
@@ -431,20 +456,19 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                 'propertyDashboard.totalShareholderTakeoutsThisMonth',
                                 'Shareholder takeouts this month',
                             ),
-                            value: selectedProject.financeThisMonth
-                                .shareholderTakeouts,
-                            color: COLORS.blue,
+                            AFN: currencyAmount(
+                                selectedProject.financeThisMonth
+                                    .shareholderTakeoutsByCurrency,
+                                'AFN',
+                            ),
+                            USD: currencyAmount(
+                                selectedProject.financeThisMonth
+                                    .shareholderTakeoutsByCurrency,
+                                'USD',
+                            ),
                         },
                     ]
                   : []),
-              {
-                  name: t(
-                      'propertyDashboard.totalAvailableCash',
-                      'Available cash',
-                  ),
-                  value: selectedProject.financeThisMonth.availableCash,
-                  color: COLORS.teal,
-              },
           ]
         : [];
     const hasOverallChart = overallProjectChart.some(
@@ -455,7 +479,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
         (item) => item.value > 0,
     );
     const hasProjectFinance = propertyFinanceChart.some(
-        (item) => item.value !== 0,
+        (item) => item.AFN !== 0 || item.USD !== 0,
     );
     const overviewRows = useMemo(
         () =>
@@ -1296,16 +1320,21 @@ export default function Dashboard({ data }: { data: DashboardData }) {
 
                         <section className="grid gap-5 xl:grid-cols-[1.3fr_0.7fr]">
                             <div className="rounded-2xl border border-[#dfe7e9] bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
-                                <h2 className="font-bold text-[#002452] dark:text-white">
-                                    {t(
-                                        'propertyDashboard.monthlyFinanceChart',
-                                        'Monthly finance overview',
-                                    )}
-                                </h2>
+                                <div className="flex items-center justify-between gap-3">
+                                    <h2 className="font-bold text-[#002452] dark:text-white">
+                                        {t(
+                                            'propertyDashboard.monthlyFinanceChart',
+                                            'Monthly finance overview',
+                                        )}
+                                    </h2>
+                                    <span className="rounded-full bg-[#edf1f4] px-3 py-1 text-xs font-semibold text-[#002452]">
+                                        {currentAfghanMonthLabel}
+                                    </span>
+                                </div>
                                 <p className="mt-1 text-xs text-slate-500">
                                     {t(
                                         'propertyDashboard.monthlyFinanceChartHelp',
-                                        'Collected rent, expenses, shareholder takeouts and available cash for this month',
+                                        'Collected rent, expenses and shareholder takeouts for this month',
                                     )}
                                 </p>
                                 <div className="mt-5 h-80" dir="ltr">
@@ -1325,6 +1354,10 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                                     dataKey="name"
                                                     tickLine={false}
                                                     axisLine={false}
+                                                    tick={{
+                                                        fontSize: 11,
+                                                        fill: '#64748b',
+                                                    }}
                                                 />
                                                 <YAxis
                                                     tickLine={false}
@@ -1333,28 +1366,18 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                                         formatNumber(value)
                                                     }
                                                 />
-                                                <Tooltip
-                                                    formatter={(
-                                                        value: number,
-                                                    ) =>
-                                                        `${formatPrice(value)} ؋`
-                                                    }
+                                                <Bar
+                                                    dataKey="AFN"
+                                                    name="؋"
+                                                    fill={COLORS.teal}
+                                                    radius={[7, 7, 0, 0]}
                                                 />
                                                 <Bar
-                                                    dataKey="value"
+                                                    dataKey="USD"
+                                                    name="$"
+                                                    fill={COLORS.green}
                                                     radius={[7, 7, 0, 0]}
-                                                >
-                                                    {propertyFinanceChart.map(
-                                                        (item) => (
-                                                            <Cell
-                                                                key={item.name}
-                                                                fill={
-                                                                    item.color
-                                                                }
-                                                            />
-                                                        ),
-                                                    )}
-                                                </Bar>
+                                                />
                                             </BarChart>
                                         </ResponsiveContainer>
                                     ) : (
@@ -1410,11 +1433,6 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                                     tickFormatter={(value) =>
                                                         formatNumber(value)
                                                     }
-                                                />
-                                                <Tooltip
-                                                    formatter={(
-                                                        value: number,
-                                                    ) => formatNumber(value)}
                                                 />
                                                 <Bar
                                                     dataKey="value"
@@ -1557,9 +1575,11 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                                                 '—'}
                                                         </td>
                                                         <td className="px-3 py-2 text-slate-500">
-                                                            {
-                                                                payment.paymentDate
-                                                            }
+                                                            {locale === 'en'
+                                                                ? payment.paymentDate
+                                                                : formatAfghanDate(
+                                                                      payment.paymentDate,
+                                                                  )}
                                                         </td>
                                                         <td className="px-3 py-2 font-semibold">
                                                             {formatPrice(
@@ -1568,11 +1588,12 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                                             {payment.currency}
                                                         </td>
                                                         <td className="px-3 py-2 text-slate-500">
-                                                            {payment.periodStart ||
-                                                                '—'}
-                                                            {payment.periodEnd
-                                                                ? ` - ${payment.periodEnd}`
-                                                                : ''}
+                                                            {locale === 'en'
+                                                                ? `${payment.periodStart || '—'}${payment.periodEnd ? ` - ${payment.periodEnd}` : ''}`
+                                                                : formatAfghanPeriodLabel(
+                                                                      payment.periodStart,
+                                                                      payment.periodEnd,
+                                                                  )}
                                                         </td>
                                                     </tr>
                                                 ),
