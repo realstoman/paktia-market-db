@@ -102,8 +102,8 @@ const en = {
         tools: 'Other Sections',
         managementTools: 'Tools',
         toolInventory: 'Inventory',
-        toolDubaiRestaurant: 'Dubai Restaurant',
-        toolKabulSarafi: 'Kabul Gold & Sarafi',
+        toolDubaiRestaurant: 'Kabul Darbar Restaurant',
+        toolKabulSarafi: 'Abdul Hanan Paktiawal Sarafi',
         toolContracts: 'Contract Templates',
         toolEmployees: 'Employees',
         toolShareholders: 'Shareholders',
@@ -397,8 +397,20 @@ const en = {
         register: 'Register tenant',
         scan: 'Scan tenant card',
         scanPlaceholder: 'Scan a card or enter its code…',
-        scanHelp:
-            'Scan a printed barcode to open the tenant profile instantly.',
+        scanHelp: 'Scan the QR code to open the tenant profile instantly.',
+        scanCameraTitle: 'Scan QR code',
+        scanCameraDescription:
+            'Use the device camera to read the QR code printed on the tenant ID card.',
+        scanCameraStarting: 'Starting camera…',
+        scanCameraReady: 'Point the camera at the QR code on the tenant card.',
+        scanCameraUnavailable:
+            'Camera scanning is not available in this browser. Please scan with a hardware QR scanner or enter the card code manually.',
+        scanNotSupported:
+            'This browser cannot read QR codes from the camera. Please use the scan input or a hardware QR scanner.',
+        scanPermissionDenied:
+            'Camera permission was denied or the camera could not be opened. Please enter the card code manually.',
+        scanDetected: 'Tenant card scanned.',
+        scanManualEntry: 'Enter code manually',
         searchPlaceholder: 'Search by person, business, phone or card code…',
         empty: 'No tenants match your search.',
         active: 'Active',
@@ -494,6 +506,13 @@ const en = {
             endDate: 'End date',
             rent: 'Rent amount',
             deposit: 'Security deposit',
+            upfrontPayment: 'Upfront / prepaid rent',
+            upfrontPaymentHelp:
+                'Record any rent paid at contract signing so the covered months do not appear as unpaid.',
+            initialRentMonths: 'Prepaid rent months',
+            initialRentAmount: 'Initial/prepaid rent amount',
+            initialRentPaymentDate: 'Initial rent payment date',
+            initialRentPaymentMethod: 'Initial rent payment method',
             currency: 'Currency',
             frequency: 'Payment frequency',
             status: 'Contract status',
@@ -689,6 +708,15 @@ const en = {
         noProjectData: 'No project records are available yet.',
         projects: 'Projects',
         project: 'Project',
+        projectsFinanceOverview: 'Properties finance overview',
+        projectsFinanceOverviewHelp:
+            'Monthly rent, total collected rent, expenses, and status for each property.',
+        propertyName: 'Property Name',
+        recentMonthRent: 'Recent month rent',
+        totalCollectedRent: 'Total collected rent',
+        totalExpenses: 'Total expenses',
+        downloadPdf: 'PDF',
+        downloadExcel: 'Excel',
         shops: 'Shops',
         tenants: 'Tenants',
         status: 'Status',
@@ -1194,6 +1222,15 @@ const en = {
         tertiaryColorLabel: 'Tertiary color',
         logoLabel: 'Sidebar logo',
         logoFullLabel: 'Full auth logo',
+        tenantCardSettingsTitle: 'Tenant ID card',
+        tenantCardSettingsDescription:
+            'Configure the message, phone number, and logos printed on tenant ID cards.',
+        tenantCardMessageLabel: 'Back-side message',
+        tenantCardMessageHelp:
+            'Use :property where the market/property name should appear.',
+        tenantCardPhoneLabel: 'Contact phone number',
+        tenantCardFrontLogoLabel: 'Card front logo',
+        tenantCardBackLogoLabel: 'Card back logo',
         previewLabel: 'Live preview',
         systemBrandingHelp:
             'Save and reload to apply the updated branding across the system.',
@@ -1660,6 +1697,11 @@ const en = {
             actions: 'Actions',
         },
         status: { received: 'Received', void: 'Void' },
+        receiptPrint: {
+            title: 'Rent payment receipt',
+            print: 'Print receipt',
+            paid: 'Paid',
+        },
     },
     financeDashboard: {
         pageTitle: 'Finance Dashboard',
@@ -1713,6 +1755,9 @@ const en = {
         summary: {
             sales: 'Rent Received',
             salesSubtitle: 'Tenant rent received in the selected period',
+            rentReceived: 'Rent Received',
+            rentReceivedSubtitle:
+                'Collected tenant rent for the selected property and period',
             rentExpected: 'Contracted Rent',
             rentExpectedSubtitle:
                 'Rent due from active contracts in this period',
@@ -1737,6 +1782,13 @@ const en = {
             supplierBalancesSubtitle:
                 'Unpaid vendor balance from stock purchases',
             pending: 'Pending',
+        },
+        businessCards: {
+            title: 'Business finance',
+            valuation: 'Valuation',
+            income: 'Income',
+            expenses: 'Expenses',
+            net: 'Net',
         },
         notes: {
             grossProfitRecognized:
@@ -2929,10 +2981,37 @@ const en = {
             singlePrice: 'Single Price',
             totalPrice: 'Total Price',
             usable: 'Usable',
+            assignedTo: 'Assigned To',
             images: 'Images',
             receipt: 'Receipt/Bill',
             actions: 'Actions',
             unknown: 'Unknown',
+        },
+        assignments: {
+            assignAction: 'Assign to employee',
+            returnAction: 'Return from employee',
+            assignTitle: 'Assign item to employee',
+            assignDescription:
+                'Track fixed assets given to employees so they can be returned when employment ends.',
+            returnTitle: 'Return assigned item',
+            returnDescription:
+                'Mark an employee-held fixed asset as returned.',
+            employee: 'Employee',
+            selectEmployee: 'Select employee',
+            employeeNumber: 'Employee #:id',
+            assignment: 'Assignment',
+            selectAssignment: 'Select assignment',
+            quantity: 'Quantity',
+            available: 'Available',
+            assignedAt: 'Assigned date',
+            expectedReturnAt: 'Expected return date',
+            returnedAt: 'Returned date',
+            conditionOut: 'Condition when assigned',
+            conditionIn: 'Condition when returned',
+            assigned: 'Item assigned to employee successfully.',
+            assignFailed: 'Failed to assign item.',
+            returned: 'Item returned successfully.',
+            returnFailed: 'Failed to return item.',
         },
         common: {
             name: 'Name',
@@ -3263,8 +3342,11 @@ const en = {
         active: 'Active',
         inactive: 'Inactive',
         floors: 'Floors',
+        shop: 'Shop',
+        apartment: 'Apartment',
         shops: 'Shops',
         apartments: 'Apartments',
+        shopsAndApartments: 'shops and apartments',
         rooms: 'Rooms',
         building: 'Building area (m²)',
         ready: 'Employees, expenses and reports ready',
@@ -3288,15 +3370,18 @@ const en = {
         basementHelp:
             'Use a negative floor number for basements, for example -1.',
         addFloor: 'Add floor',
+        addSpace: 'Add shop / apartment',
         addShop: 'Add shop',
         addApartment: 'Add apartment',
         editFloor: 'Edit floor',
+        editSpace: 'Edit shop / apartment',
         editShop: 'Edit shop',
         editApartment: 'Edit apartment',
         saveChanges: 'Save changes',
         noFloors:
             'No floors yet. Add a basement, ground floor or upper floor to begin.',
         noSpaces: 'No :spaces have been added.',
+        searchSpaces: 'Search shops or apartments by number or name…',
         searchShops: 'Search shops by number or name…',
         searchApartments: 'Search apartments by number or name…',
         noMatchingSpaces: 'No matching shop or apartment was found.',
@@ -3315,7 +3400,7 @@ const en = {
             'Use this complete unit for employees and expenses while owner-operated, or assign it to one tenant when rented.',
         uploadPhoto: 'Upload a property photo',
         uploadPhotoHelp:
-            'PNG, JPG or WebP, up to 5 MB. Each image must be 1920×1080.',
+            'PNG, JPG or WebP, up to 5 MB. Any image size is accepted and cropped in cards automatically.',
         choosePhoto: 'Choose photo',
         selectedPhoto: 'Selected photo',
         selectedPhotos: ':count images selected',
@@ -3348,6 +3433,7 @@ const en = {
             length: 'Length (m)',
             electricityMeter: 'Electricity meter',
             waterMeter: 'Water meter',
+            unitType: 'Space type',
             shopNumber: 'Shop number',
             apartmentNumber: 'Apartment number',
             occupancyStatus: 'Occupancy status',
@@ -3435,8 +3521,15 @@ const en = {
         },
         images: {
             title: 'Property images',
-            help: 'Upload up to 10 gallery images. Each image must be exactly 1920×1080.',
+            help: 'Upload up to 10 gallery images from any angle. Cards and covers keep a fixed size and crop automatically.',
             upload: 'Upload images',
+            image: 'Property image',
+            cover: 'Current cover',
+            setCover: 'Set as cover',
+            deleteTitle: 'Delete image?',
+            deleteDescription:
+                'This image will be removed from the property gallery.',
+            confirmDelete: 'Delete image',
             empty: 'No property images have been uploaded.',
             openLarge: 'Open large view',
         },
@@ -3560,20 +3653,20 @@ const en = {
         },
         businesses: {
             dubaiRestaurant: {
-                title: 'Dubai Restaurant',
+                title: 'Kabul Darbar Restaurant',
                 location: 'Dubai, UAE',
                 description:
-                    'Record daily valuation, sales, income, and expenses for the group-owned restaurant business in Dubai.',
+                    'Record daily valuation, sales, income, and expenses for Kabul Darbar Restaurant.',
                 moduleDescription:
                     'Daily restaurant valuation, sales, income, and expenses.',
             },
             kabulSarafi: {
-                title: 'Kabul Gold & Sarafi',
+                title: 'Abdul Hanan Paktiawal Sarafi',
                 location: 'Kabul, Afghanistan',
                 description:
-                    'Record daily valuation, sales, income, and expenses for the gold and Sarafi business in Kabul.',
+                    'Record daily valuation, sales, income, and expenses for Abdul Hanan Paktiawal Sarafi.',
                 moduleDescription:
-                    'Daily gold and Sarafi valuation, sales, income, and expenses.',
+                    'Daily Sarafi valuation, sales, income, and expenses.',
             },
         },
         actions: {

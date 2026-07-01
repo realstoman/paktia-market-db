@@ -8,13 +8,17 @@ import { createInertiaApp, router } from '@inertiajs/react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { StrictMode, useEffect } from 'react';
-import { createRoot } from 'react-dom/client';
+import { createRoot, type Root } from 'react-dom/client';
 import { Toaster, toast } from 'sonner';
 import { initializeTheme } from './hooks/use-appearance';
 
 const appName = 'Paktiawal Group';
 const displayedLoginWelcomeToasts = new Set<string>();
 const displayedFlashToasts = new Set<string>();
+
+type InertiaRootElement = HTMLElement & {
+    __paktiaInertiaRoot?: Root;
+};
 
 function welcomeToastMessage(pageProps: Partial<SharedData>): string {
     const locale = (pageProps.localization?.locale ?? 'fa') as LocaleCode;
@@ -168,7 +172,11 @@ createInertiaApp({
             import.meta.glob('./pages/**/*.tsx'),
         ),
     setup({ el, App, props }) {
-        const root = createRoot(el);
+        const rootElement = el as InertiaRootElement;
+        const root =
+            rootElement.__paktiaInertiaRoot ?? createRoot(rootElement);
+
+        rootElement.__paktiaInertiaRoot = root;
 
         root.render(
             <StrictMode>

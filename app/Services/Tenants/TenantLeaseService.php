@@ -2,6 +2,8 @@
 
 namespace App\Services\Tenants;
 
+use App\Models\CashMovement;
+use App\Models\FinanceAccount;
 use App\Models\Lease;
 use App\Models\Property;
 use App\Models\PropertyUnit;
@@ -25,14 +27,15 @@ class TenantLeaseService
             $data['property_floor_id'] = $unit?->property_floor_id;
             $data['property_unit_id'] = $unit?->id;
             $data['leased_space_type'] = match ($property->typeBehavior()) {
-                'market' => 'shop',
+                'market' => $unit?->unit_type ?? 'property',
+                'block' => $unit?->unit_type ?? 'block',
                 'commercial_unit' => 'shop',
                 'house' => 'house',
-                'block' => $unit ? 'apartment' : 'block',
                 default => $unit?->unit_type ?? 'property',
             };
 
             $lease = Lease::query()->create($data);
+            $lease->loadMissing(['currency:id,code', 'property:id,name']);
 
             if ($unit && $lease->status === 'active') {
                 $unit->update(['occupancy_status' => 'occupied']);
@@ -41,6 +44,8 @@ class TenantLeaseService
             if ($property->typeBehavior() === 'commercial_unit' && $lease->status === 'active') {
                 $property->update(['operating_mode' => 'rented']);
             }
+
+            $this->syncSecurityDepositCashMovement($lease);
 
             return $lease;
         });
@@ -62,20 +67,22 @@ class TenantLeaseService
             $data['property_floor_id'] = $unit?->property_floor_id;
             $data['property_unit_id'] = $unit?->id;
             $data['leased_space_type'] = match ($property->typeBehavior()) {
-                'market' => 'shop',
+                'market' => $unit?->unit_type ?? 'property',
+                'block' => $unit?->unit_type ?? 'block',
                 'commercial_unit' => 'shop',
                 'house' => 'house',
-                'block' => $unit ? 'apartment' : 'block',
                 default => $unit?->unit_type ?? 'property',
             };
 
             $lease->update($data);
             $lease->refresh();
+            $lease->loadMissing(['currency:id,code', 'property:id,name']);
 
             $this->refreshUnitOccupancy($oldUnitId);
             $this->refreshUnitOccupancy($lease->property_unit_id);
             $this->refreshCommercialUnitMode($oldPropertyId);
             $this->refreshCommercialUnitMode($lease->property_id);
+            $this->syncSecurityDepositCashMovement($lease);
 
             return $lease;
         });
@@ -92,12 +99,16 @@ class TenantLeaseService
         $behavior = $property->typeBehavior();
 
         if ($behavior === 'market') {
-            if (! $unit || $unit->unit_type !== 'shop') {
+            if (! $unit) {
                 throw ValidationException::withMessages([
-                    'property_unit_id' => 'A shop must be selected for a market or mall tenant.',
+                    'property_unit_id' => 'A shop or apartment must be selected for this property.',
                 ]);
             }
 
+            return;
+        }
+
+        if ($behavior === 'block') {
             return;
         }
 
@@ -113,11 +124,6 @@ class TenantLeaseService
             ]);
         }
 
-        if ($behavior === 'block' && $unit && $unit->unit_type !== 'apartment') {
-            throw ValidationException::withMessages([
-                'property_unit_id' => 'Only an apartment may be selected inside a residential block.',
-            ]);
-        }
     }
 
     private function validateAvailability(Property $property, ?PropertyUnit $unit, array $data, ?int $ignoreLeaseId = null): void
@@ -201,5 +207,73 @@ class TenantLeaseService
             ->exists();
 
         $property->update(['operating_mode' => $occupied ? 'rented' : 'vacant']);
+    }
+
+    private function syncSecurityDepositCashMovement(Lease $lease): void
+    {
+        $amount = (float) ($lease->security_deposit ?? 0);
+        $existing = CashMovement::query()
+            ->where('reference_type', 'lease_security_deposit')
+            ->where('reference_id', $lease->id)
+            ->first();
+
+        if ($amount <= 0) {
+            $existing?->update([
+                'approval_status' => 'draft',
+                'approved_by' => null,
+                'description' => 'Security deposit removed from lease.',
+            ]);
+
+            return;
+        }
+
+        $currencyCode = strtoupper($lease->currency?->code ?? 'AFN');
+        $account = $this->cashOnHandAccount(
+            propertyId: $lease->property_id,
+            propertyName: $lease->property?->name,
+            currencyCode: $currencyCode,
+        );
+
+        CashMovement::query()->updateOrCreate(
+            [
+                'reference_type' => 'lease_security_deposit',
+                'reference_id' => $lease->id,
+            ],
+            [
+                'property_id' => $lease->property_id,
+                'movement_type' => 'security_deposit',
+                'direction' => 'in',
+                'movement_date' => $lease->start_date,
+                'amount' => $amount,
+                'payment_method' => 'cash',
+                'account_id' => $account->id,
+                'counterparty_account_id' => null,
+                'created_by' => auth()->id(),
+                'approved_by' => auth()->id(),
+                'approval_status' => 'approved',
+                'description' => 'Tenant security deposit for contract '.$lease->contract_number,
+            ],
+        );
+    }
+
+    private function cashOnHandAccount(?int $propertyId, ?string $propertyName, string $currencyCode): FinanceAccount
+    {
+        $scope = $propertyId ? "P{$propertyId}" : 'GROUP';
+        $code = "CASH-{$scope}-{$currencyCode}";
+
+        return FinanceAccount::query()->firstOrCreate(
+            ['code' => $code],
+            [
+                'name' => trim('Cash on Hand '.$currencyCode.($propertyName ? ' - '.$propertyName : '')),
+                'type' => 'asset',
+                'parent_id' => null,
+                'property_id' => $propertyId,
+                'currency_code' => $currencyCode,
+                'is_postable' => true,
+                'is_system' => true,
+                'status' => 'active',
+                'description' => 'Auto-created cash-on-hand account for tenant security deposits.',
+            ],
+        );
     }
 }

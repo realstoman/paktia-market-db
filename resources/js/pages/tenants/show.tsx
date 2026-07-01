@@ -24,6 +24,14 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -49,6 +57,7 @@ import {
     IdCard,
     Mail,
     MapPin,
+    MoreHorizontal,
     Pencil,
     Phone,
     Plus,
@@ -79,6 +88,10 @@ interface LeaseForm {
     status: string;
     terms: string;
     lease_notes: string;
+    initial_rent_months: string;
+    initial_rent_amount: string;
+    initial_rent_payment_date: string;
+    initial_rent_payment_method: string;
 }
 interface ProfileForm {
     _method: string;
@@ -131,6 +144,14 @@ export default function TenantProfile({
     const [assignmentOpen, setAssignmentOpen] = useState(false);
     const [editingLease, setEditingLease] = useState<Lease | null>(null);
     const [editOpen, setEditOpen] = useState(openEdit);
+    const openPrintCard = (leaseId?: number) => {
+        const query = leaseId ? `?lease_id=${leaseId}` : '';
+        window.open(
+            `/tenants/${tenant.id}/card${query}`,
+            '_blank',
+            'noopener,noreferrer',
+        );
+    };
     const breadcrumbs: BreadcrumbItem[] = [
         { title: t('navigation.dashboard'), href: '/dashboard' },
         { title: t('tenants.title'), href: '/tenants' },
@@ -302,13 +323,12 @@ export default function TenantProfile({
                                 </>
                             )}
                             <Button
-                                asChild
+                                type="button"
                                 className="bg-[#002452] text-white hover:bg-[#002452]/90"
+                                onClick={() => openPrintCard()}
                             >
-                                <Link href={`/tenants/${tenant.id}/card`}>
-                                    <Printer className="me-2 h-4 w-4" />
-                                    {t('tenants.profile.printCard')}
-                                </Link>
+                                <Printer className="me-2 h-4 w-4" />
+                                {t('tenants.profile.printCard')}
                             </Button>
                             {lease && (
                                 <Button
@@ -494,54 +514,7 @@ export default function TenantProfile({
                                                 {item.contract_number}
                                             </p>
                                         </div>
-                                        <div className="flex flex-wrap items-center gap-2">
-                                            {canManage && (
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    size="icon"
-                                                    className="bg-white"
-                                                    title={t(
-                                                        'tenants.lease.edit',
-                                                        'Edit assignment',
-                                                    )}
-                                                    onClick={() =>
-                                                        setEditingLease(item)
-                                                    }
-                                                >
-                                                    <Pencil className="size-4" />
-                                                </Button>
-                                            )}
-                                            <Button
-                                                asChild
-                                                variant="ghost"
-                                                size="sm"
-                                            >
-                                                <Link
-                                                    href={`/tenants/${tenant.id}/leases/${item.id}/contract`}
-                                                >
-                                                    <FileSignature className="me-2 size-4" />
-                                                    {t(
-                                                        'leaseContract.tableAction',
-                                                    )}
-                                                </Link>
-                                            </Button>
-                                            <Button
-                                                asChild
-                                                variant="outline"
-                                                size="icon"
-                                                className="bg-white"
-                                                title={t(
-                                                    'tenants.lease.printCard',
-                                                    'Print card',
-                                                )}
-                                            >
-                                                <Link
-                                                    href={`/tenants/${tenant.id}/card?lease_id=${item.id}`}
-                                                >
-                                                    <Printer className="size-4" />
-                                                </Link>
-                                            </Button>
+                                        <div className="flex flex-wrap items-center justify-end gap-2">
                                             <span className="font-medium">
                                                 {item.rent_amount
                                                     ? formatNumber(
@@ -557,6 +530,76 @@ export default function TenantProfile({
                                                     `tenants.lease.${item.status}`,
                                                 )}
                                             </Badge>
+                                            <Button
+                                                asChild
+                                                variant="outline"
+                                                size="sm"
+                                                className="bg-white"
+                                            >
+                                                <Link
+                                                    href={`/tenants/${tenant.id}/leases/${item.id}/contract`}
+                                                >
+                                                    <FileSignature className="me-2 size-4" />
+                                                    {t(
+                                                        'leaseContract.tableAction',
+                                                    )}
+                                                </Link>
+                                            </Button>
+                                            <DropdownMenu modal={false}>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="icon"
+                                                        className="bg-white"
+                                                        aria-label={t(
+                                                            'tenants.table.actions',
+                                                        )}
+                                                    >
+                                                        <MoreHorizontal className="size-4" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent
+                                                    align="end"
+                                                    className="min-w-52"
+                                                >
+                                                    <DropdownMenuLabel>
+                                                        {t(
+                                                            'tenants.table.actions',
+                                                        )}
+                                                    </DropdownMenuLabel>
+                                                    <DropdownMenuSeparator />
+                                                    {canManage && (
+                                                        <DropdownMenuItem
+                                                            onClick={() =>
+                                                                setEditingLease(
+                                                                    item,
+                                                                )
+                                                            }
+                                                        >
+                                                            <Pencil className="size-4" />
+                                                            {t(
+                                                                'tenants.lease.edit',
+                                                                'Edit assignment',
+                                                            )}
+                                                        </DropdownMenuItem>
+                                                    )}
+                                                    <DropdownMenuItem
+                                                        onSelect={(event) => {
+                                                            event.preventDefault();
+                                                            openPrintCard(
+                                                                item.id,
+                                                            );
+                                                        }}
+                                                    >
+                                                        <Printer className="size-4" />
+                                                        {t(
+                                                            'tenants.lease.printCard',
+                                                            'Print card',
+                                                        )}
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </div>
                                     </div>
                                 ))
@@ -809,6 +852,10 @@ function AssignmentForm({
         status: lease?.status ?? 'active',
         terms: lease?.terms ?? '',
         lease_notes: lease?.notes ?? '',
+        initial_rent_months: '',
+        initial_rent_amount: '',
+        initial_rent_payment_date: today(),
+        initial_rent_payment_method: 'cash',
     });
     const property = properties.find(
         (item) => String(item.id) === form.data.property_id,
@@ -928,10 +975,82 @@ function AssignmentForm({
                 }))}
                 t={t}
             />
+            {!lease && (
+                <>
+                    <div className="space-y-1.5 md:col-span-2">
+                        <div className="rounded-2xl border bg-[#f8f9fd] p-4">
+                            <h3 className="text-sm font-semibold text-[#002452]">
+                                {t(
+                                    'tenants.lease.upfrontPayment',
+                                    'Upfront / prepaid rent',
+                                )}
+                            </h3>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                                {t(
+                                    'tenants.lease.upfrontPaymentHelp',
+                                    'Record any rent paid at contract signing so the covered months do not appear as unpaid.',
+                                )}
+                            </p>
+                        </div>
+                    </div>
+                    <NumberField
+                        label={t(
+                            'tenants.lease.initialRentMonths',
+                            'Prepaid rent months',
+                        )}
+                        value={form.data.initial_rent_months}
+                        set={(value) =>
+                            form.setData('initial_rent_months', value)
+                        }
+                    />
+                    <NumberField
+                        label={t(
+                            'tenants.lease.initialRentAmount',
+                            'Initial/prepaid rent amount',
+                        )}
+                        value={form.data.initial_rent_amount}
+                        set={(value) =>
+                            form.setData('initial_rent_amount', value)
+                        }
+                    />
+                    <Field
+                        label={t(
+                            'tenants.lease.initialRentPaymentDate',
+                            'Initial rent payment date',
+                        )}
+                        type="date"
+                        value={form.data.initial_rent_payment_date}
+                        set={(value) =>
+                            form.setData('initial_rent_payment_date', value)
+                        }
+                    />
+                    <Drop
+                        label={t(
+                            'tenants.lease.initialRentPaymentMethod',
+                            'Initial rent payment method',
+                        )}
+                        value={form.data.initial_rent_payment_method}
+                        set={(value) =>
+                            form.setData('initial_rent_payment_method', value)
+                        }
+                        options={[
+                            'cash',
+                            'bank_transfer',
+                            'credit_card',
+                            'other',
+                        ].map((value) => ({
+                            value,
+                            label: t(`paymentMethods.${value}`, value),
+                        }))}
+                        t={t}
+                    />
+                </>
+            )}
             <div className="space-y-1.5 md:col-span-2">
                 <Label>{t('tenants.lease.terms')}</Label>
                 <Textarea
                     value={form.data.terms}
+                    className="bg-white"
                     onChange={(event) =>
                         form.setData('terms', event.target.value)
                     }
@@ -1173,6 +1292,7 @@ function NumberField({
         <div className="min-w-0 space-y-1.5">
             <Label>{label}</Label>
             <NumericInput
+                className="bg-white"
                 showControls={false}
                 min="0"
                 step="1"
@@ -1205,6 +1325,7 @@ function Drop({
                 onValueChange={set}
                 options={options}
                 placeholder={t('tenants.fields.select')}
+                className="bg-white"
             />
             <InputError message={error} />
         </div>

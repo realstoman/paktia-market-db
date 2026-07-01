@@ -13,18 +13,15 @@ import { useAutoSelectSingleOption } from '@/hooks/use-auto-select-single-option
 import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
 import { BreadcrumbItem, Property, SharedData } from '@/types';
-import { formatAfn, formatNumber } from '@/utils/format';
+import { formatAfn, formatCurrencySymbol, formatNumber } from '@/utils/format';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
     ArrowDownRight,
     ArrowUpRight,
     Banknote,
-    BookOpenText,
-    Building2,
     CalendarRange,
     ChartNoAxesCombined,
     Check,
-    Coins,
     CreditCard,
     ExternalLink,
     FileSignature,
@@ -86,14 +83,22 @@ interface FinanceFilters {
 interface FinanceDashboardData {
     summary: {
         sales: number;
+        salesByCurrency?: Record<string, number>;
         rentExpected: number;
+        rentExpectedByCurrency?: Record<string, number>;
         rentReceived: number;
+        rentReceivedByCurrency?: Record<string, number>;
         rentOutstanding: number;
+        rentOutstandingByCurrency?: Record<string, number>;
         activeLeases: number;
         expenses: number;
+        expensesByCurrency?: Record<string, number>;
         grossProfit: number | null;
+        grossProfitByCurrency?: Record<string, number>;
         netProfit: number;
+        netProfitByCurrency?: Record<string, number>;
         cashPosition: number;
+        cashPositionByCurrency?: Record<string, number>;
         unpaidSalaries: number;
         inventoryValue: number;
         supplierBalances: number;
@@ -114,6 +119,34 @@ interface FinanceDashboardData {
         property: string;
         revenue: number;
     }>;
+    businessCards: Array<{
+        slug: string;
+        key: string;
+        title: string;
+        titleKey: string;
+        valuation: number;
+        sales: number;
+        income: number;
+        expenses: number;
+        net: number;
+        currencyCode: string;
+        totalsByCurrency?: Record<
+            string,
+            {
+                sales: number;
+                income: number;
+                expenses: number;
+                net: number;
+            }
+        >;
+        latestValuationsByCurrency?: Record<
+            string,
+            {
+                valuation: number;
+                date?: string | null;
+            }
+        >;
+    }>;
     shareholderPnl: Array<{
         id: number;
         shareholder: string;
@@ -123,6 +156,7 @@ interface FinanceDashboardData {
         expenses: number;
         net: number;
         allocated: number;
+        currencyCode?: string;
     }>;
     topExpenseCategories: Array<{
         value: string;
@@ -323,11 +357,19 @@ function localizeModuleName(
         ),
         'Dubai Restaurant': t(
             'businessFinance.businesses.dubaiRestaurant.title',
-            'Dubai Restaurant',
+            'Kabul Darbar Restaurant',
+        ),
+        'Kabul Darbar Restaurant': t(
+            'businessFinance.businesses.dubaiRestaurant.title',
+            'Kabul Darbar Restaurant',
         ),
         'Kabul Gold & Sarafi': t(
             'businessFinance.businesses.kabulSarafi.title',
-            'Kabul Gold & Sarafi',
+            'Abdul Hanan Paktiawal Sarafi',
+        ),
+        'Abdul Hanan Paktiawal Sarafi': t(
+            'businessFinance.businesses.kabulSarafi.title',
+            'Abdul Hanan Paktiawal Sarafi',
         ),
     };
 
@@ -414,7 +456,11 @@ function localizeModuleDescription(
         ),
         'Daily gold and Sarafi valuation, sales, income, and expenses.': t(
             'businessFinance.businesses.kabulSarafi.moduleDescription',
-            'Daily gold and Sarafi valuation, sales, income, and expenses.',
+            'Daily Sarafi valuation, sales, income, and expenses.',
+        ),
+        'Daily Sarafi valuation, sales, income, and expenses.': t(
+            'businessFinance.businesses.kabulSarafi.moduleDescription',
+            'Daily Sarafi valuation, sales, income, and expenses.',
         ),
     };
 
@@ -573,11 +619,14 @@ function moduleHref(name: string): string | null {
         return '/finance/rentals';
     }
 
-    if (name === 'Dubai Restaurant') {
+    if (name === 'Dubai Restaurant' || name === 'Kabul Darbar Restaurant') {
         return '/finance/dubai-restaurant';
     }
 
-    if (name === 'Kabul Gold & Sarafi') {
+    if (
+        name === 'Kabul Gold & Sarafi' ||
+        name === 'Abdul Hanan Paktiawal Sarafi'
+    ) {
         return '/finance/kabul-sarafi';
     }
 
@@ -586,6 +635,33 @@ function moduleHref(name: string): string | null {
 
 function formatModuleStat(value: number, format: 'currency' | 'number') {
     return format === 'currency' ? formatAfn(value) : formatNumber(value);
+}
+
+function formatCurrencyTotals(
+    totals: Record<string, number> | undefined,
+    fallbackValue: number,
+    fallbackCurrency = 'AFN',
+) {
+    const codes = totals
+        ? [
+              ...['AFN', 'USD'].filter((code) => totals[code] !== undefined),
+              ...Object.keys(totals).filter(
+                  (code) => !['AFN', 'USD'].includes(code),
+              ),
+          ]
+        : [];
+    const lines = codes.map(
+        (code) =>
+            `${formatNumber(Number(totals?.[code] ?? 0))} ${formatCurrencySymbol({ code })}`,
+    );
+
+    return lines.length
+        ? lines
+        : [
+              `${formatNumber(fallbackValue)} ${formatCurrencySymbol({
+                  code: fallbackCurrency,
+              })}`,
+          ];
 }
 
 function ledgerStatusTone(status: string) {
@@ -610,10 +686,12 @@ function SummaryCard({
     icon,
 }: {
     title: string;
-    value: string;
+    value: string | string[];
     subtitle: string;
     icon: React.ReactNode;
 }) {
+    const valueLines = Array.isArray(value) ? value : [value];
+
     return (
         <Card className="border-neutral-200/80 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
             <CardContent className="flex items-start justify-between p-5">
@@ -621,15 +699,128 @@ function SummaryCard({
                     <p className="text-xs font-medium tracking-[0.22em] text-neutral-500 uppercase">
                         {title}
                     </p>
-                    <p className="text-2xl font-semibold text-neutral-950 dark:text-neutral-50">
-                        {value}
-                    </p>
+                    <div className="space-y-1 text-2xl font-semibold text-neutral-950 dark:text-neutral-50">
+                        {valueLines.map((line) => (
+                            <p key={line} dir="ltr">
+                                {line}
+                            </p>
+                        ))}
+                    </div>
                     <p className="text-sm text-neutral-500 dark:text-neutral-400">
                         {subtitle}
                     </p>
                 </div>
                 <div className="rounded-2xl bg-neutral-950 p-3 text-white dark:bg-neutral-100 dark:text-neutral-950">
                     {icon}
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
+
+function BusinessFinanceCard({
+    business,
+    t,
+}: {
+    business: FinanceDashboardData['businessCards'][number];
+    t: (key: string, fallback?: string) => string;
+}) {
+    const money = (value: number, currencyCode = business.currencyCode) =>
+        `${formatNumber(value)} ${formatCurrencySymbol({ code: currencyCode })}`;
+    const orderedCodes = (codes: string[]) => [
+        ...['AFN', 'USD'].filter((code) => codes.includes(code)),
+        ...codes.filter((code) => !['AFN', 'USD'].includes(code)),
+    ];
+    const moneyLines = (
+        source:
+            | Record<string, { valuation?: number; income?: number; expenses?: number; net?: number }>
+            | undefined,
+        key: 'valuation' | 'income' | 'expenses' | 'net',
+        fallback: number,
+    ) => {
+        const rows = orderedCodes(Object.keys(source ?? {})).map((code) =>
+            money(Number(source?.[code]?.[key] ?? 0), code),
+        );
+
+        return rows.length ? rows : [money(fallback)];
+    };
+    const renderMoneyLines = (lines: string[]) => (
+        <div className="space-y-0.5 font-semibold">
+            {lines.map((line) => (
+                <p key={line} dir="ltr">
+                    {line}
+                </p>
+            ))}
+        </div>
+    );
+
+    return (
+        <Card className="border-neutral-200/80 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
+            <CardContent className="space-y-4 p-5">
+                <div className="flex items-start justify-between gap-3">
+                    <div>
+                        <p className="text-xs font-medium tracking-[0.22em] text-neutral-500 uppercase">
+                            {t('financeDashboard.businessCards.title', 'Business finance')}
+                        </p>
+                        <h3 className="mt-1 text-lg font-semibold text-neutral-950 dark:text-neutral-50">
+                            {t(business.titleKey, business.title)}
+                        </h3>
+                    </div>
+                    <Button asChild variant="outline" size="sm">
+                        <Link href={`/finance/${business.slug}`}>
+                            <ExternalLink className="h-4 w-4" />
+                        </Link>
+                    </Button>
+                </div>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="rounded-xl bg-neutral-50 p-3 dark:bg-neutral-950">
+                        <p className="text-xs text-neutral-500">
+                            {t('financeDashboard.businessCards.valuation', 'Valuation')}
+                        </p>
+                        {renderMoneyLines(
+                            moneyLines(
+                                business.latestValuationsByCurrency,
+                                'valuation',
+                                business.valuation,
+                            ),
+                        )}
+                    </div>
+                    <div className="rounded-xl bg-neutral-50 p-3 dark:bg-neutral-950">
+                        <p className="text-xs text-neutral-500">
+                            {t('financeDashboard.businessCards.income', 'Income')}
+                        </p>
+                        {renderMoneyLines(
+                            moneyLines(
+                                business.totalsByCurrency,
+                                'income',
+                                business.income,
+                            ),
+                        )}
+                    </div>
+                    <div className="rounded-xl bg-neutral-50 p-3 dark:bg-neutral-950">
+                        <p className="text-xs text-neutral-500">
+                            {t('financeDashboard.businessCards.expenses', 'Expenses')}
+                        </p>
+                        {renderMoneyLines(
+                            moneyLines(
+                                business.totalsByCurrency,
+                                'expenses',
+                                business.expenses,
+                            ),
+                        )}
+                    </div>
+                    <div className="rounded-xl bg-neutral-50 p-3 dark:bg-neutral-950">
+                        <p className="text-xs text-neutral-500">
+                            {t('financeDashboard.businessCards.net', 'Net')}
+                        </p>
+                        {renderMoneyLines(
+                            moneyLines(
+                                business.totalsByCurrency,
+                                'net',
+                                business.net,
+                            ),
+                        )}
+                    </div>
                 </div>
             </CardContent>
         </Card>
@@ -1041,11 +1232,17 @@ export default function FinancePage({
 
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                     <SummaryCard
-                        title={t('financeDashboard.summary.sales', 'Sales')}
-                        value={formatAfn(dashboard.summary.sales)}
+                        title={t(
+                            'financeDashboard.summary.rentReceived',
+                            'Received Rent',
+                        )}
+                        value={formatCurrencyTotals(
+                            dashboard.summary.rentReceivedByCurrency,
+                            dashboard.summary.rentReceived,
+                        )}
                         subtitle={t(
-                            'financeDashboard.summary.salesSubtitle',
-                            'Completed order revenue in selected period',
+                            'financeDashboard.summary.rentReceivedSubtitle',
+                            'Rent collected for the selected property and period',
                         )}
                         icon={<Banknote className="h-5 w-5" />}
                     />
@@ -1054,7 +1251,10 @@ export default function FinancePage({
                             'financeDashboard.summary.rentExpected',
                             'Contracted Rent',
                         )}
-                        value={formatAfn(dashboard.summary.rentExpected)}
+                        value={formatCurrencyTotals(
+                            dashboard.summary.rentExpectedByCurrency,
+                            dashboard.summary.rentExpected,
+                        )}
                         subtitle={t(
                             'financeDashboard.summary.rentExpectedSubtitle',
                             'Rent due from active contracts in this period',
@@ -1066,7 +1266,10 @@ export default function FinancePage({
                             'financeDashboard.summary.rentOutstanding',
                             'Outstanding Rent',
                         )}
-                        value={formatAfn(dashboard.summary.rentOutstanding)}
+                        value={formatCurrencyTotals(
+                            dashboard.summary.rentOutstandingByCurrency,
+                            dashboard.summary.rentOutstanding,
+                        )}
                         subtitle={t(
                             'financeDashboard.summary.rentOutstandingSubtitle',
                             'Contracted rent not yet received',
@@ -1090,7 +1293,10 @@ export default function FinancePage({
                             'financeDashboard.summary.expenses',
                             'Expenses',
                         )}
-                        value={formatAfn(dashboard.summary.expenses)}
+                        value={formatCurrencyTotals(
+                            dashboard.summary.expensesByCurrency,
+                            dashboard.summary.expenses,
+                        )}
                         subtitle={t(
                             'financeDashboard.summary.expensesSubtitle',
                             'Recorded operational expenses',
@@ -1108,7 +1314,10 @@ export default function FinancePage({
                                       'financeDashboard.summary.pending',
                                       'Pending',
                                   )
-                                : formatAfn(dashboard.summary.grossProfit)
+                                : formatCurrencyTotals(
+                                      dashboard.summary.grossProfitByCurrency,
+                                      dashboard.summary.grossProfit,
+                                  )
                         }
                         subtitle={localizeFinanceNote(
                             dashboard.notes.grossProfit,
@@ -1121,7 +1330,10 @@ export default function FinancePage({
                             'financeDashboard.summary.netProfit',
                             'Net Profit',
                         )}
-                        value={formatAfn(dashboard.summary.netProfit)}
+                        value={formatCurrencyTotals(
+                            dashboard.summary.netProfitByCurrency,
+                            dashboard.summary.netProfit,
+                        )}
                         subtitle={t(
                             'financeDashboard.summary.netProfitSubtitle',
                             'Sales minus expenses, before unposted finance adjustments',
@@ -1133,7 +1345,10 @@ export default function FinancePage({
                             'financeDashboard.summary.cashPosition',
                             'Cash Position',
                         )}
-                        value={formatAfn(dashboard.summary.cashPosition)}
+                        value={formatCurrencyTotals(
+                            dashboard.summary.cashPositionByCurrency,
+                            dashboard.summary.cashPosition,
+                        )}
                         subtitle={localizeFinanceNote(
                             dashboard.notes.cashPosition,
                             t,
@@ -1155,12 +1370,12 @@ export default function FinancePage({
                     <SummaryCard
                         title={t(
                             'financeDashboard.summary.inventoryValue',
-                            'Inventory Value',
+                            'Valuation',
                         )}
                         value={formatAfn(dashboard.summary.inventoryValue)}
                         subtitle={t(
                             'financeDashboard.summary.inventoryValueSubtitle',
-                            'Current stock value from quantity and unit cost',
+                            'Current item and stock valuation for this scope',
                         )}
                         icon={<Package className="h-5 w-5" />}
                     />
@@ -1176,44 +1391,16 @@ export default function FinancePage({
                         )}
                         icon={<CreditCard className="h-5 w-5" />}
                     />
-                    <SummaryCard
-                        title={t(
-                            'businessFinance.summary.groupBusinessValuation',
-                            'Business valuation',
-                        )}
-                        value={formatNumber(
-                            dashboard.summary.businessValuation,
-                        )}
-                        subtitle={t(
-                            'businessFinance.summary.groupBusinessValuationHelp',
-                            'Latest recorded valuation from group-owned businesses',
-                        )}
-                        icon={<Coins className="h-5 w-5" />}
-                    />
-                    <SummaryCard
-                        title={t(
-                            'businessFinance.summary.groupBusinessIncome',
-                            'Business income',
-                        )}
-                        value={formatNumber(dashboard.summary.businessIncome)}
-                        subtitle={t(
-                            'businessFinance.summary.groupBusinessIncomeHelp',
-                            'Income entered for restaurant and Sarafi businesses',
-                        )}
-                        icon={<Banknote className="h-5 w-5" />}
-                    />
-                    <SummaryCard
-                        title={t(
-                            'businessFinance.summary.groupBusinessNet',
-                            'Business net',
-                        )}
-                        value={formatNumber(dashboard.summary.businessNet)}
-                        subtitle={t(
-                            'businessFinance.summary.groupBusinessNetHelp',
-                            'Business income minus business expenses',
-                        )}
-                        icon={<ChartNoAxesCombined className="h-5 w-5" />}
-                    />
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                    {dashboard.businessCards.map((business) => (
+                        <BusinessFinanceCard
+                            key={business.key}
+                            business={business}
+                            t={t}
+                        />
+                    ))}
                 </div>
 
                 <div className="grid gap-4 xl:grid-cols-[1.6fr_1fr]">
@@ -1513,7 +1700,7 @@ export default function FinancePage({
                                 </div>
                                 {dashboard.shareholderPnl.map((row) => (
                                     <div
-                                        key={row.id}
+                                        key={`${row.id}-${row.currencyCode ?? 'AFN'}`}
                                         className="grid min-w-[760px] grid-cols-[1.2fr_1.2fr_0.6fr_1fr_1fr] gap-3 border-t px-4 py-3 text-sm"
                                     >
                                         <span className="font-medium">
@@ -1523,15 +1710,26 @@ export default function FinancePage({
                                         <span>
                                             {formatNumber(row.percentage)}%
                                         </span>
-                                        <span>{formatAfn(row.net)}</span>
+                                        <span dir="ltr">
+                                            {formatNumber(row.net)}{' '}
+                                            {formatCurrencySymbol({
+                                                code:
+                                                    row.currencyCode ?? 'AFN',
+                                            })}
+                                        </span>
                                         <span
                                             className={
                                                 row.allocated >= 0
                                                     ? 'font-semibold text-emerald-700'
                                                     : 'font-semibold text-red-700'
                                             }
+                                            dir="ltr"
                                         >
-                                            {formatAfn(row.allocated)}
+                                            {formatNumber(row.allocated)}{' '}
+                                            {formatCurrencySymbol({
+                                                code:
+                                                    row.currencyCode ?? 'AFN',
+                                            })}
                                         </span>
                                     </div>
                                 ))}
@@ -1910,92 +2108,6 @@ export default function FinancePage({
                     </CardContent>
                 </Card>
 
-                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                    <Card className="border-neutral-200/80 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
-                        <CardContent className="flex items-center gap-4 p-5">
-                            <div className="rounded-2xl bg-neutral-950 p-3 text-white dark:bg-neutral-100 dark:text-neutral-950">
-                                <BookOpenText className="h-5 w-5" />
-                            </div>
-                            <div>
-                                <p className="text-sm font-medium">
-                                    {t(
-                                        'financeDashboard.quickCards.chartOfAccounts.title',
-                                        'Chart of Accounts',
-                                    )}
-                                </p>
-                                <p className="text-xs text-neutral-500">
-                                    {t(
-                                        'financeDashboard.quickCards.chartOfAccounts.description',
-                                        'Assets, liabilities, equity, revenue, COGS, and expenses',
-                                    )}
-                                </p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card className="border-neutral-200/80 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
-                        <CardContent className="flex items-center gap-4 p-5">
-                            <div className="rounded-2xl bg-neutral-950 p-3 text-white dark:bg-neutral-100 dark:text-neutral-950">
-                                <Building2 className="h-5 w-5" />
-                            </div>
-                            <div>
-                                <p className="text-sm font-medium">
-                                    {t(
-                                        'financeDashboard.quickCards.propertyControl.title',
-                                        'Property-wise Control',
-                                    )}
-                                </p>
-                                <p className="text-xs text-neutral-500">
-                                    {t(
-                                        'financeDashboard.quickCards.propertyControl.description',
-                                        'Consolidated reporting with property-level filters and balances',
-                                    )}
-                                </p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card className="border-neutral-200/80 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
-                        <CardContent className="flex items-center gap-4 p-5">
-                            <div className="rounded-2xl bg-neutral-950 p-3 text-white dark:bg-neutral-100 dark:text-neutral-950">
-                                <Coins className="h-5 w-5" />
-                            </div>
-                            <div>
-                                <p className="text-sm font-medium">
-                                    {t(
-                                        'financeDashboard.quickCards.cashBank.title',
-                                        'Cash & Bank',
-                                    )}
-                                </p>
-                                <p className="text-xs text-neutral-500">
-                                    {t(
-                                        'financeDashboard.quickCards.cashBank.description',
-                                        'Cash drawers, deposits, petty cash, and manual movements',
-                                    )}
-                                </p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                    <Card className="border-neutral-200/80 bg-white shadow-none dark:border-neutral-800 dark:bg-neutral-900">
-                        <CardContent className="flex items-center gap-4 p-5">
-                            <div className="rounded-2xl bg-neutral-950 p-3 text-white dark:bg-neutral-100 dark:text-neutral-950">
-                                <Package className="h-5 w-5" />
-                            </div>
-                            <div>
-                                <p className="text-sm font-medium">
-                                    {t(
-                                        'financeDashboard.quickCards.inventoryValuation.title',
-                                        'Inventory Valuation',
-                                    )}
-                                </p>
-                                <p className="text-xs text-neutral-500">
-                                    {t(
-                                        'financeDashboard.quickCards.inventoryValuation.description',
-                                        'Weighted average costing for stock value and COGS',
-                                    )}
-                                </p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
             </div>
         </AppLayout>
     );

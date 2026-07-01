@@ -32,6 +32,8 @@ class InventoryItem extends Model
         'total_price',
         'outstanding_amount',
         'receipt_url',
+        'assigned_quantity',
+        'available_quantity',
     ];
 
     protected $casts = [
@@ -76,6 +78,16 @@ class InventoryItem extends Model
         return $this->hasMany(InventoryTransaction::class)->latest();
     }
 
+    public function assignments()
+    {
+        return $this->hasMany(InventoryAssignment::class)->latest('assigned_at');
+    }
+
+    public function activeAssignments()
+    {
+        return $this->hasMany(InventoryAssignment::class)->whereNull('returned_at')->latest('assigned_at');
+    }
+
     public function getTotalPriceAttribute(): float
     {
         return (float) $this->quantity * (float) $this->unit_price;
@@ -105,5 +117,19 @@ class InventoryItem extends Model
         }
 
         return '/storage/'.$this->receipt_path;
+    }
+
+    public function getAssignedQuantityAttribute(): float
+    {
+        if ($this->relationLoaded('activeAssignments')) {
+            return (float) $this->activeAssignments->sum('quantity');
+        }
+
+        return (float) $this->activeAssignments()->sum('quantity');
+    }
+
+    public function getAvailableQuantityAttribute(): float
+    {
+        return max(0, (float) $this->quantity - $this->assigned_quantity);
     }
 }

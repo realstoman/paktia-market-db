@@ -24,6 +24,12 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -50,23 +56,26 @@ import {
     ChefHat,
     ChevronLeft,
     ChevronRight,
+    CheckCircle2,
     DoorOpen,
     FileText,
     Image as ImageIcon,
     Layers3,
     MapPin,
+    MoreHorizontal,
     Pencil,
     Plus,
     ReceiptText,
     Ruler,
     Search,
     Store,
+    Star,
     Trash2,
     Upload,
     Users,
     X,
 } from 'lucide-react';
-import { FormEvent, useState } from 'react';
+import { FormEvent, ReactNode, useState } from 'react';
 
 interface PropertyShowProps {
     property: Property;
@@ -95,7 +104,7 @@ export default function PropertyShow({
     const propertyTypeLabel =
         property.type_definition?.name ??
         t(`propertyWorkspace.types.${property.property_type ?? 'market'}`);
-    const coverImageUrl = property.images?.[0]?.url ?? property.image_url;
+    const coverImageUrl = property.image_url ?? property.images?.[0]?.url;
     const breadcrumbs: BreadcrumbItem[] = [
         { title: t('propertyWorkspace.title'), href: '/properties' },
         { title: property.name, href: `/properties/${property.id}` },
@@ -203,11 +212,9 @@ export default function PropertyShow({
                                 ? t(
                                       'propertyWorkspace.fields.externalUnitNumber',
                                   )
-                                : isMarket
-                                  ? t('propertyWorkspace.shops')
-                                  : behavior === 'block'
-                                    ? t('propertyWorkspace.apartments')
-                                    : t('propertyWorkspace.rooms')
+                                : behavior === 'house'
+                                  ? t('propertyWorkspace.rooms')
+                                  : t('propertyWorkspace.shopsAndApartments')
                         }
                         value={
                             isCommercialUnit
@@ -470,11 +477,9 @@ export default function PropertyShow({
                                             'propertyWorkspace.floorsAndSpaces',
                                         ).replace(
                                             ':spaces',
-                                            isMarket
-                                                ? t('propertyWorkspace.shops')
-                                                : t(
-                                                      'propertyWorkspace.apartments',
-                                                  ),
+                                            t(
+                                                'propertyWorkspace.shopsAndApartments',
+                                            ),
                                         )}
                                     </h2>
                                     <p className="text-sm text-muted-foreground">
@@ -500,7 +505,6 @@ export default function PropertyShow({
                                         key={floor.id}
                                         property={property}
                                         floor={floor}
-                                        isMarket={isMarket}
                                     />
                                 ))
                             ) : (
@@ -663,10 +667,17 @@ function PropertyImageGallery({
     images: PropertyImage[];
 }) {
     const { t, isRtl } = useLocalization();
-    const [activeIndex, setActiveIndex] = useState(0);
+    const [activeIndex, setActiveIndex] = useState(() =>
+        Math.max(
+            0,
+            images.findIndex((image) => image.path === property.image_path),
+        ),
+    );
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const form = useForm<{ images: File[] }>({ images: [] });
     const activeImage = images[activeIndex] ?? images[0];
+    const activeIsCover =
+        !!activeImage && activeImage.path === property.image_path;
 
     const submit = (event: FormEvent) => {
         event.preventDefault();
@@ -701,7 +712,7 @@ function PropertyImageGallery({
                     <p className="text-sm text-muted-foreground">
                         {t(
                             'propertyWorkspace.images.help',
-                            'Upload up to 10 gallery images. Each image must be exactly 1920×1080.',
+                            'Upload up to 10 gallery images from any angle. Cards and covers keep a fixed size and crop automatically.',
                         )}
                     </p>
                     <form
@@ -758,8 +769,75 @@ function PropertyImageGallery({
                                     )}
                                 </span>
                             </button>
+                            <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border bg-white p-3">
+                                <div className="min-w-0">
+                                    <p className="truncate text-sm font-medium">
+                                        {activeImage.original_name ??
+                                            t(
+                                                'propertyWorkspace.images.image',
+                                                'Property image',
+                                            )}
+                                    </p>
+                                    {activeIsCover && (
+                                        <p className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-primary">
+                                            <CheckCircle2 className="size-3.5" />
+                                            {t(
+                                                'propertyWorkspace.images.cover',
+                                                'Current cover',
+                                            )}
+                                        </p>
+                                    )}
+                                </div>
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <Button
+                                        type="button"
+                                        size="sm"
+                                        variant={
+                                            activeIsCover
+                                                ? 'secondary'
+                                                : 'outline'
+                                        }
+                                        disabled={activeIsCover}
+                                        onClick={() =>
+                                            router.patch(
+                                                `/properties/${property.id}/images/${activeImage.id}/cover`,
+                                                {},
+                                                { preserveScroll: true },
+                                            )
+                                        }
+                                    >
+                                        <Star className="size-4" />
+                                        {t(
+                                            'propertyWorkspace.images.setCover',
+                                            'Set as cover',
+                                        )}
+                                    </Button>
+                                    <DeleteConfirmation
+                                        title={t(
+                                            'propertyWorkspace.images.deleteTitle',
+                                            'Delete image?',
+                                        )}
+                                        description={t(
+                                            'propertyWorkspace.images.deleteDescription',
+                                            'This image will be removed from the property gallery.',
+                                        )}
+                                        confirmLabel={t(
+                                            'propertyWorkspace.images.confirmDelete',
+                                            'Delete image',
+                                        )}
+                                        onConfirm={() =>
+                                            router.delete(
+                                                `/properties/${property.id}/images/${activeImage.id}`,
+                                                { preserveScroll: true },
+                                            )
+                                        }
+                                        compact
+                                    />
+                                </div>
+                            </div>
                             {images.length > 1 && (
-                                <div className="flex gap-2 overflow-x-auto pb-1">
+                                <div className="max-w-[calc(4*4.5rem+3*0.5rem)] overflow-x-auto pb-1">
+                                    <div className="flex w-max gap-2">
                                     {images.map((image, index) => (
                                         <button
                                             key={image.id}
@@ -767,19 +845,26 @@ function PropertyImageGallery({
                                             onClick={() =>
                                                 setActiveIndex(index)
                                             }
-                                            className={`h-16 w-24 shrink-0 overflow-hidden rounded-xl border ${
+                                            className={`h-14 w-18 shrink-0 overflow-hidden rounded-xl border ${
                                                 index === activeIndex
                                                     ? 'border-primary ring-2 ring-primary/20'
                                                     : 'border-slate-200'
-                                            }`}
+                                            } relative`}
                                         >
                                             <img
                                                 src={image.url}
                                                 alt={image.original_name ?? ''}
                                                 className="h-full w-full object-cover"
                                             />
+                                            {image.path ===
+                                                property.image_path && (
+                                                <span className="absolute top-1 left-1 inline-flex size-5 items-center justify-center rounded-full bg-primary text-white shadow-sm">
+                                                    <CheckCircle2 className="size-3" />
+                                                </span>
+                                            )}
                                         </button>
                                     ))}
+                                    </div>
                                 </div>
                             )}
                         </div>
@@ -852,54 +937,55 @@ function PropertyImageGallery({
 function FloorCard({
     property,
     floor,
-    isMarket,
 }: {
     property: Property;
     floor: PropertyFloor;
-    isMarket: boolean;
 }) {
     const { t } = useLocalization();
     const [spaceSearch, setSpaceSearch] = useState('');
-    const spaceLabel = isMarket
-        ? t('propertyWorkspace.shops')
-        : t('propertyWorkspace.apartments');
+    const shopCount = (floor.units ?? []).filter(
+        (unit) => unit.unit_type === 'shop',
+    ).length;
+    const apartmentCount = (floor.units ?? []).filter(
+        (unit) => unit.unit_type === 'apartment',
+    ).length;
+    const floorUsage = floor.usage_type ?? property.usage_type ?? 'mixed';
+    const spacesSummary =
+        floorUsage === 'commercial'
+            ? `${shopCount} ${t('propertyWorkspace.shops')}`
+            : floorUsage === 'residential'
+              ? `${apartmentCount} ${t('propertyWorkspace.apartments')}`
+              : [
+                    `${shopCount} ${t('propertyWorkspace.shops')}`,
+                    `${apartmentCount} ${t('propertyWorkspace.apartments')}`,
+                ].join(' / ');
     const normalizedSearch = spaceSearch.trim().toLowerCase();
     const visibleUnits = (floor.units ?? []).filter((unit) =>
         `${unit.unit_number} ${unit.description ?? ''} ${unit.electricity_meter ?? ''} ${unit.water_meter ?? ''}`
             .toLowerCase()
             .includes(normalizedSearch),
     );
+    const spaceGridClass =
+        floorUsage === 'residential'
+            ? 'property-space-scroll property-space-scroll--residential'
+            : 'property-space-scroll';
     return (
         <Card>
             <CardHeader className="flex flex-col items-start justify-between gap-3 space-y-0 sm:flex-row">
                 <div>
                     <CardTitle>{floor.name}</CardTitle>
                     <p className="mt-1 text-sm text-muted-foreground">
-                        {floor.level_number} ·{' '}
-                        {floor.area_sqm
-                            ? `${formatNumber(floor.area_sqm)} m²`
-                            : '—'}{' '}
-                        · {(floor.units ?? []).length} {spaceLabel}
+                        {[
+                            floor.area_sqm
+                                ? `${formatNumber(floor.area_sqm)} m²`
+                                : '—',
+                            spacesSummary,
+                        ].join(' - ')}
                     </p>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
-                    <AddUnit
-                        property={property}
-                        floor={floor}
-                        isMarket={isMarket}
-                    />
-                    <EditFloor property={property} floor={floor} />
-                    <DeleteConfirmation
-                        title={t('propertyWorkspace.deleteFloorTitle')}
-                        description={t('propertyWorkspace.deleteFloor')}
-                        confirmLabel={t('propertyWorkspace.confirmDeleteFloor')}
-                        onConfirm={() =>
-                            router.delete(
-                                `/properties/${property.id}/floors/${floor.id}`,
-                                { preserveScroll: true },
-                            )
-                        }
-                    />
+                    <AddUnit property={property} floor={floor} />
+                    <FloorActions property={property} floor={floor} />
                 </div>
             </CardHeader>
             <CardContent>
@@ -913,29 +999,29 @@ function FloorCard({
                                     setSpaceSearch(event.target.value)
                                 }
                                 placeholder={t(
-                                    isMarket
-                                        ? 'propertyWorkspace.searchShops'
-                                        : 'propertyWorkspace.searchApartments',
+                                    'propertyWorkspace.searchSpaces',
                                 )}
                                 className="h-9 bg-white ps-9"
                             />
                         </div>
                         {visibleUnits.length ? (
-                            <div className="property-space-scroll">
+                            <div className={spaceGridClass}>
                                 {visibleUnits.map((unit) => (
                                     <div
                                         key={unit.id}
-                                        className="flex min-h-28 flex-col justify-between gap-3 rounded-xl border border-slate-200/80 bg-white p-3"
+                                        className="flex h-32 flex-col justify-between gap-3 overflow-hidden rounded-xl border border-slate-200/80 bg-white p-3"
                                     >
                                         <div>
                                             <div className="flex items-center gap-2 font-medium">
-                                                <Store className="h-4 w-4" />
-                                                {isMarket
-                                                    ? t(
-                                                          'propertyWorkspace.shops',
-                                                      )
+                                                {unit.unit_type === 'shop' ? (
+                                                    <Store className="h-4 w-4" />
+                                                ) : (
+                                                    <Building2 className="h-4 w-4" />
+                                                )}
+                                                {unit.unit_type === 'shop'
+                                                    ? t('propertyWorkspace.shop')
                                                     : t(
-                                                          'propertyWorkspace.apartments',
+                                                          'propertyWorkspace.apartment',
                                                       )}{' '}
                                                 {unit.unit_number}
                                             </div>
@@ -943,8 +1029,9 @@ function FloorCard({
                                                 {unit.area_sqm
                                                     ? `${formatNumber(unit.area_sqm)} m²`
                                                     : '—'}
-                                                {!isMarket &&
-                                                    ` · ${unit.rooms_count ?? 0} ${t('propertyWorkspace.rooms')} · ${unit.bathrooms_count ?? 0} ${t('propertyWorkspace.bathrooms')}`}
+                                                {unit.unit_type ===
+                                                    'apartment' &&
+                                                    ` - ${unit.rooms_count ?? 0} ${t('propertyWorkspace.rooms')} - ${unit.bathrooms_count ?? 0} ${t('propertyWorkspace.bathrooms')}`}
                                             </p>
                                             {unit.description && (
                                                 <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">
@@ -966,34 +1053,11 @@ function FloorCard({
                                                     unit.occupancy_status,
                                                 )}
                                             </Badge>
-                                            <div className="flex gap-1.5">
-                                                <EditUnit
-                                                    property={property}
-                                                    floor={floor}
-                                                    unit={unit}
-                                                    isMarket={isMarket}
-                                                />
-                                                <DeleteConfirmation
-                                                    title={t(
-                                                        'propertyWorkspace.deleteSpaceTitle',
-                                                    )}
-                                                    description={t(
-                                                        'propertyWorkspace.deleteSpace',
-                                                    )}
-                                                    confirmLabel={t(
-                                                        'propertyWorkspace.confirmDeleteSpace',
-                                                    )}
-                                                    onConfirm={() =>
-                                                        router.delete(
-                                                            `/properties/${property.id}/floors/${floor.id}/units/${unit.id}`,
-                                                            {
-                                                                preserveScroll: true,
-                                                            },
-                                                        )
-                                                    }
-                                                    compact
-                                                />
-                                            </div>
+                                            <UnitActions
+                                                property={property}
+                                                floor={floor}
+                                                unit={unit}
+                                            />
                                         </div>
                                     </div>
                                 ))}
@@ -1008,7 +1072,7 @@ function FloorCard({
                     <p className="rounded-lg bg-muted/50 py-8 text-center text-sm text-muted-foreground">
                         {t('propertyWorkspace.noSpaces').replace(
                             ':spaces',
-                            spaceLabel,
+                            t('propertyWorkspace.shopsAndApartments'),
                         )}
                     </p>
                 )}
@@ -1016,6 +1080,150 @@ function FloorCard({
         </Card>
     );
 }
+
+function FloorActions({
+    property,
+    floor,
+}: {
+    property: Property;
+    floor: PropertyFloor;
+}) {
+    const { t, isRtl } = useLocalization();
+    const [editOpen, setEditOpen] = useState(false);
+    const [deleteOpen, setDeleteOpen] = useState(false);
+
+    return (
+        <>
+            <DropdownMenu dir={isRtl ? 'rtl' : 'ltr'}>
+                <DropdownMenuTrigger asChild>
+                    <Button
+                        type="button"
+                        size="icon"
+                        variant="outline"
+                        className="size-8 border-primary/15 bg-primary/8 text-primary hover:bg-primary/15 hover:text-primary"
+                        aria-label={t('common.actions', 'Actions')}
+                    >
+                        <MoreHorizontal className="size-4" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align={isRtl ? 'start' : 'end'}>
+                    <DropdownMenuItem
+                        onSelect={() => {
+                            setEditOpen(true);
+                        }}
+                    >
+                        <Pencil className="size-4" />
+                        {t('propertyWorkspace.editFloor')}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onSelect={() => {
+                            setDeleteOpen(true);
+                        }}
+                    >
+                        <Trash2 className="size-4" />
+                        {t('propertyWorkspace.confirmDeleteFloor')}
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+            <EditFloor
+                property={property}
+                floor={floor}
+                open={editOpen}
+                onOpenChange={setEditOpen}
+                trigger={null}
+            />
+            <DeleteConfirmation
+                title={t('propertyWorkspace.deleteFloorTitle')}
+                description={t('propertyWorkspace.deleteFloor')}
+                confirmLabel={t('propertyWorkspace.confirmDeleteFloor')}
+                onConfirm={() =>
+                    router.delete(`/properties/${property.id}/floors/${floor.id}`, {
+                        preserveScroll: true,
+                    })
+                }
+                open={deleteOpen}
+                onOpenChange={setDeleteOpen}
+                trigger={null}
+            />
+        </>
+    );
+}
+
+function UnitActions({
+    property,
+    floor,
+    unit,
+}: {
+    property: Property;
+    floor: PropertyFloor;
+    unit: PropertyUnit;
+}) {
+    const { t, isRtl } = useLocalization();
+    const [editOpen, setEditOpen] = useState(false);
+    const [deleteOpen, setDeleteOpen] = useState(false);
+
+    return (
+        <>
+            <DropdownMenu dir={isRtl ? 'rtl' : 'ltr'}>
+                <DropdownMenuTrigger asChild>
+                    <Button
+                        type="button"
+                        size="icon"
+                        variant="outline"
+                        className="size-7 border-primary/15 bg-primary/8 text-primary hover:bg-primary/15 hover:text-primary"
+                        aria-label={t('common.actions', 'Actions')}
+                    >
+                        <MoreHorizontal className="size-3.5" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align={isRtl ? 'start' : 'end'}>
+                    <DropdownMenuItem
+                        onSelect={() => {
+                            setEditOpen(true);
+                        }}
+                    >
+                        <Pencil className="size-4" />
+                        {t('propertyWorkspace.editSpace')}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onSelect={() => {
+                            setDeleteOpen(true);
+                        }}
+                    >
+                        <Trash2 className="size-4" />
+                        {t('propertyWorkspace.confirmDeleteSpace')}
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+            <EditUnit
+                property={property}
+                floor={floor}
+                unit={unit}
+                open={editOpen}
+                onOpenChange={setEditOpen}
+                trigger={null}
+            />
+            <DeleteConfirmation
+                title={t('propertyWorkspace.deleteSpaceTitle')}
+                description={t('propertyWorkspace.deleteSpace')}
+                confirmLabel={t('propertyWorkspace.confirmDeleteSpace')}
+                onConfirm={() =>
+                    router.delete(
+                        `/properties/${property.id}/floors/${floor.id}/units/${unit.id}`,
+                        { preserveScroll: true },
+                    )
+                }
+                compact
+                open={deleteOpen}
+                onOpenChange={setDeleteOpen}
+                trigger={null}
+            />
+        </>
+    );
+}
+
 function AddFloor({ property }: { property: Property }) {
     const { t } = useLocalization();
     const [open, setOpen] = useState(false);
@@ -1110,15 +1318,15 @@ function AddFloor({ property }: { property: Property }) {
 function AddUnit({
     property,
     floor,
-    isMarket,
 }: {
     property: Property;
     floor: PropertyFloor;
-    isMarket: boolean;
 }) {
     const { t } = useLocalization();
     const [open, setOpen] = useState(false);
     const form = useForm({
+        unit_type:
+            floor.usage_type === 'residential' ? 'apartment' : 'shop',
         unit_number: '',
         area_sqm: '',
         width_m: '',
@@ -1141,9 +1349,8 @@ function AddUnit({
             },
         });
     };
-    const addLabel = isMarket
-        ? t('propertyWorkspace.addShop')
-        : t('propertyWorkspace.addApartment');
+    const isShop = form.data.unit_type === 'shop';
+    const addLabel = t('propertyWorkspace.addSpace');
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
@@ -1160,9 +1367,37 @@ function AddUnit({
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
+                    <Field label={t('propertyWorkspace.fields.unitType')}>
+                        <SearchableDropdown
+                            value={form.data.unit_type}
+                            onValueChange={(value) =>
+                                form.setData(
+                                    'unit_type',
+                                    value as PropertyUnit['unit_type'],
+                                )
+                            }
+                            placeholder={t(
+                                'propertyWorkspace.fields.unitType',
+                            )}
+                            options={[
+                                {
+                                    value: 'shop',
+                                    label: t('propertyWorkspace.shop'),
+                                },
+                                {
+                                    value: 'apartment',
+                                    label: t('propertyWorkspace.apartment'),
+                                },
+                            ]}
+                            searchPlaceholder={t(
+                                'propertyWorkspace.searchOptions',
+                            )}
+                            emptyText={t('propertyWorkspace.noOptions')}
+                        />
+                    </Field>
                     <Field
                         label={t(
-                            isMarket
+                            isShop
                                 ? 'propertyWorkspace.fields.shopNumber'
                                 : 'propertyWorkspace.fields.apartmentNumber',
                         )}
@@ -1186,7 +1421,7 @@ function AddUnit({
                             showControls={false}
                         />
                     </Field>
-                    {isMarket ? (
+                    {isShop ? (
                         <>
                             <Field label={t('propertyWorkspace.fields.width')}>
                                 <NumericInput
@@ -1275,12 +1510,20 @@ function AddUnit({
 function EditFloor({
     property,
     floor,
+    open: controlledOpen,
+    onOpenChange,
+    trigger,
 }: {
     property: Property;
     floor: PropertyFloor;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+    trigger?: ReactNode | null;
 }) {
     const { t } = useLocalization();
-    const [open, setOpen] = useState(false);
+    const [internalOpen, setInternalOpen] = useState(false);
+    const open = controlledOpen ?? internalOpen;
+    const setOpen = onOpenChange ?? setInternalOpen;
     const form = useForm({
         name: floor.name,
         level_number: String(floor.level_number),
@@ -1299,17 +1542,21 @@ function EditFloor({
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                <Button
-                    type="button"
-                    size="icon"
-                    variant="outline"
-                    className="size-8 border-primary/15 bg-primary/8 text-primary hover:bg-primary/15 hover:text-primary"
-                    aria-label={t('propertyWorkspace.editFloor')}
-                >
-                    <Pencil className="size-3.5" />
-                </Button>
-            </DialogTrigger>
+            {trigger !== null && (
+                <DialogTrigger asChild>
+                    {trigger ?? (
+                        <Button
+                            type="button"
+                            size="icon"
+                            variant="outline"
+                            className="size-8 border-primary/15 bg-primary/8 text-primary hover:bg-primary/15 hover:text-primary"
+                            aria-label={t('propertyWorkspace.editFloor')}
+                        >
+                            <Pencil className="size-3.5" />
+                        </Button>
+                    )}
+                </DialogTrigger>
+            )}
             <DialogContent className="bg-[#f8f9fd] sm:max-w-xl [&_input]:bg-white [&_textarea]:bg-white">
                 <DialogHeader>
                     <DialogTitle>
@@ -1395,16 +1642,23 @@ function EditUnit({
     property,
     floor,
     unit,
-    isMarket,
+    open: controlledOpen,
+    onOpenChange,
+    trigger,
 }: {
     property: Property;
     floor: PropertyFloor;
     unit: PropertyUnit;
-    isMarket: boolean;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+    trigger?: ReactNode | null;
 }) {
     const { t } = useLocalization();
-    const [open, setOpen] = useState(false);
+    const [internalOpen, setInternalOpen] = useState(false);
+    const open = controlledOpen ?? internalOpen;
+    const setOpen = onOpenChange ?? setInternalOpen;
     const form = useForm({
+        unit_type: unit.unit_type,
         unit_number: unit.unit_number,
         area_sqm: String(unit.area_sqm ?? ''),
         width_m: String(unit.width_m ?? ''),
@@ -1428,23 +1682,26 @@ function EditUnit({
             },
         );
     };
-    const editLabel = isMarket
-        ? t('propertyWorkspace.editShop')
-        : t('propertyWorkspace.editApartment');
+    const isShop = form.data.unit_type === 'shop';
+    const editLabel = t('propertyWorkspace.editSpace');
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                <Button
-                    type="button"
-                    size="icon"
-                    variant="outline"
-                    className="size-7 border-primary/15 bg-primary/8 text-primary hover:bg-primary/15 hover:text-primary"
-                    aria-label={editLabel}
-                >
-                    <Pencil className="size-3" />
-                </Button>
-            </DialogTrigger>
+            {trigger !== null && (
+                <DialogTrigger asChild>
+                    {trigger ?? (
+                        <Button
+                            type="button"
+                            size="icon"
+                            variant="outline"
+                            className="size-7 border-primary/15 bg-primary/8 text-primary hover:bg-primary/15 hover:text-primary"
+                            aria-label={editLabel}
+                        >
+                            <Pencil className="size-3" />
+                        </Button>
+                    )}
+                </DialogTrigger>
+            )}
             <DialogContent className="max-h-[92vh] overflow-y-auto bg-[#f8f9fd] sm:max-w-2xl [&_input]:bg-white [&_textarea]:bg-white">
                 <DialogHeader>
                     <DialogTitle>{editLabel}</DialogTitle>
@@ -1453,9 +1710,37 @@ function EditUnit({
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
+                    <Field label={t('propertyWorkspace.fields.unitType')}>
+                        <SearchableDropdown
+                            value={form.data.unit_type}
+                            onValueChange={(value) =>
+                                form.setData(
+                                    'unit_type',
+                                    value as PropertyUnit['unit_type'],
+                                )
+                            }
+                            placeholder={t(
+                                'propertyWorkspace.fields.unitType',
+                            )}
+                            options={[
+                                {
+                                    value: 'shop',
+                                    label: t('propertyWorkspace.shop'),
+                                },
+                                {
+                                    value: 'apartment',
+                                    label: t('propertyWorkspace.apartment'),
+                                },
+                            ]}
+                            searchPlaceholder={t(
+                                'propertyWorkspace.searchOptions',
+                            )}
+                            emptyText={t('propertyWorkspace.noOptions')}
+                        />
+                    </Field>
                     <Field
                         label={t(
-                            isMarket
+                            isShop
                                 ? 'propertyWorkspace.fields.shopNumber'
                                 : 'propertyWorkspace.fields.apartmentNumber',
                         )}
@@ -1479,7 +1764,7 @@ function EditUnit({
                             showControls={false}
                         />
                     </Field>
-                    {isMarket ? (
+                    {isShop ? (
                         <>
                             <Field label={t('propertyWorkspace.fields.width')}>
                                 <NumericInput
@@ -1623,32 +1908,47 @@ function DeleteConfirmation({
     confirmLabel,
     onConfirm,
     compact = false,
+    open: controlledOpen,
+    onOpenChange,
+    trigger,
 }: {
     title: string;
     description: string;
     confirmLabel: string;
     onConfirm: () => void;
     compact?: boolean;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
+    trigger?: ReactNode | null;
 }) {
     const { t, isRtl } = useLocalization();
+    const [internalOpen, setInternalOpen] = useState(false);
+    const open = controlledOpen ?? internalOpen;
+    const setOpen = onOpenChange ?? setInternalOpen;
 
     return (
-        <AlertDialog>
-            <AlertDialogTrigger asChild>
-                <Button
-                    type="button"
-                    size="icon"
-                    variant="outline"
-                    className={
-                        compact
-                            ? 'size-7 border-destructive/15 bg-destructive/8 text-destructive hover:bg-destructive/15 hover:text-destructive'
-                            : 'size-8 border-destructive/15 bg-destructive/8 text-destructive hover:bg-destructive/15 hover:text-destructive'
-                    }
-                    aria-label={confirmLabel}
-                >
-                    <Trash2 className={compact ? 'size-3' : 'size-3.5'} />
-                </Button>
-            </AlertDialogTrigger>
+        <AlertDialog open={open} onOpenChange={setOpen}>
+            {trigger !== null && (
+                <AlertDialogTrigger asChild>
+                    {trigger ?? (
+                        <Button
+                            type="button"
+                            size="icon"
+                            variant="outline"
+                            className={
+                                compact
+                                    ? 'size-7 border-destructive/15 bg-destructive/8 text-destructive hover:bg-destructive/15 hover:text-destructive'
+                                    : 'size-8 border-destructive/15 bg-destructive/8 text-destructive hover:bg-destructive/15 hover:text-destructive'
+                            }
+                            aria-label={confirmLabel}
+                        >
+                            <Trash2
+                                className={compact ? 'size-3' : 'size-3.5'}
+                            />
+                        </Button>
+                    )}
+                </AlertDialogTrigger>
+            )}
             <AlertDialogContent dir={isRtl ? 'rtl' : 'ltr'}>
                 <AlertDialogHeader
                     className={isRtl ? 'text-right sm:text-right' : ''}

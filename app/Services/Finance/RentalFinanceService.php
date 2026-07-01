@@ -46,21 +46,43 @@ class RentalFinanceService
         $expected = (float) $leases->sum(
             fn (Lease $lease) => $this->expectedForLease($lease, $startDate, $endDate),
         );
+        $expectedByCurrency = $leases
+            ->groupBy(fn (Lease $lease) => strtoupper($lease->currency?->code ?? 'AFN'))
+            ->map(fn (Collection $currencyLeases) => (float) $currencyLeases->sum(
+                fn (Lease $lease) => $this->expectedForLease($lease, $startDate, $endDate),
+            ))
+            ->all();
         $payments = RentPayment::query()
-            ->where('status', 'received')
-            ->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))
-            ->whereDate('period_start', '<=', $endDate->toDateString())
+            ->leftJoin('currencies', 'currencies.id', '=', 'rent_payments.currency_id')
+            ->where('rent_payments.status', 'received')
+            ->when($propertyId, fn ($query) => $query->where('rent_payments.property_id', $propertyId))
+            ->whereDate('rent_payments.period_start', '<=', $endDate->toDateString())
             ->where(fn ($query) => $query
-                ->whereDate('period_end', '>=', $startDate->toDateString())
+                ->whereDate('rent_payments.period_end', '>=', $startDate->toDateString())
                 ->orWhere(fn ($singlePeriod) => $singlePeriod
-                    ->whereNull('period_end')
-                    ->whereDate('period_start', '>=', $startDate->toDateString())));
-        $received = (float) (clone $payments)->sum('amount');
+                    ->whereNull('rent_payments.period_end')
+                    ->whereDate('rent_payments.period_start', '>=', $startDate->toDateString())));
+        $received = (float) (clone $payments)->sum('rent_payments.amount');
+        $receivedByCurrency = (clone $payments)
+            ->selectRaw('COALESCE(currencies.code, "AFN") as currency_code')
+            ->selectRaw('COALESCE(SUM(rent_payments.amount), 0) as total')
+            ->groupBy('currency_code')
+            ->pluck('total', 'currency_code')
+            ->map(fn ($value) => (float) $value)
+            ->all();
+        $outstandingByCurrency = collect($expectedByCurrency)
+            ->mapWithKeys(fn (float $amount, string $currencyCode) => [
+                $currencyCode => max(0, $amount - (float) ($receivedByCurrency[$currencyCode] ?? 0)),
+            ])
+            ->all();
 
         return [
             'expected' => $expected,
+            'expectedByCurrency' => $expectedByCurrency,
             'received' => $received,
+            'receivedByCurrency' => $receivedByCurrency,
             'outstanding' => max(0, $expected - $received),
+            'outstandingByCurrency' => $outstandingByCurrency,
             'activeLeases' => $leases->where('status', 'active')->count(),
             'signedContracts' => $leases->filter(fn (Lease $lease) => $lease->contractDocuments->isNotEmpty())->count(),
             'unsignedContracts' => $leases->filter(fn (Lease $lease) => $lease->contractDocuments->isEmpty())->count(),

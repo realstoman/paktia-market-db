@@ -102,8 +102,8 @@ const ps = {
         tools: 'نورې برخې',
         managementTools: 'د مدیریت توکي',
         toolInventory: 'ګدام',
-        toolDubaiRestaurant: 'د دوبۍ رستورانت',
-        toolKabulSarafi: 'د کابل طلا او صرافي',
+        toolDubaiRestaurant: 'د کابل دربار رستورانت',
+        toolKabulSarafi: 'د عبدالحنان پکتیاوال صرافي',
         toolContracts: 'د قرارداد قالبونه',
         toolEmployees: 'کارکوونکي',
         toolShareholders: 'شریکان',
@@ -397,8 +397,20 @@ const ps = {
         register: 'کرایه‌دار ثبتول',
         scan: 'د کرایه‌دار کارت سکین',
         scanPlaceholder: 'کارت سکین یا کوډ ولیکئ…',
-        scanHelp:
-            'د چاپ شوي بارکوډ په سکین سره د کرایه‌دار پروفایل سمدستي خلاصیږي.',
+        scanHelp: 'د QR کوډ په سکین سره د کرایه‌دار پروفایل سمدستي خلاصیږي.',
+        scanCameraTitle: 'QR کوډ سکین',
+        scanCameraDescription:
+            'د کرایه‌دار پر کارت چاپ شوی QR کوډ د وسیلې په کمره ولولئ.',
+        scanCameraStarting: 'کمره پیلېږي…',
+        scanCameraReady: 'کمره د کرایه‌دار کارت QR کوډ ته ونیسئ.',
+        scanCameraUnavailable:
+            'په دې براوزر کې د کمرې سکین شتون نه لري. مهرباني وکړئ د QR سکینر وکاروئ یا د کارت کوډ په لاس ولیکئ.',
+        scanNotSupported:
+            'دا براوزر له کمرې څخه QR کوډ نه شي لوستلای. مهرباني وکړئ د سکین ورودي یا QR سکینر وکاروئ.',
+        scanPermissionDenied:
+            'د کمرې اجازه رد شوه یا کمره خلاصه نه شوه. مهرباني وکړئ د کارت کوډ په لاس ولیکئ.',
+        scanDetected: 'د کرایه‌دار کارت سکین شو.',
+        scanManualEntry: 'کوډ په لاس ولیکئ',
         searchPlaceholder: 'د نوم، سوداګرۍ، تلیفون یا کارت کوډ له مخې لټون…',
         empty: 'ستاسو له لټون سره کرایه‌دار ونه موندل شو.',
         active: 'فعال',
@@ -494,6 +506,13 @@ const ps = {
             endDate: 'د پای نېټه',
             rent: 'د کرایې اندازه',
             deposit: 'تضمین',
+            upfrontPayment: 'مخکینی / مخکې ورکړل شوی کرایه',
+            upfrontPaymentHelp:
+                'هغه کرایه ثبت کړئ چې د قرارداد پر وخت اخیستل کېږي، څو پوښل شوې میاشتې د ناتادیه په توګه ښکاره نه شي.',
+            initialRentMonths: 'د مخکې ورکړل شوې کرایې میاشتې',
+            initialRentAmount: 'د لومړنۍ / مخکې ورکړل شوې کرایې اندازه',
+            initialRentPaymentDate: 'د لومړنۍ کرایې د تادیې نېټه',
+            initialRentPaymentMethod: 'د لومړنۍ کرایې د تادیې طریقه',
             currency: 'پولي واحد',
             frequency: 'د تادیې موده',
             status: 'د قرارداد حالت',
@@ -687,6 +706,15 @@ const ps = {
         noProjectData: 'تر اوسه پروژه نه ده ثبت شوې.',
         projects: 'پروژې',
         project: 'پروژه',
+        projectsFinanceOverview: 'د جایدادونو مالي لنډیز',
+        projectsFinanceOverviewHelp:
+            'د روانې میاشتې کرایه، ټوله راټوله شوې کرایه، لګښتونه او د هر جایداد وضعیت.',
+        propertyName: 'د جایداد نوم',
+        recentMonthRent: 'د روانې میاشتې کرایه',
+        totalCollectedRent: 'ټوله راټوله شوې کرایه',
+        totalExpenses: 'ټول لګښتونه',
+        downloadPdf: 'PDF',
+        downloadExcel: 'Excel',
         shops: 'دوکانونه',
         tenants: 'کرایه‌داران',
         status: 'وضعیت',
@@ -1192,6 +1220,15 @@ const ps = {
         tertiaryColorLabel: 'درېيم رنګ',
         logoLabel: 'د سايډبار لوګو',
         logoFullLabel: 'د ننوتلو بشپړ لوګو',
+        tenantCardSettingsTitle: 'د مستأجر کارت',
+        tenantCardSettingsDescription:
+            'هغه پیغام، د اړیکې شمېره او لوګوګانې تنظیم کړئ چې د مستأجر پر کارت چاپېږي.',
+        tenantCardMessageLabel: 'د کارت د شا پیغام',
+        tenantCardMessageHelp:
+            'د مارکیټ يا جايداد نوم د ښودلو لپاره :property وکاروئ.',
+        tenantCardPhoneLabel: 'د اړیکې شمېره',
+        tenantCardFrontLogoLabel: 'د کارت د مخې لوګو',
+        tenantCardBackLogoLabel: 'د کارت د شا لوګو',
         previewLabel: 'ژوندی مخکتنه',
         systemBrandingHelp:
             'د نوي هويت د پلي کېدو لپاره خوندي او بيا پورته کړئ.',
@@ -1651,6 +1688,11 @@ const ps = {
             actions: 'عملیات',
         },
         status: { received: 'ترلاسه شوې', void: 'باطله شوې' },
+        receiptPrint: {
+            title: 'د کرایې د تادیې رسید',
+            print: 'رسید چاپ کړئ',
+            paid: 'تادیه شوې',
+        },
     },
     financeDashboard: {
         pageTitle: 'مالي ډشبورډ',
@@ -1703,6 +1745,9 @@ const ps = {
         summary: {
             sales: 'ترلاسه شوې کرایه',
             salesSubtitle: 'په ټاکلې موده کې ترلاسه شوې د کرایه‌دارانو کرایه',
+            rentReceived: 'ترلاسه شوې کرایه',
+            rentReceivedSubtitle:
+                'د ټاکل شوي جایداد او مودې لپاره راټوله شوې کرایه',
             rentExpected: 'قراردادي کرایه',
             rentExpectedSubtitle:
                 'په دې موده کې د فعالو قراردادونو د ورکړې کرایه',
@@ -1729,6 +1774,13 @@ const ps = {
             supplierBalancesSubtitle:
                 'د موجودۍ د پېرودونو له امله د پلورونکو نه‌ورکړل شوې مانده',
             pending: 'په تمه',
+        },
+        businessCards: {
+            title: 'د کاروبار مالي برخه',
+            valuation: 'ارزښت‌ټاکنه',
+            income: 'عاید',
+            expenses: 'لګښتونه',
+            net: 'خالص',
         },
         notes: {
             grossProfitRecognized:
@@ -2906,10 +2958,37 @@ const ps = {
             singlePrice: 'واحد قیمت',
             totalPrice: 'ټول قیمت',
             usable: 'د کار وړ',
+            assignedTo: 'سپارل شوی چا ته',
             images: 'انځورونه',
             receipt: 'رسید/بل',
             actions: 'عملیات',
             unknown: 'نامعلوم',
+        },
+        assignments: {
+            assignAction: 'کارکوونکي ته سپارل',
+            returnAction: 'له کارکوونکي څخه بېرته اخیستل',
+            assignTitle: 'توکی کارکوونکي ته سپارل',
+            assignDescription:
+                'هغه ثابت توکي تعقیب کړئ چې کارکوونکو ته سپارل کېږي، څو د کار د ختمېدو پر وخت بېرته وسپارل شي.',
+            returnTitle: 'سپارل شوی توکی بېرته اخیستل',
+            returnDescription:
+                'هغه ثابت توکی چې له کارکوونکي سره دی، د بېرته راګرځېدلي په توګه ثبت کړئ.',
+            employee: 'کارکوونکی',
+            selectEmployee: 'کارکوونکی وټاکئ',
+            employeeNumber: 'کارکوونکی #:id',
+            assignment: 'سپارښت',
+            selectAssignment: 'سپارښت وټاکئ',
+            quantity: 'تعداد',
+            available: 'موجود',
+            assignedAt: 'د سپارلو نېټه',
+            expectedReturnAt: 'د تمه کېدونکي بېرته سپارلو نېټه',
+            returnedAt: 'د بېرته سپارلو نېټه',
+            conditionOut: 'حالت د سپارلو پر وخت',
+            conditionIn: 'حالت د بېرته سپارلو پر وخت',
+            assigned: 'توکی په بریالیتوب کارکوونکي ته وسپارل شو.',
+            assignFailed: 'کارکوونکي ته د توکي سپارل ناکام شول.',
+            returned: 'توکی په بریالیتوب بېرته وسپارل شو.',
+            returnFailed: 'د توکي بېرته سپارل ناکام شول.',
         },
         common: {
             name: 'نوم',
@@ -3234,8 +3313,11 @@ const ps = {
         active: 'فعال',
         inactive: 'غیرفعال',
         floors: 'منزلونه',
+        shop: 'دوکان',
+        apartment: 'اپارتمان',
         shops: 'دوکانونه',
         apartments: 'اپارتمانونه',
+        shopsAndApartments: 'دوکانونه او اپارتمانونه',
         rooms: 'خونې',
         building: 'د ودانۍ مساحت (متر مربع)',
         ready: 'د کارکوونکو، لګښتونو او راپورونو لپاره چمتو',
@@ -3258,15 +3340,18 @@ const ps = {
         floorsAndSpaces: 'منزلونه او :spaces',
         basementHelp: 'د زیرزمین لپاره منفي نمبر وکاروئ، لکه -1.',
         addFloor: 'منزل زیات کړئ',
+        addSpace: 'دوکان / اپارتمان زیات کړئ',
         addShop: 'دوکان زیات کړئ',
         addApartment: 'اپارتمان زیات کړئ',
         editFloor: 'منزل سمول',
+        editSpace: 'دوکان / اپارتمان سمول',
         editShop: 'دوکان سمول',
         editApartment: 'اپارتمان سمول',
         saveChanges: 'بدلونونه خوندي کړئ',
         noFloors:
             'تر اوسه منزل نشته. له زیرزمین، ځمکني یا پورته منزل څخه پیل وکړئ.',
         noSpaces: 'تر اوسه :spaces نه دي ثبت شوي.',
+        searchSpaces: 'دوکان یا اپارتمان د نمبر یا نوم له مخې ولټوئ…',
         searchShops: 'دوکان د نمبر یا نوم له مخې ولټوئ…',
         searchApartments: 'اپارتمان د نمبر یا نوم له مخې ولټوئ…',
         noMatchingSpaces: 'د لټون سره برابر دوکان یا اپارتمان ونه موندل شو.',
@@ -3285,7 +3370,7 @@ const ps = {
             'د مالک د کارونې پر مهال کارکوونکي او لګښتونه همدې واحد ته وتړئ؛ د کرایې پر مهال ټول واحد یوه کرایه‌دار ته وسپارئ.',
         uploadPhoto: 'د جایداد انځور پورته کړئ',
         uploadPhotoHelp:
-            'PNG، JPG یا WebP تر ۵ مېګابایټه پورې؛ هر انځور باید ۱۹۲۰×۱۰۸۰ وي.',
+            'PNG، JPG یا WebP تر ۵ مېګابایټه پورې؛ هره اندازه انځور منل کېږي او په کارتونو کې په اتومات ډول پرې کېږي.',
         choosePhoto: 'انځور وټاکئ',
         selectedPhoto: 'ټاکل شوی انځور',
         selectedPhotos: ':count انځورونه ټاکل شوي',
@@ -3318,6 +3403,7 @@ const ps = {
             length: 'اوږدوالی (متر)',
             electricityMeter: 'د برېښنا میتر',
             waterMeter: 'د اوبو میتر',
+            unitType: 'د ځای ډول',
             shopNumber: 'د دوکان نمبر',
             apartmentNumber: 'د اپارتمان نمبر',
             occupancyStatus: 'د اشغال حالت',
@@ -3401,8 +3487,15 @@ const ps = {
         },
         images: {
             title: 'د جایداد انځورونه',
-            help: 'تر ۱۰ پورې د ګالرۍ انځورونه پورته کړئ. هر انځور باید دقیقاً ۱۹۲۰×۱۰۸۰ وي.',
+            help: 'تر ۱۰ پورې د بېلابېلو زاویو ګالرۍ انځورونه پورته کړئ. کارتونه او اصلي انځور ثابت اندازه لري او اتومات پرې کېږي.',
             upload: 'انځورونه پورته کړئ',
+            image: 'د جایداد انځور',
+            cover: 'اوسنی اصلي انځور',
+            setCover: 'د اصلي انځور په توګه وټاکئ',
+            deleteTitle: 'انځور حذف شي؟',
+            deleteDescription:
+                'دا انځور به د جایداد له ګالرۍ څخه لرې شي.',
+            confirmDelete: 'انځور حذف کړئ',
             empty: 'تر اوسه د دې جایداد کوم انځور نه دی پورته شوی.',
             openLarge: 'لوی انځور وګورئ',
         },
@@ -3525,20 +3618,20 @@ const ps = {
         },
         businesses: {
             dubaiRestaurant: {
-                title: 'د دوبۍ رستورانت',
+                title: 'د کابل دربار رستورانت',
                 location: 'دوبۍ، متحده عربي امارات',
                 description:
-                    'د ګروپ اړوند د دوبۍ رستورانت لپاره ورځنی ارزښت، خرڅلاو، عاید او لګښتونه ثبت کړئ.',
+                    'د کابل دربار رستورانت لپاره ورځنی ارزښت، خرڅلاو، عاید او لګښتونه ثبت کړئ.',
                 moduleDescription:
                     'د رستورانت ورځنی ارزښت، خرڅلاو، عاید او لګښتونه.',
             },
             kabulSarafi: {
-                title: 'د کابل طلا او صرافي',
+                title: 'د عبدالحنان پکتیاوال صرافي',
                 location: 'کابل، افغانستان',
                 description:
-                    'په کابل کې د طلا او صرافي کاروبار لپاره ورځنی ارزښت، خرڅلاو، عاید او لګښتونه ثبت کړئ.',
+                    'د عبدالحنان پکتیاوال صرافي لپاره ورځنی ارزښت، خرڅلاو، عاید او لګښتونه ثبت کړئ.',
                 moduleDescription:
-                    'د طلا او صرافي ورځنی ارزښت، خرڅلاو، عاید او لګښتونه.',
+                    'د صرافي ورځنی ارزښت، خرڅلاو، عاید او لګښتونه.',
             },
         },
         actions: {

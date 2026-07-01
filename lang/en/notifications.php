@@ -46,6 +46,8 @@ return [
         'payroll_recorded_title' => 'Payroll payment recorded',
         'payroll_recorded_description' => 'Payroll payment for :name was recorded.',
         'payroll_recorded_fallback' => 'Employee payroll was paid.',
+        'rent_due_title' => 'This month rent is unpaid',
+        'rent_due_description' => 'The current month rent for :tenant in :space has not been recorded yet.',
     ],
     'products' => [
         'added_title' => 'Product added',

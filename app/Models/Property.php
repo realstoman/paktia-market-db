@@ -77,7 +77,9 @@ class Property extends Model
 
     public function getImageUrlAttribute(): ?string
     {
-        return $this->image_path ? asset('storage/'.$this->image_path) : null;
+        $imagePath = $this->attributes['image_path'] ?? null;
+
+        return $imagePath ? asset('storage/'.$imagePath) : null;
     }
 
     public function getNameAttribute(?string $value): string

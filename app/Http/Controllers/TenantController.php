@@ -2,12 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\PaymentMethod;
+use App\Models\CashMovement;
 use App\Models\Currency;
+use App\Models\FinanceAccount;
 use App\Models\Lease;
 use App\Models\Property;
+use App\Models\RentPayment;
 use App\Models\Tenant;
 use App\Models\TenantDocument;
 use App\Services\Tenants\TenantLeaseService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -162,13 +167,18 @@ class TenantController extends Controller
     {
         $validated = $this->validateTenant($request);
         $lease = $this->validateOptionalLease($request);
+        $initialRent = $this->validateInitialRentPayment($request, $lease);
 
-        $tenant = DB::transaction(function () use ($request, $validated, $lease, $leases): Tenant {
+        $tenant = DB::transaction(function () use ($request, $validated, $lease, $initialRent, $leases): Tenant {
             unset($validated['photo'], $validated['documents']);
             $tenant = Tenant::query()->create($validated);
 
             if ($lease !== null) {
-                $leases->create([...$lease, 'tenant_id' => $tenant->id]);
+                $createdLease = $leases->create([...$lease, 'tenant_id' => $tenant->id]);
+
+                if ($initialRent !== null) {
+                    $this->recordInitialRentPayment($createdLease, $initialRent, $request);
+                }
             }
 
             $tenant->update($this->storePhoto($request, [], $tenant));
@@ -196,7 +206,15 @@ class TenantController extends Controller
     public function storeLease(Request $request, Tenant $tenant, TenantLeaseService $leases)
     {
         $validated = $this->validateLease($request);
-        $leases->create([...$validated, 'tenant_id' => $tenant->id]);
+        $initialRent = $this->validateInitialRentPayment($request, $validated);
+
+        DB::transaction(function () use ($request, $tenant, $leases, $validated, $initialRent): void {
+            $lease = $leases->create([...$validated, 'tenant_id' => $tenant->id]);
+
+            if ($initialRent !== null) {
+                $this->recordInitialRentPayment($lease, $initialRent, $request);
+            }
+        });
 
         return back()->with('success', 'Property assignment created successfully.');
     }
@@ -319,6 +337,109 @@ class TenantController extends Controller
         unset($validated['lease_notes']);
 
         return $validated;
+    }
+
+    private function validateInitialRentPayment(Request $request, ?array $lease): ?array
+    {
+        if ($lease === null) {
+            return null;
+        }
+
+        $validated = $request->validate([
+            'initial_rent_months' => ['nullable', 'integer', 'min:0', 'max:24'],
+            'initial_rent_amount' => ['nullable', 'numeric', 'min:0'],
+            'initial_rent_payment_date' => ['nullable', 'date'],
+            'initial_rent_payment_method' => ['nullable', Rule::enum(PaymentMethod::class)],
+        ]);
+        $months = (int) ($validated['initial_rent_months'] ?? 0);
+        $amount = (float) ($validated['initial_rent_amount'] ?? 0);
+
+        if ($months <= 0 && $amount > 0) {
+            $months = 1;
+        }
+
+        if ($months <= 0 || ((float) ($lease['rent_amount'] ?? 0) <= 0 && $amount <= 0)) {
+            return null;
+        }
+
+        return [
+            'months' => $months,
+            'amount' => $amount > 0
+                ? $amount
+                : (float) ($lease['rent_amount'] ?? 0) * $months,
+            'payment_date' => $validated['initial_rent_payment_date'] ?? now()->toDateString(),
+            'payment_method' => $validated['initial_rent_payment_method'] ?? PaymentMethod::CASH->value,
+        ];
+    }
+
+    private function recordInitialRentPayment(Lease $lease, array $initialRent, Request $request): void
+    {
+        $lease->loadMissing(['currency:id,code,symbol', 'property:id,name']);
+        $periodStart = Carbon::parse($lease->start_date);
+        $periodEnd = $periodStart->copy()
+            ->addMonthsNoOverflow((int) $initialRent['months'])
+            ->subDay();
+
+        if ($lease->end_date && $periodEnd->gt(Carbon::parse($lease->end_date))) {
+            $periodEnd = Carbon::parse($lease->end_date);
+        }
+
+        $payment = RentPayment::query()->create([
+            'lease_id' => $lease->id,
+            'tenant_id' => $lease->tenant_id,
+            'property_id' => $lease->property_id,
+            'currency_id' => $lease->currency_id,
+            'period_start' => $periodStart->toDateString(),
+            'period_end' => $periodEnd->toDateString(),
+            'payment_date' => $initialRent['payment_date'],
+            'amount' => (float) $initialRent['amount'],
+            'payment_method' => $initialRent['payment_method'],
+            'reference' => 'Initial prepaid rent',
+            'notes' => 'Initial prepaid rent collected during lease assignment.',
+            'status' => 'received',
+            'created_by' => $request->user()?->id,
+        ]);
+
+        $currencyCode = strtoupper($lease->currency?->code ?? 'AFN');
+        $account = $this->cashOnHandAccount($lease->property_id, $lease->property?->name, $currencyCode);
+
+        CashMovement::query()->create([
+            'property_id' => $lease->property_id,
+            'movement_type' => 'rent_collection',
+            'direction' => 'in',
+            'movement_date' => $payment->payment_date,
+            'amount' => $payment->amount,
+            'payment_method' => $payment->payment_method,
+            'account_id' => $account->id,
+            'counterparty_account_id' => null,
+            'reference_type' => 'rent_payment',
+            'reference_id' => $payment->id,
+            'created_by' => $request->user()?->id,
+            'approved_by' => $request->user()?->id,
+            'approval_status' => 'approved',
+            'description' => 'Initial prepaid rent for contract '.$lease->contract_number,
+        ]);
+    }
+
+    private function cashOnHandAccount(?int $propertyId, ?string $propertyName, string $currencyCode): FinanceAccount
+    {
+        $scope = $propertyId ? "P{$propertyId}" : 'GROUP';
+        $code = "CASH-{$scope}-{$currencyCode}";
+
+        return FinanceAccount::query()->firstOrCreate(
+            ['code' => $code],
+            [
+                'name' => trim('Cash on Hand '.$currencyCode.($propertyName ? ' - '.$propertyName : '')),
+                'type' => 'asset',
+                'parent_id' => null,
+                'property_id' => $propertyId,
+                'currency_code' => $currencyCode,
+                'is_postable' => true,
+                'is_system' => true,
+                'status' => 'active',
+                'description' => 'Auto-created cash-on-hand account for initial tenant rent.',
+            ],
+        );
     }
 
     private function storePhoto(Request $request, array $validated, ?Tenant $tenant = null): array

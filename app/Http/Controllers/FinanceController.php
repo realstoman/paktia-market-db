@@ -304,6 +304,7 @@ class FinanceController extends Controller
             ->whereBetween('expense_date', [$startDate->toDateString(), $endDate->toDateString()]);
 
         $expensesTotal = (float) (clone $expenseQuery)->sum('amount');
+        $expensesByCurrency = $this->expensesByCurrency($expenseQuery);
         $rentalSummary = $this->rentalFinance->summary($startDate, $endDate, $propertyId);
         $rentPaymentsQuery = RentPayment::query()
             ->where('status', 'received')
@@ -311,6 +312,7 @@ class FinanceController extends Controller
             ->when($paymentMethod, fn ($query) => $query->where('payment_method', $paymentMethod))
             ->whereBetween('payment_date', [$startDate->toDateString(), $endDate->toDateString()]);
         $rentReceived = (float) (clone $rentPaymentsQuery)->sum('amount');
+        $rentReceivedByCurrency = $this->rentPaymentsByCurrency($rentPaymentsQuery);
         $inventoryValue = (float) InventoryItem::query()
             ->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))
             ->selectRaw('COALESCE(SUM(quantity * unit_price), 0) as total')
@@ -327,7 +329,23 @@ class FinanceController extends Controller
         $cashPosition += (float) RentPayment::query()
             ->where('status', 'received')
             ->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))
+            ->whereNotExists(function ($query) {
+                $query->selectRaw('1')
+                    ->from('cash_movements')
+                    ->whereColumn('cash_movements.reference_id', 'rent_payments.id')
+                    ->where('cash_movements.reference_type', 'rent_payment');
+            })
             ->sum('amount');
+        $cashPositionByCurrency = $this->cashPositionByCurrency($propertyId);
+        $netProfitByCurrency = collect($rentalSummary['receivedByCurrency'] ?? [])
+            ->merge($expensesByCurrency)
+            ->keys()
+            ->unique()
+            ->mapWithKeys(fn (string $currencyCode) => [
+                $currencyCode => (float) ($rentalSummary['receivedByCurrency'][$currencyCode] ?? $rentReceivedByCurrency[$currencyCode] ?? 0)
+                    - (float) ($expensesByCurrency[$currencyCode] ?? 0),
+            ])
+            ->all();
         $unpaidSalaries = Schema::hasTable('payroll_run_items')
             ? (float) DB::table('payroll_run_items')->where('payment_status', '!=', 'paid')->sum('net_salary')
             : 0.0;
@@ -376,6 +394,10 @@ class FinanceController extends Controller
 
         $generalLedger = $this->buildMarketLedger($startDate, $endDate, $propertyId, $category, 12);
         $businessTotals = BusinessFinanceController::financeDashboardTotals();
+        $businessCards = BusinessFinanceController::financeDashboardCards(
+            $startDate->toDateString(),
+            $endDate->toDateString(),
+        );
 
         return Inertia::render('finance/index', [
             'filters' => [
@@ -401,14 +423,22 @@ class FinanceController extends Controller
             'dashboard' => [
                 'summary' => [
                     'sales' => $rentReceived,
+                    'salesByCurrency' => $rentReceivedByCurrency,
                     'rentExpected' => $rentalSummary['expected'],
+                    'rentExpectedByCurrency' => $rentalSummary['expectedByCurrency'],
                     'rentReceived' => $rentReceived,
+                    'rentReceivedByCurrency' => $rentReceivedByCurrency,
                     'rentOutstanding' => max(0, $rentalSummary['expected'] - $rentReceived),
+                    'rentOutstandingByCurrency' => $rentalSummary['outstandingByCurrency'],
                     'activeLeases' => $rentalSummary['activeLeases'],
                     'expenses' => $expensesTotal,
+                    'expensesByCurrency' => $expensesByCurrency,
                     'grossProfit' => $rentReceived,
+                    'grossProfitByCurrency' => $rentReceivedByCurrency,
                     'netProfit' => $rentReceived - $expensesTotal,
+                    'netProfitByCurrency' => $netProfitByCurrency,
                     'cashPosition' => $cashPosition,
+                    'cashPositionByCurrency' => $cashPositionByCurrency,
                     'unpaidSalaries' => $unpaidSalaries,
                     'inventoryValue' => $inventoryValue,
                     'supplierBalances' => $supplierBalances,
@@ -420,6 +450,7 @@ class FinanceController extends Controller
                 ],
                 'trend' => $trend,
                 'propertyRevenue' => $propertyRevenue,
+                'businessCards' => $businessCards,
                 'shareholderPnl' => $this->shareholderPnl->rows($startDate, $endDate, $propertyId),
                 'topExpenseCategories' => $topExpenseCategories,
                 'paymentBreakdown' => [],
@@ -443,8 +474,8 @@ class FinanceController extends Controller
                         ['label' => 'Outstanding', 'value' => max(0, $rentalSummary['expected'] - $rentReceived), 'format' => 'currency'],
                     ]],
                     ['name' => 'Inventory Valuation', 'description' => 'Stock valuation and inventory cost movements.', 'status' => 'Ready'],
-                    ['name' => 'Dubai Restaurant', 'description' => 'Daily restaurant valuation, sales, income, and expenses.', 'status' => 'Ready'],
-                    ['name' => 'Kabul Gold & Sarafi', 'description' => 'Daily gold and Sarafi valuation, sales, income, and expenses.', 'status' => 'Ready'],
+                    ['name' => 'Kabul Darbar Restaurant', 'description' => 'Daily restaurant valuation, sales, income, and expenses.', 'status' => 'Ready'],
+                    ['name' => 'Abdul Hanan Paktiawal Sarafi', 'description' => 'Daily Sarafi valuation, sales, income, and expenses.', 'status' => 'Ready'],
                 ],
                 'notes' => [
                     'grossProfit' => 'Received rent before operating expenses.',
@@ -452,6 +483,69 @@ class FinanceController extends Controller
                 ],
             ],
         ]);
+    }
+
+    private function rentPaymentsByCurrency($query): array
+    {
+        return (clone $query)
+            ->leftJoin('currencies', 'currencies.id', '=', 'rent_payments.currency_id')
+            ->selectRaw('COALESCE(currencies.code, "AFN") as currency_code')
+            ->selectRaw('COALESCE(SUM(rent_payments.amount), 0) as total')
+            ->groupBy('currency_code')
+            ->pluck('total', 'currency_code')
+            ->map(fn ($value) => (float) $value)
+            ->all();
+    }
+
+    private function expensesByCurrency($query): array
+    {
+        return (clone $query)
+            ->leftJoin('finance_accounts', 'finance_accounts.id', '=', 'expenses.paid_from_account_id')
+            ->selectRaw('COALESCE(finance_accounts.currency_code, "AFN") as currency_code')
+            ->selectRaw('COALESCE(SUM(expenses.amount), 0) as total')
+            ->groupBy('currency_code')
+            ->pluck('total', 'currency_code')
+            ->map(fn ($value) => (float) $value)
+            ->all();
+    }
+
+    private function cashPositionByCurrency(?int $propertyId = null): array
+    {
+        $cashMovementTotals = CashMovement::query()
+            ->leftJoin('finance_accounts', 'finance_accounts.id', '=', 'cash_movements.account_id')
+            ->when($propertyId, fn ($query) => $query->where('cash_movements.property_id', $propertyId))
+            ->where('cash_movements.approval_status', 'approved')
+            ->selectRaw('COALESCE(finance_accounts.currency_code, "AFN") as currency_code')
+            ->selectRaw("COALESCE(SUM(CASE WHEN cash_movements.direction = 'in' THEN cash_movements.amount ELSE -cash_movements.amount END), 0) as total")
+            ->groupBy('currency_code')
+            ->pluck('total', 'currency_code')
+            ->map(fn ($value) => (float) $value);
+
+        $orphanRentTotals = RentPayment::query()
+            ->leftJoin('currencies', 'currencies.id', '=', 'rent_payments.currency_id')
+            ->where('rent_payments.status', 'received')
+            ->when($propertyId, fn ($query) => $query->where('rent_payments.property_id', $propertyId))
+            ->whereNotExists(function ($query) {
+                $query->selectRaw('1')
+                    ->from('cash_movements')
+                    ->whereColumn('cash_movements.reference_id', 'rent_payments.id')
+                    ->where('cash_movements.reference_type', 'rent_payment');
+            })
+            ->selectRaw('COALESCE(currencies.code, "AFN") as currency_code')
+            ->selectRaw('COALESCE(SUM(rent_payments.amount), 0) as total')
+            ->groupBy('currency_code')
+            ->pluck('total', 'currency_code')
+            ->map(fn ($value) => (float) $value);
+
+        return $cashMovementTotals
+            ->merge($orphanRentTotals)
+            ->keys()
+            ->unique()
+            ->mapWithKeys(fn (string $currencyCode) => [
+                $currencyCode => (float) ($cashMovementTotals[$currencyCode] ?? 0)
+                    + (float) ($orphanRentTotals[$currencyCode] ?? 0),
+            ])
+            ->all();
     }
 
     private function buildMarketLedger(
@@ -477,7 +571,8 @@ class FinanceController extends Controller
                 'debit' => (float) $expense->amount,
                 'credit' => 0,
                 'status' => $expense->approval_status ?? 'draft',
-            ]);
+            ])
+            ->toBase();
 
         $movements = CashMovement::query()
             ->with('property:id,name,name_translations')
@@ -494,12 +589,19 @@ class FinanceController extends Controller
                 'debit' => $movement->direction === 'out' ? (float) $movement->amount : 0,
                 'credit' => $movement->direction === 'in' ? (float) $movement->amount : 0,
                 'status' => $movement->approval_status ?? 'draft',
-            ]);
+            ])
+            ->toBase();
 
         $rentPayments = RentPayment::query()
             ->with(['property:id,name,name_translations', 'tenant:id,full_name,business_name'])
             ->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))
             ->where('status', 'received')
+            ->whereNotExists(function ($query) {
+                $query->selectRaw('1')
+                    ->from('cash_movements')
+                    ->whereColumn('cash_movements.reference_id', 'rent_payments.id')
+                    ->where('cash_movements.reference_type', 'rent_payment');
+            })
             ->whereBetween('payment_date', [$startDate->toDateString(), $endDate->toDateString()])
             ->get()
             ->map(fn (RentPayment $payment) => [
@@ -512,7 +614,8 @@ class FinanceController extends Controller
                 'debit' => 0,
                 'credit' => (float) $payment->amount,
                 'status' => 'received',
-            ]);
+            ])
+            ->toBase();
 
         $entries = $expenses->merge($movements)->merge($rentPayments)->sortByDesc('date')->values();
 

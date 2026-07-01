@@ -7,6 +7,7 @@ use App\Models\Country;
 use App\Models\Property;
 use App\Models\PropertyDocument;
 use App\Models\PropertyFloor;
+use App\Models\PropertyImage;
 use App\Models\PropertyType;
 use App\Models\PropertyUnit;
 use App\Models\Province;
@@ -166,8 +167,8 @@ class PropertyController extends Controller
         $behavior = $property->typeBehavior();
         abort_if(in_array($behavior, ['house', 'commercial_unit'], true), 422);
 
-        $expectedType = $behavior === 'market' ? 'shop' : 'apartment';
         $validated = $request->validate([
+            'unit_type' => ['nullable', Rule::in(['shop', 'apartment'])],
             'unit_number' => [
                 'required', 'string', 'max:50',
                 Rule::unique('property_units')->where('property_floor_id', $floor->id),
@@ -185,11 +186,13 @@ class PropertyController extends Controller
             'description' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        $floor->units()->create(['unit_type' => $expectedType, ...$validated]);
+        $validated['unit_type'] = $this->normalizeUnitType($property, $validated['unit_type'] ?? null);
+
+        $floor->units()->create($validated);
 
         return back()->with(
             'success',
-            __("properties.actions.{$expectedType}_added"),
+            __("properties.actions.{$validated['unit_type']}_added"),
         );
     }
 
@@ -205,6 +208,7 @@ class PropertyController extends Controller
     {
         abort_unless($floor->property_id === $property->id && $unit->property_floor_id === $floor->id, 404);
         $validated = $request->validate([
+            'unit_type' => ['nullable', Rule::in(['shop', 'apartment'])],
             'unit_number' => [
                 'required', 'string', 'max:50',
                 Rule::unique('property_units')->where('property_floor_id', $floor->id)->ignore($unit->id),
@@ -221,9 +225,35 @@ class PropertyController extends Controller
             'water_meter' => ['nullable', 'string', 'max:100'],
             'description' => ['nullable', 'string', 'max:1000'],
         ]);
+        $validated['unit_type'] = $this->normalizeUnitType($property, $validated['unit_type'] ?? $unit->unit_type);
+
         $unit->update($validated);
 
         return back()->with('success', __('properties.actions.space_updated'));
+    }
+
+    private function normalizeUnitType(Property $property, ?string $unitType): string
+    {
+        $unitType = in_array($unitType, ['shop', 'apartment'], true) ? $unitType : null;
+        $behavior = $property->typeBehavior();
+
+        if ($behavior === 'block') {
+            return 'apartment';
+        }
+
+        if ($behavior === 'market') {
+            if ($property->usage_type === 'residential') {
+                return 'apartment';
+            }
+
+            if ($property->usage_type === 'mixed') {
+                return $unitType ?? 'shop';
+            }
+
+            return 'shop';
+        }
+
+        return $unitType ?? 'shop';
     }
 
     public function uploadDocuments(Request $request, Property $property)
@@ -272,6 +302,31 @@ class PropertyController extends Controller
         $this->storeGalleryImages($request, $property);
 
         return back()->with('success', __('properties.actions.images_uploaded'));
+    }
+
+    public function setCoverImage(Property $property, PropertyImage $image)
+    {
+        abort_unless($image->property_id === $property->id, 404);
+
+        $property->forceFill(['image_path' => $image->path])->save();
+
+        return back()->with('success', __('properties.actions.cover_updated'));
+    }
+
+    public function destroyImage(Property $property, PropertyImage $image)
+    {
+        abort_unless($image->property_id === $property->id, 404);
+
+        Storage::disk('public')->delete($image->path);
+        $wasCover = $property->image_path === $image->path;
+        $image->delete();
+
+        if ($wasCover) {
+            $nextCover = $property->images()->value('path');
+            $property->forceFill(['image_path' => $nextCover])->save();
+        }
+
+        return back()->with('success', __('properties.actions.image_deleted'));
     }
 
     private function validateProperty(Request $request): array
@@ -325,7 +380,7 @@ class PropertyController extends Controller
             'notes' => ['nullable', 'string', 'max:3000'],
             'image' => ['nullable', 'image', 'max:5120'],
             'images' => ['nullable', 'array', 'max:10'],
-            'images.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:width=1920,height=1080'],
+            'images.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
         ]);
 
         if ($this->propertyTypeBehavior($validated['property_type']) === 'commercial_unit') {
@@ -353,7 +408,7 @@ class PropertyController extends Controller
 
         $request->validate([
             'images' => ['required', 'array', 'min:1', 'max:'.$remainingSlots],
-            'images.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:width=1920,height=1080'],
+            'images.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
         ]);
     }
 

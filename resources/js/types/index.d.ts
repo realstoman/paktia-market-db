@@ -39,6 +39,12 @@ export interface SharedData {
         logoFullUrl: string;
         logoPath?: string | null;
         logoFullPath?: string | null;
+        tenantCardFrontLogoUrl?: string | null;
+        tenantCardBackLogoUrl?: string | null;
+        tenantCardFrontLogoPath?: string | null;
+        tenantCardBackLogoPath?: string | null;
+        tenantCardMessage?: string | null;
+        tenantCardPhone?: string | null;
         primaryColor: string;
         secondaryColor: string;
         tertiaryColor: string;
@@ -466,6 +472,7 @@ export interface Property {
     property_type_behavior?: 'market' | 'block' | 'house' | 'commercial_unit';
     type_definition?: PropertyType | null;
     usage_type?: 'commercial' | 'residential' | 'mixed';
+    image_path?: string | null;
     image_url?: string | null;
     images?: PropertyImage[];
     distance_from_city_km?: string | null;
@@ -739,6 +746,23 @@ export interface InventoryTransaction {
     [key: string]: unknown;
 }
 
+export interface InventoryAssignment {
+    id: number;
+    inventory_item_id: number;
+    employee_id: number;
+    employee?: Employee | null;
+    quantity: number | string;
+    assigned_at: string;
+    expected_return_at?: string | null;
+    returned_at?: string | null;
+    condition_out?: string | null;
+    condition_in?: string | null;
+    notes?: string | null;
+    created_at?: string;
+    updated_at?: string;
+    [key: string]: unknown;
+}
+
 export interface InventoryItem {
     id: number;
     property_id: number;
@@ -767,6 +791,10 @@ export interface InventoryItem {
     is_usable: boolean;
     images?: InventoryItemImage[];
     transactions?: InventoryTransaction[];
+    assignments?: InventoryAssignment[];
+    active_assignments?: InventoryAssignment[];
+    assigned_quantity?: number | string;
+    available_quantity?: number | string;
     created_at?: string;
     updated_at?: string;
     [key: string]: unknown;

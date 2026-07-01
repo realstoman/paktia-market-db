@@ -1,5 +1,10 @@
 import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
+import {
+    formatAfghanDate,
+    formatAfghanMonthLabel,
+    formatAfghanPeriodLabel,
+} from '@/utils/afghan-calendar';
 import { formatNumber, formatPrice } from '@/utils/format';
 import { Head, Link } from '@inertiajs/react';
 import {
@@ -8,6 +13,9 @@ import {
     CircleDollarSign,
     DoorOpen,
     ExternalLink,
+    FileSpreadsheet,
+    FileText,
+    Printer,
     Layers3,
     Plus,
     ReceiptText,
@@ -52,6 +60,32 @@ interface RentCollectionRow {
     paymentMethod: string;
 }
 
+interface RentStatusRow {
+    id: number;
+    tenant?: string | null;
+    space?: string | null;
+    contractNumber?: string | null;
+    expected: number;
+    received: number;
+    outstanding: number;
+    status: 'paid' | 'unpaid';
+    currency: string;
+}
+
+type CurrencyTotals = Record<string, number | string | undefined>;
+
+interface ShareholderPnlRow {
+    id: number;
+    shareholder: string;
+    property: string;
+    percentage: number;
+    revenue: number;
+    expenses: number;
+    net: number;
+    allocated: number;
+    currencyCode?: string;
+}
+
 interface PortfolioProject {
     id: number;
     name: string;
@@ -65,20 +99,30 @@ interface PortfolioProject {
     registeredTenants: number;
     inventoryItems: number;
     employees: number;
+    shareholders: number;
     rent: {
         collectedAfn: number;
         remainingAfn: number;
         collectedUsd: number;
         remainingUsd: number;
+        collectedByCurrency?: CurrencyTotals;
     };
     financeThisMonth: {
         collectedRent: number;
+        collectedRentByCurrency?: CurrencyTotals;
         expenses: number;
+        expensesByCurrency?: CurrencyTotals;
         shareholderTakeouts: number;
+        shareholderTakeoutsByCurrency?: CurrencyTotals;
         availableCash: number;
+        availableCashByCurrency?: CurrencyTotals;
     };
     expensesAfn: number;
+    expensesByCurrency?: CurrencyTotals;
     cashPositionAfn: number;
+    cashPositionByCurrency?: CurrencyTotals;
+    shareholderPnl?: ShareholderPnlRow[];
+    rentStatusRows?: RentStatusRow[];
     recentRentCollections: RentCollectionRow[];
     recentExpenses: ExpenseRow[];
 }
@@ -112,6 +156,69 @@ const COLORS = {
     mist: '#edf1f4',
 };
 
+type ChartTooltipPayloadItem = {
+    name?: string | number;
+    value?: string | number;
+    color?: string;
+    fill?: string;
+    payload?: {
+        name?: string;
+    };
+};
+
+function DashboardChartTooltip({
+    active,
+    payload,
+    label,
+    currency = false,
+}: {
+    active?: boolean;
+    payload?: ChartTooltipPayloadItem[];
+    label?: string | number;
+    currency?: boolean;
+}) {
+    if (!active || !payload?.length) {
+        return null;
+    }
+
+    return (
+        <div className="rounded-xl border border-[#dfe7e9] bg-white px-3 py-2 text-xs shadow-sm">
+            {label ? (
+                <p className="mb-2 font-semibold text-[#002452]">{label}</p>
+            ) : null}
+            <div className="space-y-1.5">
+                {payload.map((item, index) => {
+                    const name = String(item.name ?? item.payload?.name ?? '');
+                    const visibleName = name === 'value' ? '' : name;
+                    const numericValue = Number(item.value ?? 0);
+                    const color = item.color ?? item.fill ?? COLORS.teal;
+                    const formattedValue = currency
+                        ? `${formatPrice(numericValue)} ${name === 'USD' ? '$' : name === 'AFN' ? '؋' : visibleName}`
+                        : formatNumber(numericValue);
+
+                    return (
+                        <div
+                            key={`${name || 'item'}-${index}`}
+                            className="flex items-center justify-between gap-4"
+                        >
+                            <span className="flex items-center gap-2 text-slate-500">
+                                <span
+                                    className="size-2 rounded-full"
+                                    style={{ backgroundColor: color }}
+                                />
+                                {visibleName ? <span>{visibleName}</span> : null}
+                            </span>
+                            <span className="font-semibold text-slate-900">
+                                {formattedValue}
+                            </span>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
 function StatCard({
     label,
     value,
@@ -119,6 +226,7 @@ function StatCard({
     accent = 'teal',
     actionHref,
     actionLabel,
+    currencyTotals,
 }: {
     label: string;
     value: string;
@@ -126,12 +234,13 @@ function StatCard({
     accent?: 'teal' | 'green' | 'coral' | 'blue';
     actionHref?: string;
     actionLabel?: string;
+    currencyTotals?: CurrencyTotals;
 }) {
     const tones = {
         teal: 'bg-[#edf1f4] text-[#002452]',
-        green: 'bg-[#f8f1e5] text-[#a4772d]',
-        coral: 'bg-rose-50 text-[#ef786f]',
-        blue: 'bg-blue-50 text-[#5d91c9]',
+        green: 'bg-[#edf1f4] text-[#002452]',
+        coral: 'bg-[#edf1f4] text-[#002452]',
+        blue: 'bg-[#edf1f4] text-[#002452]',
     };
 
     return (
@@ -146,11 +255,27 @@ function StatCard({
                 >
                     <Icon className="size-5" />
                 </div>
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                     <p className="truncate text-xs text-slate-500">{label}</p>
-                    <p className="mt-1 text-xl font-bold text-slate-900 dark:text-white">
-                        {value}
-                    </p>
+                    {currencyTotals ? (
+                        <div className="mt-1 space-y-1">
+                            {currencyRows(currencyTotals).map((row) => (
+                                <div
+                                    key={row.code}
+                                    className="flex items-center justify-between gap-3 text-sm font-semibold text-slate-900 dark:text-white"
+                                >
+                                    <span>{row.symbol}</span>
+                                    <span dir="ltr">
+                                        {formatPrice(row.amount)}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="mt-1 text-xl font-bold text-slate-900 dark:text-white">
+                            {value}
+                        </p>
+                    )}
                 </div>
             </div>
             {actionHref && actionLabel ? (
@@ -166,6 +291,57 @@ function StatCard({
             ) : null}
         </div>
     );
+}
+
+function currencySymbol(code: string) {
+    const normalized = code.toUpperCase();
+
+    if (normalized === 'USD') {
+        return '$';
+    }
+
+    if (normalized === 'AFN') {
+        return '؋';
+    }
+
+    return normalized;
+}
+
+function currencyRows(totals: CurrencyTotals = {}) {
+    const normalized = Object.entries(totals).reduce<Record<string, number>>(
+        (carry, [code, value]) => {
+            const key = code.toUpperCase();
+            carry[key] = Number(value ?? 0);
+
+            return carry;
+        },
+        {},
+    );
+    const orderedCodes = [
+        'AFN',
+        'USD',
+        ...Object.keys(normalized).filter(
+            (code) => !['AFN', 'USD'].includes(code),
+        ),
+    ];
+
+    return orderedCodes
+        .filter((code, index) => index < 2 || Number(normalized[code] ?? 0) !== 0)
+        .map((code) => ({
+            code,
+            symbol: currencySymbol(code),
+            amount: Number(normalized[code] ?? 0),
+        }));
+}
+
+function currencyTotalsText(totals: CurrencyTotals = {}) {
+    return currencyRows(totals)
+        .map((row) => `${formatPrice(row.amount)} ${row.symbol}`)
+        .join(' / ');
+}
+
+function currencyAmount(totals: CurrencyTotals = {}, code: string) {
+    return Number(totals[code] ?? totals[code.toLowerCase()] ?? 0);
 }
 
 function EmptyChart({ label }: { label: string }) {
@@ -184,8 +360,30 @@ function formatDateForQuery(date: Date) {
     return `${year}-${month}-${day}`;
 }
 
+function escapeHtml(value: string): string {
+    return value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function downloadBlob(content: BlobPart, filename: string, type: string) {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+}
+
 export default function Dashboard({ data }: { data: DashboardData }) {
-    const { t } = useLocalization();
+    const { direction, locale, t } = useLocalization();
     const [activeTab, setActiveTab] = useState<string>('overall');
     const projects = data.portfolio.projects;
     const selectedProject = projects.find(
@@ -201,6 +399,10 @@ export default function Dashboard({ data }: { data: DashboardData }) {
             endDate: formatDateForQuery(monthEnd),
         };
     }, []);
+    const currentAfghanMonthLabel = useMemo(
+        () => formatAfghanMonthLabel(currentMonthFilters.startDate),
+        [currentMonthFilters.startDate],
+    );
     const rentCollectionsHref = selectedProject
         ? `/finance/rentals?${new URLSearchParams({
               property_id: String(selectedProject.id),
@@ -215,6 +417,10 @@ export default function Dashboard({ data }: { data: DashboardData }) {
               end_date: currentMonthFilters.endDate,
           }).toString()}`
         : '/finance/expenses';
+    const selectedProjectHasShops = Number(selectedProject?.shops ?? 0) > 0;
+    const selectedProjectHasShareholders =
+        Number(selectedProject?.shareholders ?? 0) > 0 ||
+        Boolean(selectedProject?.shareholderPnl?.length);
 
     const overallProjectChart = useMemo(
         () =>
@@ -250,21 +456,31 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                   value: selectedProject.floors,
                   color: COLORS.blue,
               },
-              {
-                  name: t('propertyDashboard.shops', 'Shops'),
-                  value: selectedProject.shops,
-                  color: COLORS.teal,
-              },
-              {
-                  name: t('propertyDashboard.occupied', 'Occupied shops'),
-                  value: selectedProject.occupiedShops,
-                  color: COLORS.green,
-              },
-              {
-                  name: t('propertyDashboard.available', 'Available shops'),
-                  value: selectedProject.availableShops,
-                  color: COLORS.coral,
-              },
+              ...(selectedProjectHasShops
+                  ? [
+                        {
+                            name: t('propertyDashboard.shops', 'Shops'),
+                            value: selectedProject.shops,
+                            color: COLORS.teal,
+                        },
+                        {
+                            name: t(
+                                'propertyDashboard.occupied',
+                                'Occupied shops',
+                            ),
+                            value: selectedProject.occupiedShops,
+                            color: COLORS.green,
+                        },
+                        {
+                            name: t(
+                                'propertyDashboard.available',
+                                'Available shops',
+                            ),
+                            value: selectedProject.availableShops,
+                            color: COLORS.coral,
+                        },
+                    ]
+                  : []),
           ]
         : [];
     const propertyFinanceChart = selectedProject
@@ -274,33 +490,49 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                       'propertyDashboard.totalCollectedRentThisMonth',
                       'Collected rent this month',
                   ),
-                  value: selectedProject.financeThisMonth.collectedRent,
-                  color: COLORS.green,
+                  AFN: currencyAmount(
+                      selectedProject.financeThisMonth.collectedRentByCurrency,
+                      'AFN',
+                  ),
+                  USD: currencyAmount(
+                      selectedProject.financeThisMonth.collectedRentByCurrency,
+                      'USD',
+                  ),
               },
               {
                   name: t(
                       'propertyDashboard.totalExpensesThisMonth',
                       'Expenses this month',
                   ),
-                  value: selectedProject.financeThisMonth.expenses,
-                  color: COLORS.coral,
-              },
-              {
-                  name: t(
-                      'propertyDashboard.totalShareholderTakeoutsThisMonth',
-                      'Shareholder takeouts this month',
+                  AFN: currencyAmount(
+                      selectedProject.financeThisMonth.expensesByCurrency,
+                      'AFN',
                   ),
-                  value: selectedProject.financeThisMonth.shareholderTakeouts,
-                  color: COLORS.blue,
-              },
-              {
-                  name: t(
-                      'propertyDashboard.totalAvailableCash',
-                      'Available cash',
+                  USD: currencyAmount(
+                      selectedProject.financeThisMonth.expensesByCurrency,
+                      'USD',
                   ),
-                  value: selectedProject.financeThisMonth.availableCash,
-                  color: COLORS.teal,
               },
+              ...(selectedProjectHasShareholders
+                  ? [
+                        {
+                            name: t(
+                                'propertyDashboard.totalShareholderTakeoutsThisMonth',
+                                'Shareholder takeouts this month',
+                            ),
+                            AFN: currencyAmount(
+                                selectedProject.financeThisMonth
+                                    .shareholderTakeoutsByCurrency,
+                                'AFN',
+                            ),
+                            USD: currencyAmount(
+                                selectedProject.financeThisMonth
+                                    .shareholderTakeoutsByCurrency,
+                                'USD',
+                            ),
+                        },
+                    ]
+                  : []),
           ]
         : [];
     const hasOverallChart = overallProjectChart.some(
@@ -311,8 +543,331 @@ export default function Dashboard({ data }: { data: DashboardData }) {
         (item) => item.value > 0,
     );
     const hasProjectFinance = propertyFinanceChart.some(
-        (item) => item.value !== 0,
+        (item) => item.AFN !== 0 || item.USD !== 0,
     );
+    const overviewRows = useMemo(
+        () =>
+            projects.map((project) => ({
+                id: project.id,
+                name: project.name,
+                address: project.address || '—',
+                recentMonthRent: project.financeThisMonth.collectedRent,
+                totalCollectedRent: project.rent.collectedAfn,
+                totalExpenses: project.expensesAfn,
+                status: project.isActive
+                    ? t('propertyDashboard.active', 'Active')
+                    : t('propertyDashboard.inactive', 'Inactive'),
+                isActive: project.isActive,
+            })),
+        [projects, t],
+    );
+    const overviewExportColumns = useMemo(
+        () => [
+            t('propertyDashboard.propertyName', 'Property Name'),
+            t('propertyDashboard.recentMonthRent', 'Recent month rent'),
+            t('propertyDashboard.totalCollectedRent', 'Total collected rent'),
+            t('propertyDashboard.totalExpenses', 'Total expenses'),
+            t('propertyDashboard.status', 'Status'),
+        ],
+        [t],
+    );
+    const exportOverviewExcel = () => {
+        const rows = overviewRows
+            .map(
+                (row) => `
+                    <tr>
+                        <td>${escapeHtml(row.name)}</td>
+                        <td>${formatPrice(row.recentMonthRent)} ؋</td>
+                        <td>${formatPrice(row.totalCollectedRent)} ؋</td>
+                        <td>${formatPrice(row.totalExpenses)} ؋</td>
+                        <td>${escapeHtml(row.status)}</td>
+                    </tr>`,
+            )
+            .join('');
+        const html = `
+            <html dir="${direction}">
+                <head>
+                    <meta charset="utf-8" />
+                </head>
+                <body>
+                    <table>
+                        <thead>
+                            <tr>
+                                ${overviewExportColumns.map((column) => `<th>${escapeHtml(column)}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </body>
+            </html>`;
+
+        downloadBlob(
+            html,
+            `properties-finance-overview-${formatDateForQuery(new Date())}.xls`,
+            'application/vnd.ms-excel;charset=utf-8;',
+        );
+    };
+    const exportOverviewPdf = () => {
+        const printWindow = window.open('', '_blank');
+
+        if (!printWindow) {
+            return;
+        }
+
+        const title = t(
+            'propertyDashboard.projectsFinanceOverview',
+            'Properties finance overview',
+        );
+        const rows = overviewRows
+            .map(
+                (row) => `
+                    <tr>
+                        <td>
+                            <strong>${escapeHtml(row.name)}</strong>
+                            <div class="muted">${escapeHtml(row.address)}</div>
+                        </td>
+                        <td>${formatPrice(row.recentMonthRent)} ؋</td>
+                        <td>${formatPrice(row.totalCollectedRent)} ؋</td>
+                        <td>${formatPrice(row.totalExpenses)} ؋</td>
+                        <td>${escapeHtml(row.status)}</td>
+                    </tr>`,
+            )
+            .join('');
+
+        printWindow.document.write(`
+            <!doctype html>
+            <html dir="${direction}">
+                <head>
+                    <meta charset="utf-8" />
+                    <title>${escapeHtml(title)}</title>
+                    <style>
+                        @font-face { font-family: BahijNazanin; src: url('/fonts/bahij-nazanin.ttf') format('truetype'); font-weight: 400; }
+                        @font-face { font-family: BahijNazanin; src: url('/fonts/bahij-nazanin-bold.ttf') format('truetype'); font-weight: 700; }
+                        @font-face { font-family: Manrope; src: url('/fonts/Manrope-VariableFont_wght.ttf') format('truetype'); }
+                        body {
+                            font-family: ${direction === 'rtl' ? 'BahijNazanin' : 'Manrope'}, Arial, sans-serif;
+                            color: #002452;
+                            padding: 28px;
+                        }
+                        header {
+                            display: flex;
+                            justify-content: space-between;
+                            gap: 18px;
+                            border-bottom: 2px solid #edf1f4;
+                            padding-bottom: 18px;
+                            margin-bottom: 18px;
+                        }
+                        h1 {
+                            margin: 0;
+                            font-size: 22px;
+                        }
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                            font-size: 12px;
+                        }
+                        th, td {
+                            border: 1px solid #dfe7e9;
+                            padding: 10px;
+                            text-align: ${direction === 'rtl' ? 'right' : 'left'};
+                            vertical-align: top;
+                        }
+                        th {
+                            background: #edf1f4;
+                            font-weight: 700;
+                        }
+                        .muted {
+                            margin-top: 4px;
+                            color: #64748b;
+                            font-size: 11px;
+                        }
+                        footer {
+                            margin-top: 28px;
+                            border-top: 1px solid #edf1f4;
+                            padding-top: 12px;
+                            color: #64748b;
+                            font-size: 11px;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <header>
+                        <div>
+                            <h1>${escapeHtml(title)}</h1>
+                            <div class="muted">${formatDateForQuery(new Date())}</div>
+                        </div>
+                        <div class="muted">Paktiawal Group</div>
+                    </header>
+                    <table>
+                        <thead>
+                            <tr>
+                                ${overviewExportColumns.map((column) => `<th>${escapeHtml(column)}</th>`).join('')}
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                    <footer>Paktiawal Group · ${escapeHtml(t('propertyDashboard.generatedBySystem', 'Generated from the property finance system'))}</footer>
+                    <script>
+                        window.onload = function () {
+                            window.print();
+                        };
+                    </script>
+                </body>
+            </html>
+        `);
+        printWindow.document.close();
+    };
+    const printableStyles = `
+        @font-face { font-family: BahijNazanin; src: url('/fonts/bahij-nazanin.ttf') format('truetype'); font-weight: 400; }
+        @font-face { font-family: BahijNazanin; src: url('/fonts/bahij-nazanin-bold.ttf') format('truetype'); font-weight: 700; }
+        @font-face { font-family: Manrope; src: url('/fonts/Manrope-VariableFont_wght.ttf') format('truetype'); }
+        body {
+            font-family: ${direction === 'rtl' ? 'BahijNazanin' : 'Manrope'}, Arial, sans-serif;
+            color: #002452;
+            padding: 28px;
+            background: #fff;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            gap: 18px;
+            border-bottom: 2px solid #edf1f4;
+            padding-bottom: 18px;
+            margin-bottom: 18px;
+        }
+        h1 { margin: 0; font-size: 24px; }
+        .muted { color: #64748b; font-size: 11px; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th, td {
+            border: 1px solid #dfe7e9;
+            padding: 9px;
+            text-align: ${direction === 'rtl' ? 'right' : 'left'};
+            vertical-align: top;
+        }
+        th { background: #edf1f4; font-weight: 700; }
+        footer {
+            margin-top: 28px;
+            border-top: 1px solid #edf1f4;
+            padding-top: 12px;
+            color: #64748b;
+            font-size: 11px;
+        }
+        @page { margin: 14mm; }
+    `;
+    const writePrintableReport = (title: string, table: string) => {
+        const printWindow = window.open('', '_blank');
+
+        if (!printWindow) {
+            return;
+        }
+
+        const propertyName = selectedProject?.name ?? title;
+
+        printWindow.document.write(`
+            <!doctype html>
+            <html dir="${direction}">
+                <head>
+                    <meta charset="utf-8" />
+                    <title>${escapeHtml(title)}</title>
+                    <style>${printableStyles}</style>
+                </head>
+                <body>
+                    <header>
+                        <div>
+                            <h1>${escapeHtml(propertyName)}</h1>
+                            <div class="muted">${escapeHtml(title)}</div>
+                        </div>
+                        <div class="muted">${formatDateForQuery(new Date())}</div>
+                    </header>
+                    ${table}
+                    <footer>
+                        ${escapeHtml(propertyName)} · ${escapeHtml(t('propertyDashboard.generatedBySystem', 'Generated from the property finance system'))}
+                    </footer>
+                    <script>window.onload = function () { window.print(); };</script>
+                </body>
+            </html>
+        `);
+        printWindow.document.close();
+    };
+    const exportSelectedRentPdf = () => {
+        if (!selectedProject) {
+            return;
+        }
+
+        const title = t(
+            'propertyDashboard.rentCollectionReport',
+            'Rent collection report',
+        );
+        const rows = (selectedProject.rentStatusRows ?? [])
+            .map(
+                (row) => `
+                    <tr>
+                        <td>${escapeHtml(row.contractNumber || '—')}</td>
+                        <td>${escapeHtml(row.space || '—')}</td>
+                        <td>${escapeHtml(row.tenant || '—')}</td>
+                        <td>${formatPrice(row.expected)} ${escapeHtml(row.currency)}</td>
+                        <td>${formatPrice(row.received)} ${escapeHtml(row.currency)}</td>
+                        <td>${formatPrice(row.outstanding)} ${escapeHtml(row.currency)}</td>
+                        <td>${escapeHtml(row.status === 'paid' ? t('propertyDashboard.paid', 'Paid') : t('propertyDashboard.unpaid', 'Unpaid'))}</td>
+                    </tr>`,
+            )
+            .join('');
+
+        writePrintableReport(
+            title,
+            `<table>
+                <thead>
+                    <tr>
+                        <th>${escapeHtml(t('propertyDashboard.contract', 'Contract'))}</th>
+                        <th>${escapeHtml(t('propertyDashboard.shop', 'Shop'))}</th>
+                        <th>${escapeHtml(t('propertyDashboard.tenant', 'Tenant'))}</th>
+                        <th>${escapeHtml(t('propertyDashboard.expectedRent', 'Expected'))}</th>
+                        <th>${escapeHtml(t('propertyDashboard.receivedRent', 'Received'))}</th>
+                        <th>${escapeHtml(t('propertyDashboard.outstandingRent', 'Outstanding'))}</th>
+                        <th>${escapeHtml(t('propertyDashboard.status', 'Status'))}</th>
+                    </tr>
+                </thead>
+                <tbody>${rows || `<tr><td colspan="7">${escapeHtml(t('propertyDashboard.noRentStatusRows', 'No active rent assignments were found for this property.'))}</td></tr>`}</tbody>
+            </table>`,
+        );
+    };
+    const exportSelectedShareholderPnlPdf = () => {
+        if (!selectedProject) {
+            return;
+        }
+
+        const title = t(
+            'financeDashboard.shareholderPnl.title',
+            'Shareholder Profit & Loss',
+        );
+        const rows = (selectedProject.shareholderPnl ?? [])
+            .map(
+                (row) => `
+                    <tr>
+                        <td>${escapeHtml(row.shareholder)}</td>
+                        <td>${formatPrice(row.percentage)}%</td>
+                        <td>${formatPrice(row.net)} ${currencySymbol(row.currencyCode ?? 'AFN')}</td>
+                        <td>${formatPrice(row.allocated)} ${currencySymbol(row.currencyCode ?? 'AFN')}</td>
+                    </tr>`,
+            )
+            .join('');
+
+        writePrintableReport(
+            title,
+            `<table>
+                <thead>
+                    <tr>
+                        <th>${escapeHtml(t('financeDashboard.shareholderPnl.shareholder', 'Shareholder'))}</th>
+                        <th>${escapeHtml(t('financeDashboard.shareholderPnl.share', 'Share'))}</th>
+                        <th>${escapeHtml(t('financeDashboard.shareholderPnl.net', 'Net'))}</th>
+                        <th>${escapeHtml(t('financeDashboard.shareholderPnl.allocated', 'Allocated'))}</th>
+                    </tr>
+                </thead>
+                <tbody>${rows || `<tr><td colspan="4">${escapeHtml(t('financeDashboard.shareholderPnl.empty', 'No effective shareholder assignments were found for this period.'))}</td></tr>`}</tbody>
+            </table>`,
+        );
+    };
+
     return (
         <AppLayout>
             <Head title={t('propertyDashboard.title', 'Property dashboard')} />
@@ -579,35 +1134,72 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                         </section>
 
                         <section className="rounded-2xl border border-[#dfe7e9] bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
-                            <h2 className="font-bold text-[#002452] dark:text-white">
-                                {t('propertyDashboard.projects', 'Properties')}
-                            </h2>
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <h2 className="font-bold text-[#002452] dark:text-white">
+                                        {t(
+                                            'propertyDashboard.projectsFinanceOverview',
+                                            'Properties finance overview',
+                                        )}
+                                    </h2>
+                                    <p className="mt-1 text-xs text-slate-500">
+                                        {t(
+                                            'propertyDashboard.projectsFinanceOverviewHelp',
+                                            'Monthly rent, total collected rent, expenses, and status for each property.',
+                                        )}
+                                    </p>
+                                </div>
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={exportOverviewPdf}
+                                        className="inline-flex h-9 items-center gap-2 rounded-full border border-[#002452]/15 bg-white px-3 text-xs font-semibold text-[#002452] transition hover:bg-[#edf1f4] dark:bg-neutral-900 dark:text-white"
+                                    >
+                                        <FileText className="size-4" />
+                                        {t(
+                                            'propertyDashboard.downloadPdf',
+                                            'PDF',
+                                        )}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={exportOverviewExcel}
+                                        className="inline-flex h-9 items-center gap-2 rounded-full bg-[#002452] px-3 text-xs font-semibold text-white transition hover:bg-[#002452]/90"
+                                    >
+                                        <FileSpreadsheet className="size-4" />
+                                        {t(
+                                            'propertyDashboard.downloadExcel',
+                                            'Excel',
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
                             <div className="mt-4 overflow-x-auto">
                                 <table className="w-full min-w-190 text-sm">
                                     <thead className="text-slate-400">
                                         <tr className="border-b border-[#edf1f2] text-start dark:border-neutral-800">
                                             <th className="px-3 py-3 text-start font-medium">
                                                 {t(
-                                                    'propertyDashboard.project',
-                                                    'Property',
+                                                    'propertyDashboard.propertyName',
+                                                    'Property Name',
                                                 )}
                                             </th>
                                             <th className="px-3 py-3 text-start font-medium">
                                                 {t(
-                                                    'propertyDashboard.shops',
-                                                    'Shops',
+                                                    'propertyDashboard.recentMonthRent',
+                                                    'Recent month rent',
                                                 )}
                                             </th>
                                             <th className="px-3 py-3 text-start font-medium">
                                                 {t(
-                                                    'propertyDashboard.tenants',
-                                                    'Tenants',
+                                                    'propertyDashboard.totalCollectedRent',
+                                                    'Total collected rent',
                                                 )}
                                             </th>
                                             <th className="px-3 py-3 text-start font-medium">
                                                 {t(
-                                                    'propertyDashboard.expenses',
-                                                    'Expenses',
+                                                    'propertyDashboard.totalExpenses',
+                                                    'Total expenses',
                                                 )}
                                             </th>
                                             <th className="px-3 py-3 text-start font-medium">
@@ -619,7 +1211,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {projects.map((project) => (
+                                        {overviewRows.map((project) => (
                                             <tr
                                                 key={project.id}
                                                 className="border-b border-[#f0f3f4] last:border-0 dark:border-neutral-800"
@@ -633,18 +1225,20 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                                     </p>
                                                 </td>
                                                 <td className="px-3 py-4">
-                                                    {formatNumber(
-                                                        project.shops,
-                                                    )}
-                                                </td>
-                                                <td className="px-3 py-4">
-                                                    {formatNumber(
-                                                        project.registeredTenants,
-                                                    )}
+                                                    {formatPrice(
+                                                        project.recentMonthRent,
+                                                    )}{' '}
+                                                    ؋
                                                 </td>
                                                 <td className="px-3 py-4">
                                                     {formatPrice(
-                                                        project.expensesAfn,
+                                                        project.totalCollectedRent,
+                                                    )}
+                                                    ؋
+                                                </td>
+                                                <td className="px-3 py-4">
+                                                    {formatPrice(
+                                                        project.totalExpenses,
                                                     )}{' '}
                                                     ؋
                                                 </td>
@@ -652,15 +1246,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                                     <span
                                                         className={`rounded-full px-3 py-1 text-xs font-semibold ${project.isActive ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500'}`}
                                                     >
-                                                        {project.isActive
-                                                            ? t(
-                                                                  'propertyDashboard.active',
-                                                                  'Active',
-                                                              )
-                                                            : t(
-                                                                  'propertyDashboard.inactive',
-                                                                  'Inactive',
-                                                              )}
+                                                        {project.status}
                                                     </span>
                                                 </td>
                                             </tr>
@@ -678,34 +1264,43 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                 value={formatNumber(selectedProject.floors)}
                                 icon={Layers3}
                             />
-                            <StatCard
-                                label={t('propertyDashboard.shops', 'Shops')}
-                                value={formatNumber(selectedProject.shops)}
-                                icon={DoorOpen}
-                                accent="blue"
-                            />
-                            <StatCard
-                                label={t(
-                                    'propertyDashboard.occupied',
-                                    'Occupied shops',
-                                )}
-                                value={formatNumber(
-                                    selectedProject.occupiedShops,
-                                )}
-                                icon={Store}
-                                accent="green"
-                            />
-                            <StatCard
-                                label={t(
-                                    'propertyDashboard.available',
-                                    'Available shops',
-                                )}
-                                value={formatNumber(
-                                    selectedProject.availableShops,
-                                )}
-                                icon={Building2}
-                                accent="coral"
-                            />
+                            {selectedProjectHasShops ? (
+                                <>
+                                    <StatCard
+                                        label={t(
+                                            'propertyDashboard.shops',
+                                            'Shops',
+                                        )}
+                                        value={formatNumber(
+                                            selectedProject.shops,
+                                        )}
+                                        icon={DoorOpen}
+                                        accent="blue"
+                                    />
+                                    <StatCard
+                                        label={t(
+                                            'propertyDashboard.occupied',
+                                            'Occupied shops',
+                                        )}
+                                        value={formatNumber(
+                                            selectedProject.occupiedShops,
+                                        )}
+                                        icon={Store}
+                                        accent="green"
+                                    />
+                                    <StatCard
+                                        label={t(
+                                            'propertyDashboard.available',
+                                            'Available shops',
+                                        )}
+                                        value={formatNumber(
+                                            selectedProject.availableShops,
+                                        )}
+                                        icon={Building2}
+                                        accent="coral"
+                                    />
+                                </>
+                            ) : null}
                         </section>
 
                         <section className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
@@ -714,7 +1309,10 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                     'propertyDashboard.totalCollectedRentThisMonth',
                                     'Collected rent this month',
                                 )}
-                                value={`${formatPrice(selectedProject.financeThisMonth.collectedRent)} ؋`}
+                                value={currencyTotalsText(
+                                    selectedProject.financeThisMonth
+                                        .collectedRentByCurrency,
+                                )}
                                 icon={Banknote}
                                 accent="green"
                                 actionHref={rentCollectionsHref}
@@ -722,13 +1320,20 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                     'propertyDashboard.viewCollectedRents',
                                     'View rents',
                                 )}
+                                currencyTotals={
+                                    selectedProject.financeThisMonth
+                                        .collectedRentByCurrency
+                                }
                             />
                             <StatCard
                                 label={t(
                                     'propertyDashboard.totalExpensesThisMonth',
                                     'Expenses this month',
                                 )}
-                                value={`${formatPrice(selectedProject.financeThisMonth.expenses)} ؋`}
+                                value={currencyTotalsText(
+                                    selectedProject.financeThisMonth
+                                        .expensesByCurrency,
+                                )}
                                 icon={ReceiptText}
                                 accent="coral"
                                 actionHref={propertyExpensesHref}
@@ -736,39 +1341,64 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                     'propertyDashboard.viewExpenses',
                                     'View expenses',
                                 )}
+                                currencyTotals={
+                                    selectedProject.financeThisMonth
+                                        .expensesByCurrency
+                                }
                             />
-                            <StatCard
-                                label={t(
-                                    'propertyDashboard.totalShareholderTakeoutsThisMonth',
-                                    'Shareholder takeouts this month',
-                                )}
-                                value={`${formatPrice(selectedProject.financeThisMonth.shareholderTakeouts)} ؋`}
-                                icon={UsersRound}
-                                accent="blue"
-                            />
+                            {selectedProjectHasShareholders ? (
+                                <StatCard
+                                    label={t(
+                                        'propertyDashboard.totalShareholderTakeoutsThisMonth',
+                                        'Shareholder takeouts this month',
+                                    )}
+                                    value={currencyTotalsText(
+                                        selectedProject.financeThisMonth
+                                            .shareholderTakeoutsByCurrency,
+                                    )}
+                                    icon={UsersRound}
+                                    accent="blue"
+                                    currencyTotals={
+                                        selectedProject.financeThisMonth
+                                            .shareholderTakeoutsByCurrency
+                                    }
+                                />
+                            ) : null}
                             <StatCard
                                 label={t(
                                     'propertyDashboard.totalAvailableCash',
                                     'Available cash',
                                 )}
-                                value={`${formatPrice(selectedProject.financeThisMonth.availableCash)} ؋`}
+                                value={currencyTotalsText(
+                                    selectedProject.financeThisMonth
+                                        .availableCashByCurrency,
+                                )}
                                 icon={CircleDollarSign}
                                 accent="teal"
+                                currencyTotals={
+                                    selectedProject.financeThisMonth
+                                        .availableCashByCurrency
+                                }
                             />
                         </section>
 
                         <section className="grid gap-5 xl:grid-cols-[1.3fr_0.7fr]">
                             <div className="rounded-2xl border border-[#dfe7e9] bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
-                                <h2 className="font-bold text-[#002452] dark:text-white">
-                                    {t(
-                                        'propertyDashboard.monthlyFinanceChart',
-                                        'Monthly finance overview',
-                                    )}
-                                </h2>
+                                <div className="flex items-center justify-between gap-3">
+                                    <h2 className="font-bold text-[#002452] dark:text-white">
+                                        {t(
+                                            'propertyDashboard.monthlyFinanceChart',
+                                            'Monthly finance overview',
+                                        )}
+                                    </h2>
+                                    <span className="rounded-full bg-[#edf1f4] px-3 py-1 text-xs font-semibold text-[#002452]">
+                                        {currentAfghanMonthLabel}
+                                    </span>
+                                </div>
                                 <p className="mt-1 text-xs text-slate-500">
                                     {t(
                                         'propertyDashboard.monthlyFinanceChartHelp',
-                                        'Collected rent, expenses, shareholder takeouts and available cash for this month',
+                                        'Collected rent, expenses and shareholder takeouts for this month',
                                     )}
                                 </p>
                                 <div className="mt-5 h-80" dir="ltr">
@@ -788,6 +1418,10 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                                     dataKey="name"
                                                     tickLine={false}
                                                     axisLine={false}
+                                                    tick={{
+                                                        fontSize: 11,
+                                                        fill: '#64748b',
+                                                    }}
                                                 />
                                                 <YAxis
                                                     tickLine={false}
@@ -797,27 +1431,28 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                                     }
                                                 />
                                                 <Tooltip
-                                                    formatter={(
-                                                        value: number,
-                                                    ) =>
-                                                        `${formatPrice(value)} ؋`
+                                                    content={
+                                                        <DashboardChartTooltip
+                                                            currency
+                                                        />
                                                     }
+                                                    cursor={{
+                                                        fill: '#edf1f4',
+                                                        opacity: 0.5,
+                                                    }}
                                                 />
                                                 <Bar
-                                                    dataKey="value"
+                                                    dataKey="AFN"
+                                                    name="؋"
+                                                    fill={COLORS.teal}
                                                     radius={[7, 7, 0, 0]}
-                                                >
-                                                    {propertyFinanceChart.map(
-                                                        (item) => (
-                                                            <Cell
-                                                                key={item.name}
-                                                                fill={
-                                                                    item.color
-                                                                }
-                                                            />
-                                                        ),
-                                                    )}
-                                                </Bar>
+                                                />
+                                                <Bar
+                                                    dataKey="USD"
+                                                    name="$"
+                                                    fill={COLORS.green}
+                                                    radius={[7, 7, 0, 0]}
+                                                />
                                             </BarChart>
                                         </ResponsiveContainer>
                                     ) : (
@@ -875,9 +1510,13 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                                     }
                                                 />
                                                 <Tooltip
-                                                    formatter={(
-                                                        value: number,
-                                                    ) => formatNumber(value)}
+                                                    content={
+                                                        <DashboardChartTooltip />
+                                                    }
+                                                    cursor={{
+                                                        fill: '#edf1f4',
+                                                        opacity: 0.5,
+                                                    }}
                                                 />
                                                 <Bar
                                                     dataKey="value"
@@ -909,7 +1548,7 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                         </section>
 
                         <section className="rounded-2xl border border-[#dfe7e9] bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
-                            <div className="flex items-center justify-between">
+                            <div className="flex items-center justify-between gap-3">
                                 <div>
                                     <h2 className="font-bold text-[#002452] dark:text-white">
                                         {t(
@@ -924,43 +1563,62 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                         )}
                                     </p>
                                 </div>
-                                <Banknote className="size-5 text-[#002452]" />
+                                <div className="flex items-center gap-2">
+                                    <Link
+                                        href={rentCollectionsHref}
+                                        className="inline-flex h-9 items-center gap-2 rounded-full border border-[#dfe7e9] bg-white px-3 text-xs font-semibold text-[#002452] transition hover:bg-[#edf1f4]"
+                                    >
+                                        <ExternalLink className="size-4" />
+                                        {t(
+                                            'propertyDashboard.viewCollectedRents',
+                                            'View rents',
+                                        )}
+                                    </Link>
+                                    <button
+                                        type="button"
+                                        onClick={exportSelectedRentPdf}
+                                        className="inline-flex h-9 items-center gap-2 rounded-full border border-[#dfe7e9] bg-white px-3 text-xs font-semibold text-[#002452] transition hover:bg-[#edf1f4]"
+                                    >
+                                        <Printer className="size-4" />
+                                        PDF
+                                    </button>
+                                </div>
                             </div>
                             <div className="mt-4 overflow-x-auto">
-                                <table className="w-full min-w-170 text-sm">
+                                <table className="w-full min-w-170 text-xs">
                                     <thead>
                                         <tr className="border-b border-[#edf1f2] text-slate-400 dark:border-neutral-800">
-                                            <th className="px-3 py-3 text-start font-medium">
+                                            <th className="px-3 py-2 text-start font-medium">
                                                 {t(
                                                     'propertyDashboard.receipt',
                                                     'Receipt',
                                                 )}
                                             </th>
-                                            <th className="px-3 py-3 text-start font-medium">
+                                            <th className="px-3 py-2 text-start font-medium">
                                                 {t(
                                                     'propertyDashboard.shop',
                                                     'Shop',
                                                 )}
                                             </th>
-                                            <th className="px-3 py-3 text-start font-medium">
+                                            <th className="px-3 py-2 text-start font-medium">
                                                 {t(
                                                     'propertyDashboard.tenant',
                                                     'Tenant',
                                                 )}
                                             </th>
-                                            <th className="px-3 py-3 text-start font-medium">
+                                            <th className="px-3 py-2 text-start font-medium">
                                                 {t(
                                                     'propertyDashboard.date',
                                                     'Date',
                                                 )}
                                             </th>
-                                            <th className="px-3 py-3 text-start font-medium">
+                                            <th className="px-3 py-2 text-start font-medium">
                                                 {t(
                                                     'propertyDashboard.amount',
                                                     'Amount',
                                                 )}
                                             </th>
-                                            <th className="px-3 py-3 text-start font-medium">
+                                            <th className="px-3 py-2 text-start font-medium">
                                                 {t(
                                                     'propertyDashboard.period',
                                                     'Period',
@@ -977,12 +1635,12 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                                         key={payment.id}
                                                         className="border-b border-[#f0f3f4] last:border-0 dark:border-neutral-800"
                                                     >
-                                                        <td className="px-3 py-4 font-semibold">
+                                                        <td className="px-3 py-2 font-semibold">
                                                             {
                                                                 payment.receiptNumber
                                                             }
                                                         </td>
-                                                        <td className="px-3 py-4">
+                                                        <td className="px-3 py-2">
                                                             <strong>
                                                                 {
                                                                     payment.shopNumber
@@ -996,27 +1654,30 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                                                 </p>
                                                             ) : null}
                                                         </td>
-                                                        <td className="px-3 py-4 text-slate-500">
+                                                        <td className="px-3 py-2 text-slate-500">
                                                             {payment.tenant ||
                                                                 '—'}
                                                         </td>
-                                                        <td className="px-3 py-4 text-slate-500">
-                                                            {
-                                                                payment.paymentDate
-                                                            }
+                                                        <td className="px-3 py-2 text-slate-500">
+                                                            {locale === 'en'
+                                                                ? payment.paymentDate
+                                                                : formatAfghanDate(
+                                                                      payment.paymentDate,
+                                                                  )}
                                                         </td>
-                                                        <td className="px-3 py-4 font-semibold">
+                                                        <td className="px-3 py-2 font-semibold">
                                                             {formatPrice(
                                                                 payment.amount,
                                                             )}{' '}
                                                             {payment.currency}
                                                         </td>
-                                                        <td className="px-3 py-4 text-slate-500">
-                                                            {payment.periodStart ||
-                                                                '—'}
-                                                            {payment.periodEnd
-                                                                ? ` - ${payment.periodEnd}`
-                                                                : ''}
+                                                        <td className="px-3 py-2 text-slate-500">
+                                                            {locale === 'en'
+                                                                ? `${payment.periodStart || '—'}${payment.periodEnd ? ` - ${payment.periodEnd}` : ''}`
+                                                                : formatAfghanPeriodLabel(
+                                                                      payment.periodStart,
+                                                                      payment.periodEnd,
+                                                                  )}
                                                         </td>
                                                     </tr>
                                                 ),
@@ -1038,6 +1699,122 @@ export default function Dashboard({ data }: { data: DashboardData }) {
                                 </table>
                             </div>
                         </section>
+
+                        {selectedProjectHasShareholders ? (
+                            <section className="rounded-2xl border border-[#dfe7e9] bg-white p-5 dark:border-neutral-800 dark:bg-neutral-900">
+                                <div className="flex items-center justify-between gap-3">
+                                    <div>
+                                        <h2 className="font-bold text-[#002452] dark:text-white">
+                                            {t(
+                                                'financeDashboard.shareholderPnl.title',
+                                                'Shareholder Profit & Loss',
+                                            )}
+                                        </h2>
+                                        <p className="mt-1 text-xs text-slate-500">
+                                            {t(
+                                                'financeDashboard.shareholderPnl.description',
+                                                'Profit and loss allocation based on shareholder percentages.',
+                                            )}
+                                        </p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={exportSelectedShareholderPnlPdf}
+                                        className="inline-flex h-9 items-center gap-2 rounded-full border border-[#dfe7e9] bg-white px-3 text-xs font-semibold text-[#002452] transition hover:bg-[#edf1f4]"
+                                    >
+                                        <Printer className="size-4" />
+                                        PDF
+                                    </button>
+                                </div>
+                                <div className="mt-4 overflow-x-auto">
+                                    <table className="w-full min-w-150 text-xs">
+                                        <thead>
+                                            <tr className="border-b border-[#edf1f2] text-slate-400 dark:border-neutral-800">
+                                                <th className="px-3 py-2 text-start font-medium">
+                                                    {t(
+                                                        'financeDashboard.shareholderPnl.shareholder',
+                                                        'Shareholder',
+                                                    )}
+                                                </th>
+                                                <th className="px-3 py-2 text-start font-medium">
+                                                    {t(
+                                                        'financeDashboard.shareholderPnl.share',
+                                                        'Share',
+                                                    )}
+                                                </th>
+                                                <th className="px-3 py-2 text-start font-medium">
+                                                    {t(
+                                                        'financeDashboard.shareholderPnl.net',
+                                                        'Net',
+                                                    )}
+                                                </th>
+                                                <th className="px-3 py-2 text-start font-medium">
+                                                    {t(
+                                                        'financeDashboard.shareholderPnl.allocated',
+                                                        'Allocated',
+                                                    )}
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {(selectedProject.shareholderPnl ?? [])
+                                                .length ? (
+                                                selectedProject.shareholderPnl?.map(
+                                                    (row) => (
+                                                        <tr
+                                                            key={`${row.id}-${row.currencyCode ?? 'AFN'}`}
+                                                            className="border-b border-[#f0f3f4] last:border-0 dark:border-neutral-800"
+                                                        >
+                                                            <td className="px-3 py-2 font-semibold">
+                                                                {
+                                                                    row.shareholder
+                                                                }
+                                                            </td>
+                                                            <td className="px-3 py-2 text-slate-500">
+                                                                {formatPrice(
+                                                                    row.percentage,
+                                                                )}
+                                                                %
+                                                            </td>
+                                                            <td className="px-3 py-2 text-slate-500">
+                                                                {formatPrice(
+                                                                    row.net,
+                                                                )}{' '}
+                                                                {currencySymbol(
+                                                                    row.currencyCode ??
+                                                                        'AFN',
+                                                                )}
+                                                            </td>
+                                                            <td className="px-3 py-2 font-semibold">
+                                                                {formatPrice(
+                                                                    row.allocated,
+                                                                )}{' '}
+                                                                {currencySymbol(
+                                                                    row.currencyCode ??
+                                                                        'AFN',
+                                                                )}
+                                                            </td>
+                                                        </tr>
+                                                    ),
+                                                )
+                                            ) : (
+                                                <tr>
+                                                    <td
+                                                        colSpan={4}
+                                                        className="py-8 text-center text-sm text-slate-400"
+                                                    >
+                                                        {t(
+                                                            'financeDashboard.shareholderPnl.empty',
+                                                            'No effective shareholder assignments were found for this period.',
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </section>
+                        ) : null}
                     </div>
                 ) : null}
             </div>

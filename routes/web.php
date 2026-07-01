@@ -120,6 +120,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('properties/{property}/documents/{document}', [PropertyController::class, 'downloadDocument'])->name('properties.documents.download');
         Route::delete('properties/{property}/documents/{document}', [PropertyController::class, 'destroyDocument'])->name('properties.documents.destroy');
         Route::post('properties/{property}/images', [PropertyController::class, 'uploadImages'])->name('properties.images.store');
+        Route::patch('properties/{property}/images/{image}/cover', [PropertyController::class, 'setCoverImage'])->name('properties.images.cover');
+        Route::delete('properties/{property}/images/{image}', [PropertyController::class, 'destroyImage'])->name('properties.images.destroy');
 
         Route::get('contract-templates', [ContractTemplateController::class, 'index'])->name('contract-templates.index');
         Route::post('contract-templates', [ContractTemplateController::class, 'store'])->name('contract-templates.store');
@@ -196,6 +198,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('inventory', [InventoryController::class, 'store'])->name('inventory.store');
         Route::put('inventory/{inventory}', [InventoryController::class, 'update'])->name('inventory.update');
         Route::post('inventory/{inventory}/restock', [InventoryController::class, 'restock'])->name('inventory.restock');
+        Route::post('inventory/{inventory}/assign-employee', [InventoryController::class, 'assignToEmployee'])->name('inventory.assign-employee');
+        Route::post('inventory/{inventory}/assignments/{assignment}/return', [InventoryController::class, 'returnFromEmployee'])->name('inventory.assignments.return');
         Route::post('inventory/usage-cycle', [InventoryController::class, 'storeUsageCycle'])->name('inventory.usage-cycle.store');
         Route::post('vendors', [InventoryController::class, 'storeVendor'])->name('vendors.store');
         Route::put('vendors/{vendor}', [InventoryController::class, 'updateVendor'])->name('vendors.update');

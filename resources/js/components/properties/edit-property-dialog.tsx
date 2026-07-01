@@ -72,6 +72,16 @@ const propertyTypeName = (
     );
 };
 
+function firstPropertyImageError(
+    errors: Partial<Record<string, string>>,
+): string | undefined {
+    return (
+        errors.images ??
+        errors.image ??
+        Object.entries(errors).find(([key]) => key.startsWith('images.'))?.[1]
+    );
+}
+
 export function EditPropertyDialog({
     property,
     countries,
@@ -160,6 +170,7 @@ export function EditPropertyDialog({
             forceFormData: true,
             preserveScroll: true,
             onSuccess: () => setOpen(false),
+            onError: () => setOpen(true),
         });
     };
 
@@ -451,6 +462,9 @@ export function EditPropertyDialog({
                                             ),
                                         }),
                                     )}
+                                    placeholder={t(
+                                        'propertyWorkspace.fields.ownershipType',
+                                    )}
                                     searchPlaceholder={t(
                                         'propertyWorkspace.searchOptions',
                                     )}
@@ -485,6 +499,9 @@ export function EditPropertyDialog({
                                             `propertyWorkspace.operatingMode.${value}`,
                                         ),
                                     }))}
+                                    placeholder={t(
+                                        'propertyWorkspace.fields.operatingMode',
+                                    )}
                                     searchPlaceholder={t(
                                         'propertyWorkspace.searchOptions',
                                     )}
@@ -625,7 +642,7 @@ export function EditPropertyDialog({
                         multiple
                         files={form.data.images}
                         onFilesChange={(files) => form.setData('images', files)}
-                        error={form.errors.images ?? form.errors.image}
+                        error={firstPropertyImageError(form.errors)}
                         existingImageUrl={property.image_url}
                         className="sm:col-span-2 lg:col-span-3"
                     />
@@ -637,7 +654,7 @@ export function EditPropertyDialog({
                         >
                             {t('propertyWorkspace.cancel')}
                         </Button>
-                        <Button disabled={form.processing}>
+                        <Button type="submit" disabled={form.processing}>
                             {t('propertyWorkspace.save')}
                         </Button>
                     </div>

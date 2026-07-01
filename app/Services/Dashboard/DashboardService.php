@@ -11,10 +11,18 @@ use App\Models\PayrollRunItem;
 use App\Models\Property;
 use App\Models\RentPayment;
 use App\Models\User;
+use App\Services\Finance\RentalFinanceService;
+use App\Services\Finance\ShareholderPnlService;
+use Carbon\Carbon;
 use Carbon\CarbonImmutable;
 
 class DashboardService
 {
+    public function __construct(
+        private readonly ShareholderPnlService $shareholderPnl,
+        private readonly RentalFinanceService $rentalFinance,
+    ) {}
+
     public function build(User $user): array
     {
         $inventory = null;
@@ -24,7 +32,7 @@ class DashboardService
         $today = CarbonImmutable::now()->toDateString();
         $properties = Property::query()
             ->with('typeDefinition')
-            ->withCount(['inventoryItems', 'employees', 'floors', 'units'])
+            ->withCount(['inventoryItems', 'employees', 'floors', 'units', 'shareholders'])
             ->orderBy('display_order')
             ->orderBy('id')
             ->get();
@@ -128,21 +136,30 @@ class DashboardService
                         ->where('property_id', $property->id)
                         ->where('approval_status', 'approved')
                         ->sum('amount');
+                    $approvedExpensesByCurrency = $this->expenseTotalsByCurrency($property->id);
                     $cashPosition = (float) CashMovement::query()
                         ->where('property_id', $property->id)
                         ->where('approval_status', 'approved')
                         ->selectRaw("COALESCE(SUM(CASE WHEN direction = 'in' THEN amount ELSE -amount END), 0) as total")
                         ->value('total');
+                    $cashPositionByCurrency = $this->cashPositionByCurrency($property->id);
                     $monthlyCollectedRent = (float) RentPayment::query()
                         ->where('property_id', $property->id)
                         ->where('status', 'received')
                         ->whereBetween('payment_date', [$monthStart->toDateString(), $monthEnd->toDateString()])
                         ->sum('amount');
+                    $monthlyCollectedRentByCurrency = $this->rentTotalsByCurrency($property->id, $monthStart, $monthEnd);
+                    $totalCollectedRent = (float) RentPayment::query()
+                        ->where('property_id', $property->id)
+                        ->where('status', 'received')
+                        ->sum('amount');
+                    $totalCollectedRentByCurrency = $this->rentTotalsByCurrency($property->id);
                     $monthlyExpenses = (float) Expense::query()
                         ->where('property_id', $property->id)
                         ->where('approval_status', 'approved')
                         ->whereBetween('expense_date', [$monthStart->toDateString(), $monthEnd->toDateString()])
                         ->sum('amount');
+                    $monthlyExpensesByCurrency = $this->expenseTotalsByCurrency($property->id, $monthStart, $monthEnd);
                     $monthlyShareholderTakeouts = (float) CashMovement::query()
                         ->where('property_id', $property->id)
                         ->where('approval_status', 'approved')
@@ -150,15 +167,13 @@ class DashboardService
                         ->where('direction', 'out')
                         ->whereBetween('movement_date', [$monthStart->toDateString(), $monthEnd->toDateString()])
                         ->sum('amount');
-                    $monthlyCashAdjustments = (float) CashMovement::query()
-                        ->where('property_id', $property->id)
-                        ->where('approval_status', 'approved')
-                        ->whereBetween('movement_date', [$monthStart->toDateString(), $monthEnd->toDateString()])
-                        ->where(fn ($query) => $query
-                            ->whereNull('movement_type')
-                            ->orWhere('movement_type', '!=', 'owner_withdrawal'))
-                        ->selectRaw("COALESCE(SUM(CASE WHEN direction = 'in' THEN amount ELSE -amount END), 0) as total")
-                        ->value('total');
+                    $monthlyShareholderTakeoutsByCurrency = $this->cashMovementTotalsByCurrency(
+                        $property->id,
+                        $monthStart,
+                        $monthEnd,
+                        'owner_withdrawal',
+                        'out',
+                    );
                     $activeLeasedUnitIds = Lease::query()
                         ->where('property_id', $property->id)
                         ->where('status', 'active')
@@ -210,7 +225,7 @@ class DashboardService
                         ->where('status', 'received')
                         ->latest('payment_date')
                         ->latest('id')
-                        ->limit(8)
+                        ->limit(10)
                         ->get()
                         ->map(fn (RentPayment $payment) => [
                             'id' => $payment->id,
@@ -243,20 +258,61 @@ class DashboardService
                         'registeredTenants' => $registeredTenants,
                         'inventoryItems' => (int) $property->inventory_items_count,
                         'employees' => (int) $property->employees_count,
+                        'shareholders' => (int) $property->shareholders_count,
                         'rent' => [
-                            'collectedAfn' => $monthlyCollectedRent,
+                            'collectedAfn' => $totalCollectedRent,
                             'remainingAfn' => 0,
                             'collectedUsd' => 0,
                             'remainingUsd' => 0,
+                            'collectedByCurrency' => $totalCollectedRentByCurrency,
                         ],
                         'financeThisMonth' => [
                             'collectedRent' => $monthlyCollectedRent,
+                            'collectedRentByCurrency' => $monthlyCollectedRentByCurrency,
                             'expenses' => $monthlyExpenses,
+                            'expensesByCurrency' => $monthlyExpensesByCurrency,
                             'shareholderTakeouts' => $monthlyShareholderTakeouts,
-                            'availableCash' => $monthlyCollectedRent + $monthlyCashAdjustments - $monthlyExpenses - $monthlyShareholderTakeouts,
+                            'shareholderTakeoutsByCurrency' => $monthlyShareholderTakeoutsByCurrency,
+                            'availableCash' => array_sum($cashPositionByCurrency),
+                            'availableCashByCurrency' => $cashPositionByCurrency,
                         ],
                         'expensesAfn' => $approvedExpenses,
+                        'expensesByCurrency' => $approvedExpensesByCurrency,
                         'cashPositionAfn' => $cashPosition,
+                        'cashPositionByCurrency' => $cashPositionByCurrency,
+                        'shareholderPnl' => $this->shareholderPnl
+                            ->rows(
+                                Carbon::parse($monthStart->toDateString()),
+                                Carbon::parse($monthEnd->toDateString()),
+                                $property->id,
+                            )
+                            ->values(),
+                        'rentStatusRows' => $this->rentalFinance
+                            ->leaseRows(
+                                Carbon::parse($monthStart->toDateString()),
+                                Carbon::parse($monthEnd->toDateString()),
+                                $property->id,
+                            )
+                            ->map(function (array $row) use ($property): array {
+                                /** @var Lease $lease */
+                                $lease = $row['lease'];
+
+                                return [
+                                    'id' => $lease->id,
+                                    'tenant' => $lease->tenant?->business_name ?: $lease->tenant?->full_name,
+                                    'space' => $lease->unit?->unit_number
+                                        ?? $property->external_unit_number
+                                        ?? $lease->leased_space_type
+                                        ?? '—',
+                                    'contractNumber' => $lease->contract_number,
+                                    'expected' => (float) $row['expected'],
+                                    'received' => (float) $row['received'],
+                                    'outstanding' => (float) $row['outstanding'],
+                                    'status' => (float) $row['outstanding'] > 0 ? 'unpaid' : 'paid',
+                                    'currency' => $lease->currency?->symbol ?: ($lease->currency?->code ?? '؋'),
+                                ];
+                            })
+                            ->values(),
                         'recentRentCollections' => $recentRentCollections,
                         'recentExpenses' => Expense::query()
                             ->where('property_id', $property->id)
@@ -276,5 +332,92 @@ class DashboardService
             'inventory' => $inventory,
             'finance' => $finance,
         ];
+    }
+
+    private function rentTotalsByCurrency(
+        int $propertyId,
+        ?CarbonImmutable $startDate = null,
+        ?CarbonImmutable $endDate = null,
+    ): array {
+        return RentPayment::query()
+            ->leftJoin('currencies', 'currencies.id', '=', 'rent_payments.currency_id')
+            ->where('rent_payments.property_id', $propertyId)
+            ->where('rent_payments.status', 'received')
+            ->when(
+                $startDate && $endDate,
+                fn ($query) => $query->whereBetween('rent_payments.payment_date', [
+                    $startDate->toDateString(),
+                    $endDate->toDateString(),
+                ]),
+            )
+            ->selectRaw('COALESCE(currencies.code, "AFN") as currency_code')
+            ->selectRaw('COALESCE(SUM(rent_payments.amount), 0) as total')
+            ->groupBy('currency_code')
+            ->pluck('total', 'currency_code')
+            ->map(fn ($value) => (float) $value)
+            ->all();
+    }
+
+    private function expenseTotalsByCurrency(
+        int $propertyId,
+        ?CarbonImmutable $startDate = null,
+        ?CarbonImmutable $endDate = null,
+    ): array {
+        return Expense::query()
+            ->leftJoin('finance_accounts', 'finance_accounts.id', '=', 'expenses.paid_from_account_id')
+            ->where('expenses.property_id', $propertyId)
+            ->where('expenses.approval_status', 'approved')
+            ->when(
+                $startDate && $endDate,
+                fn ($query) => $query->whereBetween('expenses.expense_date', [
+                    $startDate->toDateString(),
+                    $endDate->toDateString(),
+                ]),
+            )
+            ->selectRaw('COALESCE(finance_accounts.currency_code, "AFN") as currency_code')
+            ->selectRaw('COALESCE(SUM(expenses.amount), 0) as total')
+            ->groupBy('currency_code')
+            ->pluck('total', 'currency_code')
+            ->map(fn ($value) => (float) $value)
+            ->all();
+    }
+
+    private function cashMovementTotalsByCurrency(
+        int $propertyId,
+        CarbonImmutable $startDate,
+        CarbonImmutable $endDate,
+        ?string $movementType = null,
+        ?string $direction = null,
+    ): array {
+        return CashMovement::query()
+            ->leftJoin('finance_accounts', 'finance_accounts.id', '=', 'cash_movements.account_id')
+            ->where('cash_movements.property_id', $propertyId)
+            ->where('cash_movements.approval_status', 'approved')
+            ->whereBetween('cash_movements.movement_date', [
+                $startDate->toDateString(),
+                $endDate->toDateString(),
+            ])
+            ->when($movementType, fn ($query) => $query->where('cash_movements.movement_type', $movementType))
+            ->when($direction, fn ($query) => $query->where('cash_movements.direction', $direction))
+            ->selectRaw('COALESCE(finance_accounts.currency_code, "AFN") as currency_code')
+            ->selectRaw('COALESCE(SUM(cash_movements.amount), 0) as total')
+            ->groupBy('currency_code')
+            ->pluck('total', 'currency_code')
+            ->map(fn ($value) => (float) $value)
+            ->all();
+    }
+
+    private function cashPositionByCurrency(int $propertyId): array
+    {
+        return CashMovement::query()
+            ->leftJoin('finance_accounts', 'finance_accounts.id', '=', 'cash_movements.account_id')
+            ->where('cash_movements.property_id', $propertyId)
+            ->where('cash_movements.approval_status', 'approved')
+            ->selectRaw('COALESCE(finance_accounts.currency_code, "AFN") as currency_code')
+            ->selectRaw("COALESCE(SUM(CASE WHEN cash_movements.direction = 'in' THEN cash_movements.amount ELSE -cash_movements.amount END), 0) as total")
+            ->groupBy('currency_code')
+            ->pluck('total', 'currency_code')
+            ->map(fn ($value) => (float) $value)
+            ->all();
     }
 }

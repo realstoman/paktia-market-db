@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import {
     BreadcrumbItem,
     Currency,
+    Employee,
     InventoryCategory,
     InventoryItem,
     InventoryType,
@@ -46,6 +47,7 @@ interface InventoryPageProps {
     units: Unit[];
     categories: InventoryCategory[];
     inventoryTypes: InventoryType[];
+    employees: Employee[];
 }
 
 export default function InventoryPage({
@@ -56,6 +58,7 @@ export default function InventoryPage({
     units,
     categories,
     inventoryTypes,
+    employees,
 }: InventoryPageProps) {
     const { t, locale } = useLocalization();
     const { auth } = usePage<SharedData>().props;
@@ -476,8 +479,9 @@ export default function InventoryPage({
                         currencies={currencies}
                         units={units}
                         categories={categories}
-                        inventoryTypes={inventoryTypes}
-                    />
+                    inventoryTypes={inventoryTypes}
+                    employees={employees}
+                />
                 </section>
             </div>
         </AppLayout>

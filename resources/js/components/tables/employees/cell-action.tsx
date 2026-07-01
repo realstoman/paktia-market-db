@@ -697,7 +697,10 @@ export const CellAction: React.FC<CellActionProps> = ({
             ) : null}
 
             <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-                <DialogContent className="sm:max-w-3xl">
+                <DialogContent
+                    dir={isRtl ? 'rtl' : 'ltr'}
+                    className="sm:max-w-3xl [&_button[role='combobox']]:bg-white [&_input:not([type=file])]:bg-white [&_textarea]:bg-white"
+                >
                     <DialogHeader>
                         <DialogTitle>
                             {t('employees.details.title', 'Employee Details')}
@@ -948,7 +951,10 @@ export const CellAction: React.FC<CellActionProps> = ({
             </Dialog>
 
             <Dialog open={isFinanceOpen} onOpenChange={setIsFinanceOpen}>
-                <DialogContent className="sm:max-w-4xl">
+                <DialogContent
+                    dir={isRtl ? 'rtl' : 'ltr'}
+                    className="sm:max-w-4xl [&_button[role='combobox']]:bg-white [&_input:not([type=file])]:bg-white [&_textarea]:bg-white"
+                >
                     <DialogHeader>
                         <DialogTitle>
                             {t('employees.finance.title', 'Employee Finances')}
@@ -1125,7 +1131,14 @@ export const CellAction: React.FC<CellActionProps> = ({
             </Dialog>
 
             <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-                <DialogContent className="sm:max-w-4xl">
+                <DialogContent
+                    dir={isRtl ? 'rtl' : 'ltr'}
+                    className={
+                        isRtl
+                            ? "text-right sm:max-w-4xl [&_button[role='combobox']]:bg-white [&_input:not([type=file])]:bg-white [&_input]:text-right [&_label]:text-right [&_textarea]:bg-white [&_textarea]:text-right"
+                            : "sm:max-w-4xl [&_button[role='combobox']]:bg-white [&_input:not([type=file])]:bg-white [&_textarea]:bg-white"
+                    }
+                >
                     <DialogHeader>
                         <DialogTitle>
                             {t('employees.edit.title', 'Edit Employee')}

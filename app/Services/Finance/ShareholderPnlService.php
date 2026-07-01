@@ -13,40 +13,60 @@ class ShareholderPnlService
     public function rows(Carbon $startDate, Carbon $endDate, ?int $propertyId = null): Collection
     {
         $revenue = RentPayment::query()
-            ->where('status', 'received')
-            ->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))
-            ->whereBetween('payment_date', [$startDate->toDateString(), $endDate->toDateString()])
-            ->selectRaw('property_id, COALESCE(SUM(amount), 0) as total')
+            ->leftJoin('currencies', 'currencies.id', '=', 'rent_payments.currency_id')
+            ->where('rent_payments.status', 'received')
+            ->when($propertyId, fn ($query) => $query->where('rent_payments.property_id', $propertyId))
+            ->whereBetween('rent_payments.payment_date', [$startDate->toDateString(), $endDate->toDateString()])
+            ->selectRaw('rent_payments.property_id, COALESCE(currencies.code, "AFN") as currency_code, COALESCE(SUM(rent_payments.amount), 0) as total')
+            ->groupBy('rent_payments.property_id', 'currency_code')
+            ->get()
             ->groupBy('property_id')
-            ->pluck('total', 'property_id');
+            ->map(fn (Collection $rows) => $rows->pluck('total', 'currency_code')->map(fn ($value) => (float) $value));
         $expenses = Expense::query()
-            ->where('approval_status', 'approved')
-            ->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))
-            ->whereBetween('expense_date', [$startDate->toDateString(), $endDate->toDateString()])
-            ->selectRaw('property_id, COALESCE(SUM(amount), 0) as total')
+            ->leftJoin('finance_accounts', 'finance_accounts.id', '=', 'expenses.paid_from_account_id')
+            ->where('expenses.approval_status', 'approved')
+            ->when($propertyId, fn ($query) => $query->where('expenses.property_id', $propertyId))
+            ->whereBetween('expenses.expense_date', [$startDate->toDateString(), $endDate->toDateString()])
+            ->selectRaw('expenses.property_id, COALESCE(finance_accounts.currency_code, "AFN") as currency_code, COALESCE(SUM(expenses.amount), 0) as total')
+            ->groupBy('expenses.property_id', 'currency_code')
+            ->get()
             ->groupBy('property_id')
-            ->pluck('total', 'property_id');
+            ->map(fn (Collection $rows) => $rows->pluck('total', 'currency_code')->map(fn ($value) => (float) $value));
 
         return PropertyShareholding::query()
             ->with(['shareholder:id,full_name', 'property:id,name,name_translations'])
             ->effectiveDuring($startDate->toDateString(), $endDate->toDateString())
             ->when($propertyId, fn ($query) => $query->where('property_id', $propertyId))
             ->get()
-            ->map(function (PropertyShareholding $holding) use ($revenue, $expenses): array {
-                $propertyRevenue = (float) ($revenue[$holding->property_id] ?? 0);
-                $propertyExpenses = (float) ($expenses[$holding->property_id] ?? 0);
-                $net = $propertyRevenue - $propertyExpenses;
+            ->flatMap(function (PropertyShareholding $holding) use ($revenue, $expenses): array {
+                $propertyRevenue = $revenue->get($holding->property_id, collect());
+                $propertyExpenses = $expenses->get($holding->property_id, collect());
+                $currencies = collect($propertyRevenue->keys())
+                    ->merge($propertyExpenses->keys())
+                    ->unique()
+                    ->values();
 
-                return [
-                    'id' => $holding->id,
-                    'shareholder' => $holding->shareholder?->full_name ?? '-',
-                    'property' => $holding->property?->name ?? '-',
-                    'percentage' => (float) $holding->percentage,
-                    'revenue' => $propertyRevenue,
-                    'expenses' => $propertyExpenses,
-                    'net' => $net,
-                    'allocated' => $holding->allocatedAmount($net),
-                ];
+                if ($currencies->isEmpty()) {
+                    $currencies = collect(['AFN']);
+                }
+
+                return $currencies->map(function (string $currencyCode) use ($holding, $propertyRevenue, $propertyExpenses): array {
+                    $propertyRevenueAmount = (float) ($propertyRevenue[$currencyCode] ?? 0);
+                    $propertyExpensesAmount = (float) ($propertyExpenses[$currencyCode] ?? 0);
+                    $net = $propertyRevenueAmount - $propertyExpensesAmount;
+
+                    return [
+                        'id' => $holding->id,
+                        'shareholder' => $holding->shareholder?->full_name ?? '-',
+                        'property' => $holding->property?->name ?? '-',
+                        'percentage' => (float) $holding->percentage,
+                        'currencyCode' => strtoupper($currencyCode),
+                        'revenue' => $propertyRevenueAmount,
+                        'expenses' => $propertyExpensesAmount,
+                        'net' => $net,
+                        'allocated' => $holding->allocatedAmount($net),
+                    ];
+                })->all();
             });
     }
 }

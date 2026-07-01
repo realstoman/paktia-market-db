@@ -151,22 +151,35 @@ export function CashBankClient({
         [movementTypes],
     );
 
+    const accountOptions = React.useCallback(
+        (accounts: FinanceAccount[], propertyId: string) =>
+            accounts
+                .filter((account) => {
+                    if (!propertyId) {
+                        return true;
+                    }
+
+                    return (
+                        account.property_id === null ||
+                        account.property_id === undefined ||
+                        String(account.property_id) === propertyId
+                    );
+                })
+                .map((account) => ({
+                    value: String(account.id),
+                    label: `${account.code} - ${account.name}${account.currency_code ? ` · ${account.currency_code}` : ''}`,
+                })),
+        [],
+    );
+
     const sourceAccountOptions = React.useMemo(
-        () =>
-            sourceAccounts.map((account) => ({
-                value: String(account.id),
-                label: `${account.code} - ${account.name}`,
-            })),
-        [sourceAccounts],
+        () => accountOptions(sourceAccounts, form.property_id),
+        [accountOptions, form.property_id, sourceAccounts],
     );
 
     const targetAccountOptions = React.useMemo(
-        () =>
-            targetAccounts.map((account) => ({
-                value: String(account.id),
-                label: `${account.code} - ${account.name}`,
-            })),
-        [targetAccounts],
+        () => accountOptions(targetAccounts, form.destination_property_id),
+        [accountOptions, form.destination_property_id, targetAccounts],
     );
 
     const filteredMovements = React.useMemo(() => {
@@ -581,6 +594,7 @@ export function CashBankClient({
                                     'financeCashBank.form.noMovementTypeFound',
                                     'No movement type found.',
                                 )}
+                                className="bg-white dark:bg-neutral-900"
                             />
                         </div>
 
@@ -618,6 +632,7 @@ export function CashBankClient({
                                     'financeCashBank.form.noPaymentMethodFound',
                                     'No payment method found.',
                                 )}
+                                className="bg-white dark:bg-neutral-900"
                             />
                         </div>
 
@@ -635,6 +650,7 @@ export function CashBankClient({
                                     setForm((current) => ({
                                         ...current,
                                         property_id: value,
+                                        account_id: '',
                                     }))
                                 }
                                 placeholder={t(
@@ -649,6 +665,7 @@ export function CashBankClient({
                                     'financeCashBank.filters.noPropertyFound',
                                     'No property found.',
                                 )}
+                                className="bg-white dark:bg-neutral-900"
                             />
                         </div>
 
@@ -667,6 +684,7 @@ export function CashBankClient({
                                         setForm((current) => ({
                                             ...current,
                                             destination_property_id: value,
+                                            counterparty_account_id: '',
                                         }))
                                     }
                                     placeholder={t(
@@ -681,6 +699,7 @@ export function CashBankClient({
                                         'financeCashBank.filters.noPropertyFound',
                                         'No property found.',
                                     )}
+                                    className="bg-white dark:bg-neutral-900"
                                 />
                             </div>
                         ) : null}
@@ -713,6 +732,7 @@ export function CashBankClient({
                                     'financeCashBank.form.noAccountFound',
                                     'No account found.',
                                 )}
+                                className="bg-white dark:bg-neutral-900"
                             />
                         </div>
 
@@ -745,6 +765,7 @@ export function CashBankClient({
                                         'financeCashBank.form.noAccountFound',
                                         'No account found.',
                                     )}
+                                    className="bg-white dark:bg-neutral-900"
                                 />
                             </div>
                         ) : null}
@@ -792,6 +813,7 @@ export function CashBankClient({
                                     'financeCashBank.form.noDirectionFound',
                                     'No direction found.',
                                 )}
+                                className="bg-white dark:bg-neutral-900"
                             />
                         </div>
 
@@ -800,6 +822,7 @@ export function CashBankClient({
                                 {t('financeCashBank.form.amount', 'Amount')}
                             </Label>
                             <NumericInput
+                                className="bg-white"
                                 min="0"
                                 value={form.amount}
                                 onValueChange={(value) =>
@@ -820,6 +843,7 @@ export function CashBankClient({
                                 )}
                             </Label>
                             <Input
+                                className="bg-white"
                                 type="date"
                                 value={form.movement_date}
                                 onChange={(event) =>
@@ -865,6 +889,7 @@ export function CashBankClient({
                                     'financeCashBank.filters.noStatusFound',
                                     'No status found.',
                                 )}
+                                className="bg-white dark:bg-neutral-900"
                             />
                         </div>
 
@@ -876,6 +901,7 @@ export function CashBankClient({
                                 )}
                             </Label>
                             <Textarea
+                                className="bg-white"
                                 value={form.description}
                                 onChange={(event) =>
                                     setForm((current) => ({
@@ -900,7 +926,7 @@ export function CashBankClient({
                             </Label>
                             <label
                                 htmlFor="movement-receipt"
-                                className="group cursor-pointer rounded-lg border border-dashed border-slate-300 bg-slate-50 p-4 transition-[background-color,border-color,box-shadow] hover:border-slate-400 hover:bg-slate-100 dark:border-neutral-700 dark:bg-neutral-900 dark:hover:border-neutral-500"
+                                className="group cursor-pointer rounded-lg border border-dashed border-slate-300 bg-white p-4 transition-[background-color,border-color,box-shadow] hover:border-slate-400 hover:bg-slate-50 dark:border-neutral-700 dark:bg-neutral-900 dark:hover:border-neutral-500"
                             >
                                 <input
                                     id="movement-receipt"

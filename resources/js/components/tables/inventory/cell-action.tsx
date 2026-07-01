@@ -35,6 +35,7 @@ import { useLocalization } from '@/lib/localization';
 import { useAuthorization } from '@/lib/permissions';
 import {
     Currency,
+    Employee,
     InventoryCategory,
     InventoryItem,
     InventoryItemImage,
@@ -55,6 +56,8 @@ import {
     Pencil,
     Save,
     Trash2,
+    Undo2,
+    UserRoundCheck,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
@@ -67,6 +70,7 @@ interface CellActionProps {
     units: Unit[];
     categories: InventoryCategory[];
     inventoryTypes: InventoryType[];
+    employees: Employee[];
 }
 
 interface PendingImage {
@@ -106,6 +110,7 @@ export const CellAction: React.FC<CellActionProps> = ({
     units,
     categories,
     inventoryTypes,
+    employees,
 }) => {
     const { t, locale } = useLocalization();
     const { auth } = usePage<SharedData>().props;
@@ -119,6 +124,8 @@ export const CellAction: React.FC<CellActionProps> = ({
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
     const [isUsageHistoryOpen, setIsUsageHistoryOpen] = useState(false);
     const [isRestockOpen, setIsRestockOpen] = useState(false);
+    const [isAssignOpen, setIsAssignOpen] = useState(false);
+    const [isReturnOpen, setIsReturnOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
     const [restockQty, setRestockQty] = useState('');
@@ -135,6 +142,20 @@ export const CellAction: React.FC<CellActionProps> = ({
     );
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [assignEmployeeId, setAssignEmployeeId] = useState('');
+    const [assignQuantity, setAssignQuantity] = useState('1');
+    const [assignedAt, setAssignedAt] = useState(
+        new Date().toISOString().slice(0, 10),
+    );
+    const [expectedReturnAt, setExpectedReturnAt] = useState('');
+    const [conditionOut, setConditionOut] = useState('');
+    const [assignmentNotes, setAssignmentNotes] = useState('');
+    const [returnAssignmentId, setReturnAssignmentId] = useState('');
+    const [returnedAt, setReturnedAt] = useState(
+        new Date().toISOString().slice(0, 10),
+    );
+    const [conditionIn, setConditionIn] = useState('');
+    const [returnNotes, setReturnNotes] = useState('');
     const [editPropertyId, setEditPropertyId] = useState(
         String(data.property_id),
     );
@@ -187,6 +208,26 @@ export const CellAction: React.FC<CellActionProps> = ({
                 (transaction) => transaction.action === 'usage_cycle',
             ),
         [data.transactions],
+    );
+    const activeAssignments = data.active_assignments ?? [];
+    const availableQuantity = Number(
+        data.available_quantity ?? data.quantity ?? 0,
+    );
+    const isFixedAsset =
+        !data.is_usable || (data.type ?? '').toLowerCase().includes('fixed');
+    const canAssignInventory = canAdjustInventory && isFixedAsset;
+    const employeeOptions = useMemo(
+        () =>
+            employees.map((employee) => ({
+                value: String(employee.id),
+                label:
+                    `${employee.first_name ?? ''} ${employee.last_name ?? ''}`.trim() ||
+                    t(
+                        'inventory.assignments.employeeNumber',
+                        'Employee #:id',
+                    ).replace(':id', String(employee.id)),
+            })),
+        [employees, t],
     );
 
     const editTotalPrice = useMemo(() => {
@@ -291,6 +332,109 @@ export const CellAction: React.FC<CellActionProps> = ({
         );
         setRestockReceipt(null);
         setErrors({});
+    };
+
+    const resetAssignmentForm = () => {
+        setAssignEmployeeId('');
+        setAssignQuantity('1');
+        setAssignedAt(new Date().toISOString().slice(0, 10));
+        setExpectedReturnAt('');
+        setConditionOut('');
+        setAssignmentNotes('');
+        setErrors({});
+    };
+
+    const resetReturnForm = () => {
+        setReturnAssignmentId('');
+        setReturnedAt(new Date().toISOString().slice(0, 10));
+        setConditionIn('');
+        setReturnNotes('');
+        setErrors({});
+    };
+
+    const handleAssignEmployee = () => {
+        if (!assignEmployeeId || !assignQuantity || isSubmitting) {
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        router.post(
+            `/inventory/${data.id}/assign-employee`,
+            {
+                employee_id: Number(assignEmployeeId),
+                quantity: assignQuantity,
+                assigned_at: assignedAt,
+                expected_return_at: expectedReturnAt || null,
+                condition_out: conditionOut || null,
+                notes: assignmentNotes || null,
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success(
+                        t(
+                            'inventory.assignments.assigned',
+                            'Item assigned to employee successfully.',
+                        ),
+                    );
+                    setIsAssignOpen(false);
+                    resetAssignmentForm();
+                },
+                onError: (validationErrors) => {
+                    setErrors(validationErrors);
+                    toast.error(
+                        Object.values(validationErrors)[0] ||
+                            t(
+                                'inventory.assignments.assignFailed',
+                                'Failed to assign item.',
+                            ),
+                    );
+                },
+                onFinish: () => setIsSubmitting(false),
+            },
+        );
+    };
+
+    const handleReturnAssignment = () => {
+        if (!returnAssignmentId || isSubmitting) {
+            return;
+        }
+
+        setIsSubmitting(true);
+
+        router.post(
+            `/inventory/${data.id}/assignments/${returnAssignmentId}/return`,
+            {
+                returned_at: returnedAt,
+                condition_in: conditionIn || null,
+                notes: returnNotes || null,
+            },
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    toast.success(
+                        t(
+                            'inventory.assignments.returned',
+                            'Item returned successfully.',
+                        ),
+                    );
+                    setIsReturnOpen(false);
+                    resetReturnForm();
+                },
+                onError: (validationErrors) => {
+                    setErrors(validationErrors);
+                    toast.error(
+                        Object.values(validationErrors)[0] ||
+                            t(
+                                'inventory.assignments.returnFailed',
+                                'Failed to return item.',
+                            ),
+                    );
+                },
+                onFinish: () => setIsSubmitting(false),
+            },
+        );
     };
 
     const handleRestock = () => {
@@ -494,6 +638,29 @@ export const CellAction: React.FC<CellActionProps> = ({
                             >
                                 <PackagePlus className="mr-2 h-4 w-4" />
                                 {t('inventory.rowActions.restock', 'Restock')}
+                            </DropdownMenuItem>
+                        ) : null}
+                        {canAssignInventory ? (
+                            <DropdownMenuItem
+                                disabled={availableQuantity <= 0}
+                                onClick={() => setIsAssignOpen(true)}
+                            >
+                                <UserRoundCheck className="mr-2 h-4 w-4" />
+                                {t(
+                                    'inventory.assignments.assignAction',
+                                    'Assign to employee',
+                                )}
+                            </DropdownMenuItem>
+                        ) : null}
+                        {canAssignInventory && activeAssignments.length > 0 ? (
+                            <DropdownMenuItem
+                                onClick={() => setIsReturnOpen(true)}
+                            >
+                                <Undo2 className="mr-2 h-4 w-4" />
+                                {t(
+                                    'inventory.assignments.returnAction',
+                                    'Return from employee',
+                                )}
                             </DropdownMenuItem>
                         ) : null}
                         {canDeleteInventoryItem ? (
@@ -1312,6 +1479,281 @@ export const CellAction: React.FC<CellActionProps> = ({
                             </tbody>
                         </table>
                     </div>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog
+                open={isAssignOpen}
+                onOpenChange={(open) => {
+                    setIsAssignOpen(open);
+                    if (!open) {
+                        resetAssignmentForm();
+                    }
+                }}
+            >
+                <DialogContent className="sm:max-w-xl">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {t(
+                                'inventory.assignments.assignTitle',
+                                'Assign item to employee',
+                            )}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {t(
+                                'inventory.assignments.assignDescription',
+                                'Track fixed assets given to employees so they can be returned when employment ends.',
+                            )}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="grid gap-2 sm:col-span-2">
+                            <Label>
+                                {t(
+                                    'inventory.assignments.employee',
+                                    'Employee',
+                                )}
+                            </Label>
+                            <SearchableDropdown
+                                value={assignEmployeeId}
+                                onValueChange={setAssignEmployeeId}
+                                options={employeeOptions}
+                                placeholder={t(
+                                    'inventory.assignments.selectEmployee',
+                                    'Select employee',
+                                )}
+                            />
+                            <InputError message={errors.employee_id} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>
+                                {t(
+                                    'inventory.assignments.quantity',
+                                    'Quantity',
+                                )}{' '}
+                                ({t('inventory.assignments.available', 'Available')}: {availableQuantity})
+                            </Label>
+                            <NumericInput
+                                min="0.01"
+                                max={String(availableQuantity)}
+                                step="1"
+                                value={assignQuantity}
+                                onValueChange={setAssignQuantity}
+                            />
+                            <InputError message={errors.quantity} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>
+                                {t(
+                                    'inventory.assignments.assignedAt',
+                                    'Assigned date',
+                                )}
+                            </Label>
+                            <Input
+                                type="date"
+                                value={assignedAt}
+                                onChange={(event) =>
+                                    setAssignedAt(event.target.value)
+                                }
+                            />
+                            <InputError message={errors.assigned_at} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>
+                                {t(
+                                    'inventory.assignments.expectedReturnAt',
+                                    'Expected return date',
+                                )}
+                            </Label>
+                            <Input
+                                type="date"
+                                value={expectedReturnAt}
+                                onChange={(event) =>
+                                    setExpectedReturnAt(event.target.value)
+                                }
+                            />
+                            <InputError message={errors.expected_return_at} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>
+                                {t(
+                                    'inventory.assignments.conditionOut',
+                                    'Condition when assigned',
+                                )}
+                            </Label>
+                            <Input
+                                value={conditionOut}
+                                onChange={(event) =>
+                                    setConditionOut(event.target.value)
+                                }
+                            />
+                            <InputError message={errors.condition_out} />
+                        </div>
+                        <div className="grid gap-2 sm:col-span-2">
+                            <Label>
+                                {t('inventory.common.noteOptional', 'Note (optional)')}
+                            </Label>
+                            <Textarea
+                                value={assignmentNotes}
+                                onChange={(event) =>
+                                    setAssignmentNotes(event.target.value)
+                                }
+                            />
+                            <InputError message={errors.notes} />
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsAssignOpen(false)}
+                            disabled={isSubmitting}
+                        >
+                            {t('inventory.common.cancel', 'Cancel')}
+                        </Button>
+                        <Button
+                            onClick={handleAssignEmployee}
+                            disabled={
+                                !assignEmployeeId ||
+                                !assignQuantity ||
+                                availableQuantity <= 0 ||
+                                isSubmitting
+                            }
+                        >
+                            <UserRoundCheck className="mr-2 h-4 w-4" />
+                            {t(
+                                'inventory.assignments.assignAction',
+                                'Assign to employee',
+                            )}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog
+                open={isReturnOpen}
+                onOpenChange={(open) => {
+                    setIsReturnOpen(open);
+                    if (!open) {
+                        resetReturnForm();
+                    }
+                }}
+            >
+                <DialogContent className="sm:max-w-xl">
+                    <DialogHeader>
+                        <DialogTitle>
+                            {t(
+                                'inventory.assignments.returnTitle',
+                                'Return assigned item',
+                            )}
+                        </DialogTitle>
+                        <DialogDescription>
+                            {t(
+                                'inventory.assignments.returnDescription',
+                                'Mark an employee-held fixed asset as returned.',
+                            )}
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="grid gap-2 sm:col-span-2">
+                            <Label>
+                                {t(
+                                    'inventory.assignments.assignment',
+                                    'Assignment',
+                                )}
+                            </Label>
+                            <SearchableDropdown
+                                value={returnAssignmentId}
+                                onValueChange={setReturnAssignmentId}
+                                options={activeAssignments.map((assignment) => {
+                                    const employee = assignment.employee;
+                                    const employeeName = employee
+                                        ? `${employee.first_name} ${employee.last_name}`.trim()
+                                        : t(
+                                              'inventory.assignments.employeeNumber',
+                                              'Employee #:id',
+                                          ).replace(
+                                              ':id',
+                                              String(assignment.employee_id),
+                                          );
+
+                                    return {
+                                        value: String(assignment.id),
+                                        label: `${employeeName} · ${assignment.quantity}`,
+                                    };
+                                })}
+                                placeholder={t(
+                                    'inventory.assignments.selectAssignment',
+                                    'Select assignment',
+                                )}
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>
+                                {t(
+                                    'inventory.assignments.returnedAt',
+                                    'Returned date',
+                                )}
+                            </Label>
+                            <Input
+                                type="date"
+                                value={returnedAt}
+                                onChange={(event) =>
+                                    setReturnedAt(event.target.value)
+                                }
+                            />
+                            <InputError message={errors.returned_at} />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label>
+                                {t(
+                                    'inventory.assignments.conditionIn',
+                                    'Condition when returned',
+                                )}
+                            </Label>
+                            <Input
+                                value={conditionIn}
+                                onChange={(event) =>
+                                    setConditionIn(event.target.value)
+                                }
+                            />
+                            <InputError message={errors.condition_in} />
+                        </div>
+                        <div className="grid gap-2 sm:col-span-2">
+                            <Label>
+                                {t('inventory.common.noteOptional', 'Note (optional)')}
+                            </Label>
+                            <Textarea
+                                value={returnNotes}
+                                onChange={(event) =>
+                                    setReturnNotes(event.target.value)
+                                }
+                            />
+                            <InputError message={errors.notes} />
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsReturnOpen(false)}
+                            disabled={isSubmitting}
+                        >
+                            {t('inventory.common.cancel', 'Cancel')}
+                        </Button>
+                        <Button
+                            onClick={handleReturnAssignment}
+                            disabled={!returnAssignmentId || isSubmitting}
+                        >
+                            <Undo2 className="mr-2 h-4 w-4" />
+                            {t(
+                                'inventory.assignments.returnAction',
+                                'Return from employee',
+                            )}
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
 
