@@ -397,18 +397,16 @@ const en = {
         register: 'Register tenant',
         scan: 'Scan tenant card',
         scanPlaceholder: 'Scan a card or enter its code…',
-        scanHelp:
-            'Scan a printed barcode to open the tenant profile instantly.',
-        scanCameraTitle: 'Scan barcode',
+        scanHelp: 'Scan the QR code to open the tenant profile instantly.',
+        scanCameraTitle: 'Scan QR code',
         scanCameraDescription:
-            'Use the device camera to read the barcode printed on the tenant ID card.',
+            'Use the device camera to read the QR code printed on the tenant ID card.',
         scanCameraStarting: 'Starting camera…',
-        scanCameraReady:
-            'Point the camera at the barcode on the tenant card.',
+        scanCameraReady: 'Point the camera at the QR code on the tenant card.',
         scanCameraUnavailable:
-            'Camera scanning is not available in this browser. Please scan with a hardware scanner or enter the card code manually.',
+            'Camera scanning is not available in this browser. Please scan with a hardware QR scanner or enter the card code manually.',
         scanNotSupported:
-            'This browser cannot read barcodes from the camera. Please use the scan input or a hardware barcode scanner.',
+            'This browser cannot read QR codes from the camera. Please use the scan input or a hardware QR scanner.',
         scanPermissionDenied:
             'Camera permission was denied or the camera could not be opened. Please enter the card code manually.',
         scanDetected: 'Tenant card scanned.',

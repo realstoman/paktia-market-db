@@ -1,4 +1,4 @@
-import { Code39Barcode } from '@/components/tenants/code39-barcode';
+import { QrCode } from '@/components/tenants/qr-code';
 import { Button } from '@/components/ui/button';
 import { useLocalization } from '@/lib/localization';
 import { Lease, SharedData, Tenant } from '@/types';
@@ -175,17 +175,22 @@ export default function TenantCard({ tenant, selectedLeaseId = null }: Props) {
                                     {propertyName}
                                 </strong>
                             </div>
-                            <div
-                                className="mt-[2.2mm] rounded-[1.2mm] border border-slate-200 bg-white p-[1mm]"
-                                dir="ltr"
-                            >
-                                <Code39Barcode
+                            <div className="mt-[1.8mm] flex items-center gap-[2mm] rounded-[1.4mm] border border-slate-200 bg-white p-[1mm]">
+                                <QrCode
                                     value={tenant.card_code}
-                                    className="h-[8mm]"
+                                    className="h-[13mm] w-[13mm] shrink-0"
                                 />
-                                <p className="mt-[0.4mm] text-center font-mono text-[1.8mm] font-semibold tracking-[0.5mm] text-slate-800">
-                                    {tenant.card_code}
-                                </p>
+                                <div className="min-w-0 text-start">
+                                    <p className="text-[1.55mm] font-semibold text-slate-500">
+                                        {t('tenants.card.code')}
+                                    </p>
+                                    <p
+                                        className="mt-[0.5mm] truncate font-mono text-[1.8mm] font-bold tracking-[0.3mm] text-slate-900"
+                                        dir="ltr"
+                                    >
+                                        {tenant.card_code}
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>

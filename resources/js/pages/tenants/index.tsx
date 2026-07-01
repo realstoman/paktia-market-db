@@ -475,7 +475,7 @@ export default function TenantsIndex({
                                 onClick={openScanner}
                                 title={t(
                                     'tenants.scanCameraTitle',
-                                    'Scan barcode',
+                                    'Scan QR code',
                                 )}
                             >
                                 <ScanLine className="h-4 w-4" />
@@ -938,7 +938,7 @@ function TenantBarcodeScanner({
                 setMessage(
                     t(
                         'tenants.scanNotSupported',
-                        'This browser cannot read barcodes from the camera. Please use the scan input or a hardware barcode scanner.',
+                        'This browser cannot read QR codes from the camera. Please use the scan input or a hardware QR scanner.',
                     ),
                 );
                 return;
@@ -980,7 +980,7 @@ function TenantBarcodeScanner({
                 setMessage(
                     t(
                         'tenants.scanCameraReady',
-                        'Point the camera at the barcode on the tenant card.',
+                        'Point the camera at the QR code on the tenant card.',
                     ),
                 );
 
@@ -1040,12 +1040,12 @@ function TenantBarcodeScanner({
                 <DialogHeader className={isRtl ? 'text-right' : undefined}>
                     <DialogTitle className="flex items-center gap-2">
                         <ScanLine className="h-5 w-5 text-primary" />
-                        {t('tenants.scanCameraTitle', 'Scan barcode')}
+                        {t('tenants.scanCameraTitle', 'Scan QR code')}
                     </DialogTitle>
                     <DialogDescription>
                         {t(
                             'tenants.scanCameraDescription',
-                            'Use the device camera to read the barcode printed on the tenant ID card.',
+                            'Use the device camera to read the QR code printed on the tenant ID card.',
                         )}
                     </DialogDescription>
                 </DialogHeader>
