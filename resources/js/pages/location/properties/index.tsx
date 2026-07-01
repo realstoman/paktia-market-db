@@ -236,6 +236,16 @@ const emptyForm: PropertyForm = {
     images: [],
 };
 
+function firstPropertyImageError(
+    errors: Partial<Record<string, string>>,
+): string | undefined {
+    return (
+        errors.images ??
+        errors.image ??
+        Object.entries(errors).find(([key]) => key.startsWith('images.'))?.[1]
+    );
+}
+
 export default function PropertiesPage({
     properties,
     propertyOptions,
@@ -287,10 +297,12 @@ export default function PropertiesPage({
         event.preventDefault();
         form.post('/properties', {
             forceFormData: true,
+            preserveScroll: true,
             onSuccess: () => {
                 form.reset();
                 setOpen(false);
             },
+            onError: () => setOpen(true),
         });
     };
     const breadcrumbs: BreadcrumbItem[] = [
@@ -885,8 +897,9 @@ export default function PropertiesPage({
                                             form.setData('images', files)
                                         }
                                         error={
-                                            form.errors.images ??
-                                            form.errors.image
+                                            firstPropertyImageError(
+                                                form.errors,
+                                            )
                                         }
                                         className="lg:col-span-4"
                                     />
@@ -898,7 +911,10 @@ export default function PropertiesPage({
                                         >
                                             {t('propertyWorkspace.cancel')}
                                         </Button>
-                                        <Button disabled={form.processing}>
+                                        <Button
+                                            type="submit"
+                                            disabled={form.processing}
+                                        >
                                             {t('propertyWorkspace.create')}
                                         </Button>
                                     </div>
