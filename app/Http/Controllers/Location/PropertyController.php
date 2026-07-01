@@ -166,8 +166,8 @@ class PropertyController extends Controller
         $behavior = $property->typeBehavior();
         abort_if(in_array($behavior, ['house', 'commercial_unit'], true), 422);
 
-        $expectedType = $behavior === 'market' ? 'shop' : 'apartment';
         $validated = $request->validate([
+            'unit_type' => ['required', Rule::in(['shop', 'apartment'])],
             'unit_number' => [
                 'required', 'string', 'max:50',
                 Rule::unique('property_units')->where('property_floor_id', $floor->id),
@@ -185,11 +185,11 @@ class PropertyController extends Controller
             'description' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        $floor->units()->create(['unit_type' => $expectedType, ...$validated]);
+        $floor->units()->create($validated);
 
         return back()->with(
             'success',
-            __("properties.actions.{$expectedType}_added"),
+            __("properties.actions.{$validated['unit_type']}_added"),
         );
     }
 
@@ -205,6 +205,7 @@ class PropertyController extends Controller
     {
         abort_unless($floor->property_id === $property->id && $unit->property_floor_id === $floor->id, 404);
         $validated = $request->validate([
+            'unit_type' => ['required', Rule::in(['shop', 'apartment'])],
             'unit_number' => [
                 'required', 'string', 'max:50',
                 Rule::unique('property_units')->where('property_floor_id', $floor->id)->ignore($unit->id),

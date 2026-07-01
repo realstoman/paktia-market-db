@@ -203,11 +203,9 @@ export default function PropertyShow({
                                 ? t(
                                       'propertyWorkspace.fields.externalUnitNumber',
                                   )
-                                : isMarket
-                                  ? t('propertyWorkspace.shops')
-                                  : behavior === 'block'
-                                    ? t('propertyWorkspace.apartments')
-                                    : t('propertyWorkspace.rooms')
+                                : behavior === 'house'
+                                  ? t('propertyWorkspace.rooms')
+                                  : t('propertyWorkspace.shopsAndApartments')
                         }
                         value={
                             isCommercialUnit
@@ -470,11 +468,9 @@ export default function PropertyShow({
                                             'propertyWorkspace.floorsAndSpaces',
                                         ).replace(
                                             ':spaces',
-                                            isMarket
-                                                ? t('propertyWorkspace.shops')
-                                                : t(
-                                                      'propertyWorkspace.apartments',
-                                                  ),
+                                            t(
+                                                'propertyWorkspace.shopsAndApartments',
+                                            ),
                                         )}
                                     </h2>
                                     <p className="text-sm text-muted-foreground">
@@ -500,7 +496,6 @@ export default function PropertyShow({
                                         key={floor.id}
                                         property={property}
                                         floor={floor}
-                                        isMarket={isMarket}
                                     />
                                 ))
                             ) : (
@@ -852,17 +847,22 @@ function PropertyImageGallery({
 function FloorCard({
     property,
     floor,
-    isMarket,
 }: {
     property: Property;
     floor: PropertyFloor;
-    isMarket: boolean;
 }) {
     const { t } = useLocalization();
     const [spaceSearch, setSpaceSearch] = useState('');
-    const spaceLabel = isMarket
-        ? t('propertyWorkspace.shops')
-        : t('propertyWorkspace.apartments');
+    const shopCount = (floor.units ?? []).filter(
+        (unit) => unit.unit_type === 'shop',
+    ).length;
+    const apartmentCount = (floor.units ?? []).filter(
+        (unit) => unit.unit_type === 'apartment',
+    ).length;
+    const spacesSummary = [
+        `${shopCount} ${t('propertyWorkspace.shops')}`,
+        `${apartmentCount} ${t('propertyWorkspace.apartments')}`,
+    ].join(' / ');
     const normalizedSearch = spaceSearch.trim().toLowerCase();
     const visibleUnits = (floor.units ?? []).filter((unit) =>
         `${unit.unit_number} ${unit.description ?? ''} ${unit.electricity_meter ?? ''} ${unit.water_meter ?? ''}`
@@ -879,15 +879,11 @@ function FloorCard({
                         {floor.area_sqm
                             ? `${formatNumber(floor.area_sqm)} m²`
                             : '—'}{' '}
-                        · {(floor.units ?? []).length} {spaceLabel}
+                        · {spacesSummary}
                     </p>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
-                    <AddUnit
-                        property={property}
-                        floor={floor}
-                        isMarket={isMarket}
-                    />
+                    <AddUnit property={property} floor={floor} />
                     <EditFloor property={property} floor={floor} />
                     <DeleteConfirmation
                         title={t('propertyWorkspace.deleteFloorTitle')}
@@ -913,9 +909,7 @@ function FloorCard({
                                     setSpaceSearch(event.target.value)
                                 }
                                 placeholder={t(
-                                    isMarket
-                                        ? 'propertyWorkspace.searchShops'
-                                        : 'propertyWorkspace.searchApartments',
+                                    'propertyWorkspace.searchSpaces',
                                 )}
                                 className="h-9 bg-white ps-9"
                             />
@@ -929,13 +923,15 @@ function FloorCard({
                                     >
                                         <div>
                                             <div className="flex items-center gap-2 font-medium">
-                                                <Store className="h-4 w-4" />
-                                                {isMarket
-                                                    ? t(
-                                                          'propertyWorkspace.shops',
-                                                      )
+                                                {unit.unit_type === 'shop' ? (
+                                                    <Store className="h-4 w-4" />
+                                                ) : (
+                                                    <Building2 className="h-4 w-4" />
+                                                )}
+                                                {unit.unit_type === 'shop'
+                                                    ? t('propertyWorkspace.shop')
                                                     : t(
-                                                          'propertyWorkspace.apartments',
+                                                          'propertyWorkspace.apartment',
                                                       )}{' '}
                                                 {unit.unit_number}
                                             </div>
@@ -943,7 +939,8 @@ function FloorCard({
                                                 {unit.area_sqm
                                                     ? `${formatNumber(unit.area_sqm)} m²`
                                                     : '—'}
-                                                {!isMarket &&
+                                                {unit.unit_type ===
+                                                    'apartment' &&
                                                     ` · ${unit.rooms_count ?? 0} ${t('propertyWorkspace.rooms')} · ${unit.bathrooms_count ?? 0} ${t('propertyWorkspace.bathrooms')}`}
                                             </p>
                                             {unit.description && (
@@ -971,7 +968,6 @@ function FloorCard({
                                                     property={property}
                                                     floor={floor}
                                                     unit={unit}
-                                                    isMarket={isMarket}
                                                 />
                                                 <DeleteConfirmation
                                                     title={t(
@@ -1008,7 +1004,7 @@ function FloorCard({
                     <p className="rounded-lg bg-muted/50 py-8 text-center text-sm text-muted-foreground">
                         {t('propertyWorkspace.noSpaces').replace(
                             ':spaces',
-                            spaceLabel,
+                            t('propertyWorkspace.shopsAndApartments'),
                         )}
                     </p>
                 )}
@@ -1110,15 +1106,15 @@ function AddFloor({ property }: { property: Property }) {
 function AddUnit({
     property,
     floor,
-    isMarket,
 }: {
     property: Property;
     floor: PropertyFloor;
-    isMarket: boolean;
 }) {
     const { t } = useLocalization();
     const [open, setOpen] = useState(false);
     const form = useForm({
+        unit_type:
+            floor.usage_type === 'residential' ? 'apartment' : 'shop',
         unit_number: '',
         area_sqm: '',
         width_m: '',
@@ -1141,9 +1137,8 @@ function AddUnit({
             },
         });
     };
-    const addLabel = isMarket
-        ? t('propertyWorkspace.addShop')
-        : t('propertyWorkspace.addApartment');
+    const isShop = form.data.unit_type === 'shop';
+    const addLabel = t('propertyWorkspace.addSpace');
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
@@ -1160,9 +1155,37 @@ function AddUnit({
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
+                    <Field label={t('propertyWorkspace.fields.unitType')}>
+                        <SearchableDropdown
+                            value={form.data.unit_type}
+                            onValueChange={(value) =>
+                                form.setData(
+                                    'unit_type',
+                                    value as PropertyUnit['unit_type'],
+                                )
+                            }
+                            placeholder={t(
+                                'propertyWorkspace.fields.unitType',
+                            )}
+                            options={[
+                                {
+                                    value: 'shop',
+                                    label: t('propertyWorkspace.shop'),
+                                },
+                                {
+                                    value: 'apartment',
+                                    label: t('propertyWorkspace.apartment'),
+                                },
+                            ]}
+                            searchPlaceholder={t(
+                                'propertyWorkspace.searchOptions',
+                            )}
+                            emptyText={t('propertyWorkspace.noOptions')}
+                        />
+                    </Field>
                     <Field
                         label={t(
-                            isMarket
+                            isShop
                                 ? 'propertyWorkspace.fields.shopNumber'
                                 : 'propertyWorkspace.fields.apartmentNumber',
                         )}
@@ -1186,7 +1209,7 @@ function AddUnit({
                             showControls={false}
                         />
                     </Field>
-                    {isMarket ? (
+                    {isShop ? (
                         <>
                             <Field label={t('propertyWorkspace.fields.width')}>
                                 <NumericInput
@@ -1395,16 +1418,15 @@ function EditUnit({
     property,
     floor,
     unit,
-    isMarket,
 }: {
     property: Property;
     floor: PropertyFloor;
     unit: PropertyUnit;
-    isMarket: boolean;
 }) {
     const { t } = useLocalization();
     const [open, setOpen] = useState(false);
     const form = useForm({
+        unit_type: unit.unit_type,
         unit_number: unit.unit_number,
         area_sqm: String(unit.area_sqm ?? ''),
         width_m: String(unit.width_m ?? ''),
@@ -1428,9 +1450,8 @@ function EditUnit({
             },
         );
     };
-    const editLabel = isMarket
-        ? t('propertyWorkspace.editShop')
-        : t('propertyWorkspace.editApartment');
+    const isShop = form.data.unit_type === 'shop';
+    const editLabel = t('propertyWorkspace.editSpace');
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
@@ -1453,9 +1474,37 @@ function EditUnit({
                     </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
+                    <Field label={t('propertyWorkspace.fields.unitType')}>
+                        <SearchableDropdown
+                            value={form.data.unit_type}
+                            onValueChange={(value) =>
+                                form.setData(
+                                    'unit_type',
+                                    value as PropertyUnit['unit_type'],
+                                )
+                            }
+                            placeholder={t(
+                                'propertyWorkspace.fields.unitType',
+                            )}
+                            options={[
+                                {
+                                    value: 'shop',
+                                    label: t('propertyWorkspace.shop'),
+                                },
+                                {
+                                    value: 'apartment',
+                                    label: t('propertyWorkspace.apartment'),
+                                },
+                            ]}
+                            searchPlaceholder={t(
+                                'propertyWorkspace.searchOptions',
+                            )}
+                            emptyText={t('propertyWorkspace.noOptions')}
+                        />
+                    </Field>
                     <Field
                         label={t(
-                            isMarket
+                            isShop
                                 ? 'propertyWorkspace.fields.shopNumber'
                                 : 'propertyWorkspace.fields.apartmentNumber',
                         )}
@@ -1479,7 +1528,7 @@ function EditUnit({
                             showControls={false}
                         />
                     </Field>
-                    {isMarket ? (
+                    {isShop ? (
                         <>
                             <Field label={t('propertyWorkspace.fields.width')}>
                                 <NumericInput

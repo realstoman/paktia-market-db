@@ -25,10 +25,10 @@ class TenantLeaseService
             $data['property_floor_id'] = $unit?->property_floor_id;
             $data['property_unit_id'] = $unit?->id;
             $data['leased_space_type'] = match ($property->typeBehavior()) {
-                'market' => 'shop',
+                'market' => $unit?->unit_type ?? 'property',
+                'block' => $unit?->unit_type ?? 'block',
                 'commercial_unit' => 'shop',
                 'house' => 'house',
-                'block' => $unit ? 'apartment' : 'block',
                 default => $unit?->unit_type ?? 'property',
             };
 
@@ -62,10 +62,10 @@ class TenantLeaseService
             $data['property_floor_id'] = $unit?->property_floor_id;
             $data['property_unit_id'] = $unit?->id;
             $data['leased_space_type'] = match ($property->typeBehavior()) {
-                'market' => 'shop',
+                'market' => $unit?->unit_type ?? 'property',
+                'block' => $unit?->unit_type ?? 'block',
                 'commercial_unit' => 'shop',
                 'house' => 'house',
-                'block' => $unit ? 'apartment' : 'block',
                 default => $unit?->unit_type ?? 'property',
             };
 
@@ -92,12 +92,16 @@ class TenantLeaseService
         $behavior = $property->typeBehavior();
 
         if ($behavior === 'market') {
-            if (! $unit || $unit->unit_type !== 'shop') {
+            if (! $unit) {
                 throw ValidationException::withMessages([
-                    'property_unit_id' => 'A shop must be selected for a market or mall tenant.',
+                    'property_unit_id' => 'A shop or apartment must be selected for this property.',
                 ]);
             }
 
+            return;
+        }
+
+        if ($behavior === 'block') {
             return;
         }
 
@@ -113,11 +117,6 @@ class TenantLeaseService
             ]);
         }
 
-        if ($behavior === 'block' && $unit && $unit->unit_type !== 'apartment') {
-            throw ValidationException::withMessages([
-                'property_unit_id' => 'Only an apartment may be selected inside a residential block.',
-            ]);
-        }
     }
 
     private function validateAvailability(Property $property, ?PropertyUnit $unit, array $data, ?int $ignoreLeaseId = null): void
