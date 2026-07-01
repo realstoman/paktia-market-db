@@ -942,10 +942,11 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                 }}
             >
                 <DialogContent
+                    dir={isRtl ? 'rtl' : 'ltr'}
                     className={
                         isRtl
-                            ? "text-right sm:max-w-3xl [&_[data-slot='select-trigger']]:text-right [&_input]:text-right [&_label]:text-right [&_textarea]:text-right"
-                            : 'sm:max-w-3xl'
+                            ? "text-right sm:max-w-3xl [&_button[role='combobox']]:bg-white [&_[data-slot='select-trigger']]:text-right [&_input:not([type=file])]:bg-white [&_input]:text-right [&_label]:text-right [&_textarea]:bg-white [&_textarea]:text-right"
+                            : "sm:max-w-3xl [&_button[role='combobox']]:bg-white [&_input:not([type=file])]:bg-white [&_textarea]:bg-white"
                     }
                 >
                     <DialogHeader>
@@ -1127,10 +1128,11 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                 }}
             >
                 <DialogContent
+                    dir={isRtl ? 'rtl' : 'ltr'}
                     className={
                         isRtl
-                            ? "text-right sm:max-w-3xl [&_[data-slot='select-trigger']]:text-right [&_input]:text-right [&_label]:text-right [&_textarea]:text-right"
-                            : 'sm:max-w-3xl'
+                            ? "text-right sm:max-w-3xl [&_button[role='combobox']]:bg-white [&_[data-slot='select-trigger']]:text-right [&_input:not([type=file])]:bg-white [&_input]:text-right [&_label]:text-right [&_textarea]:bg-white [&_textarea]:text-right"
+                            : "sm:max-w-3xl [&_button[role='combobox']]:bg-white [&_input:not([type=file])]:bg-white [&_textarea]:bg-white"
                     }
                 >
                     <DialogHeader>
@@ -1333,10 +1335,11 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                 }}
             >
                 <DialogContent
+                    dir={isRtl ? 'rtl' : 'ltr'}
                     className={
                         isRtl
-                            ? "text-right sm:max-w-3xl [&_[data-slot='select-trigger']]:text-right [&_input]:text-right [&_label]:text-right [&_textarea]:text-right"
-                            : 'sm:max-w-3xl'
+                            ? "text-right sm:max-w-3xl [&_button[role='combobox']]:bg-white [&_[data-slot='select-trigger']]:text-right [&_input:not([type=file])]:bg-white [&_input]:text-right [&_label]:text-right [&_textarea]:bg-white [&_textarea]:text-right"
+                            : "sm:max-w-3xl [&_button[role='combobox']]:bg-white [&_input:not([type=file])]:bg-white [&_textarea]:bg-white"
                     }
                 >
                     <DialogHeader>
@@ -1514,10 +1517,11 @@ export const EmployeeClient: React.FC<EmployeeClientProps> = ({
                 }}
             >
                 <DialogContent
+                    dir={isRtl ? 'rtl' : 'ltr'}
                     className={
                         isRtl
-                            ? "text-right sm:max-w-4xl [&_[data-slot='select-trigger']]:text-right [&_input]:text-right [&_label]:text-right [&_textarea]:text-right"
-                            : 'sm:max-w-4xl'
+                            ? "text-right sm:max-w-4xl [&_button[role='combobox']]:bg-white [&_[data-slot='select-trigger']]:text-right [&_input:not([type=file])]:bg-white [&_input]:text-right [&_label]:text-right [&_textarea]:bg-white [&_textarea]:text-right"
+                            : "sm:max-w-4xl [&_button[role='combobox']]:bg-white [&_input:not([type=file])]:bg-white [&_textarea]:bg-white"
                     }
                 >
                     <DialogHeader>

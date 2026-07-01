@@ -46,6 +46,8 @@ return [
         'payroll_recorded_title' => 'د معاش تادیه ثبت شوه',
         'payroll_recorded_description' => 'د :name معاش ثبت شو.',
         'payroll_recorded_fallback' => 'د کارکوونکي معاش ثبت شو.',
+        'rent_due_title' => 'د دې میاشتې کرایه نه ده ورکړل شوې',
+        'rent_due_description' => 'د :tenant لپاره په :space کې د روانې میاشتې کرایه لا نه ده ثبت شوې.',
     ],
     'products' => [
         'added_title' => 'محصول اضافه شو',

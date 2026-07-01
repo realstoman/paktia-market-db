@@ -46,6 +46,8 @@ return [
         'payroll_recorded_title' => 'پرداخت معاش ثبت شد',
         'payroll_recorded_description' => 'پرداخت معاش برای :name ثبت شد.',
         'payroll_recorded_fallback' => 'پرداخت معاش کارمند ثبت شد.',
+        'rent_due_title' => 'کرایه این ماه پرداخت نشده است',
+        'rent_due_description' => 'برای :tenant در :space کرایه ماه جاری هنوز ثبت نشده است.',
     ],
     'products' => [
         'added_title' => 'محصول اضافه شد',

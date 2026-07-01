@@ -5,9 +5,12 @@ namespace App\Services\Notifications;
 use App\Enums\PermissionEnum;
 use App\Models\Expense;
 use App\Models\InventoryItem;
+use App\Models\Lease;
 use App\Models\NotificationRead;
 use App\Models\PayrollRunItem;
+use App\Models\RentPayment;
 use App\Models\User;
+use Carbon\CarbonImmutable;
 
 class NotificationService
 {
@@ -60,6 +63,10 @@ class NotificationService
                         'href' => '/finance/expenses',
                     ]),
             );
+        }
+
+        if ($user->can(PermissionEnum::FINANCE_VIEW->value)) {
+            $items = $items->merge($this->rentDueNotifications());
         }
 
         if ($user->can(PermissionEnum::PAYROLL_VIEW->value)) {
@@ -130,5 +137,66 @@ class NotificationService
         NotificationRead::query()->upsert($rows, ['user_id', 'notification_id'], ['read_at']);
 
         return count($rows);
+    }
+
+    private function rentDueNotifications()
+    {
+        $today = CarbonImmutable::now();
+
+        if ($today->day !== 1) {
+            return collect();
+        }
+
+        $monthStart = $today->startOfMonth();
+        $monthEnd = $today->endOfMonth();
+
+        return Lease::query()
+            ->with([
+                'tenant:id,full_name,business_name',
+                'property:id,name',
+                'unit:id,unit_number,unit_type',
+                'currency:id,code,symbol',
+            ])
+            ->where('status', 'active')
+            ->whereNotNull('rent_amount')
+            ->whereDate('start_date', '<=', $monthEnd->toDateString())
+            ->where(fn ($query) => $query
+                ->whereNull('end_date')
+                ->orWhereDate('end_date', '>=', $monthStart->toDateString()))
+            ->latest('updated_at')
+            ->limit(8)
+            ->get()
+            ->filter(function (Lease $lease) use ($monthStart, $monthEnd): bool {
+                $paid = (float) RentPayment::query()
+                    ->where('lease_id', $lease->id)
+                    ->where('status', 'received')
+                    ->whereDate('period_start', '<=', $monthEnd->toDateString())
+                    ->where(fn ($query) => $query
+                        ->whereDate('period_end', '>=', $monthStart->toDateString())
+                        ->orWhere(fn ($singlePeriod) => $singlePeriod
+                            ->whereNull('period_end')
+                            ->whereDate('period_start', '>=', $monthStart->toDateString())
+                            ->whereDate('period_start', '<=', $monthEnd->toDateString())))
+                    ->sum('amount');
+
+                return $paid < (float) $lease->rent_amount;
+            })
+            ->map(function (Lease $lease) use ($today) {
+                $tenant = $lease->tenant?->business_name ?: $lease->tenant?->full_name ?: '-';
+                $space = $lease->unit?->unit_number ?: $lease->property?->name ?: '-';
+
+                return [
+                    'id' => 'rent-due-'.$today->format('Y-m').'-'.$lease->id,
+                    'category' => 'payments',
+                    'title' => __('notifications.generated.rent_due_title'),
+                    'description' => __('notifications.generated.rent_due_description', [
+                        'tenant' => $tenant,
+                        'space' => $space,
+                    ]),
+                    'createdAt' => $today->toIso8601String(),
+                    'priority' => 'high',
+                    'href' => '/finance/rentals?property_id='.$lease->property_id,
+                ];
+            });
     }
 }

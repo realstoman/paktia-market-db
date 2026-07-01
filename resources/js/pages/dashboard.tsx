@@ -10,6 +10,7 @@ import {
     ExternalLink,
     FileSpreadsheet,
     FileText,
+    Printer,
     Layers3,
     Plus,
     ReceiptText,
@@ -54,6 +55,19 @@ interface RentCollectionRow {
     paymentMethod: string;
 }
 
+type CurrencyTotals = Record<string, number | string | undefined>;
+
+interface ShareholderPnlRow {
+    id: number;
+    shareholder: string;
+    property: string;
+    percentage: number;
+    revenue: number;
+    expenses: number;
+    net: number;
+    allocated: number;
+}
+
 interface PortfolioProject {
     id: number;
     name: string;
@@ -67,20 +81,29 @@ interface PortfolioProject {
     registeredTenants: number;
     inventoryItems: number;
     employees: number;
+    shareholders: number;
     rent: {
         collectedAfn: number;
         remainingAfn: number;
         collectedUsd: number;
         remainingUsd: number;
+        collectedByCurrency?: CurrencyTotals;
     };
     financeThisMonth: {
         collectedRent: number;
+        collectedRentByCurrency?: CurrencyTotals;
         expenses: number;
+        expensesByCurrency?: CurrencyTotals;
         shareholderTakeouts: number;
+        shareholderTakeoutsByCurrency?: CurrencyTotals;
         availableCash: number;
+        availableCashByCurrency?: CurrencyTotals;
     };
     expensesAfn: number;
+    expensesByCurrency?: CurrencyTotals;
     cashPositionAfn: number;
+    cashPositionByCurrency?: CurrencyTotals;
+    shareholderPnl?: ShareholderPnlRow[];
     recentRentCollections: RentCollectionRow[];
     recentExpenses: ExpenseRow[];
 }
@@ -121,6 +144,7 @@ function StatCard({
     accent = 'teal',
     actionHref,
     actionLabel,
+    currencyTotals,
 }: {
     label: string;
     value: string;
@@ -128,6 +152,7 @@ function StatCard({
     accent?: 'teal' | 'green' | 'coral' | 'blue';
     actionHref?: string;
     actionLabel?: string;
+    currencyTotals?: CurrencyTotals;
 }) {
     const tones = {
         teal: 'bg-[#edf1f4] text-[#002452]',
@@ -148,11 +173,27 @@ function StatCard({
                 >
                     <Icon className="size-5" />
                 </div>
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                     <p className="truncate text-xs text-slate-500">{label}</p>
-                    <p className="mt-1 text-xl font-bold text-slate-900 dark:text-white">
-                        {value}
-                    </p>
+                    {currencyTotals ? (
+                        <div className="mt-1 space-y-1">
+                            {currencyRows(currencyTotals).map((row) => (
+                                <div
+                                    key={row.code}
+                                    className="flex items-center justify-between gap-3 text-sm font-semibold text-slate-900 dark:text-white"
+                                >
+                                    <span>{row.symbol}</span>
+                                    <span dir="ltr">
+                                        {formatPrice(row.amount)}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="mt-1 text-xl font-bold text-slate-900 dark:text-white">
+                            {value}
+                        </p>
+                    )}
                 </div>
             </div>
             {actionHref && actionLabel ? (
@@ -168,6 +209,53 @@ function StatCard({
             ) : null}
         </div>
     );
+}
+
+function currencySymbol(code: string) {
+    const normalized = code.toUpperCase();
+
+    if (normalized === 'USD') {
+        return '$';
+    }
+
+    if (normalized === 'AFN') {
+        return '؋';
+    }
+
+    return normalized;
+}
+
+function currencyRows(totals: CurrencyTotals = {}) {
+    const normalized = Object.entries(totals).reduce<Record<string, number>>(
+        (carry, [code, value]) => {
+            const key = code.toUpperCase();
+            carry[key] = Number(value ?? 0);
+
+            return carry;
+        },
+        {},
+    );
+    const orderedCodes = [
+        'AFN',
+        'USD',
+        ...Object.keys(normalized).filter(
+            (code) => !['AFN', 'USD'].includes(code),
+        ),
+    ];
+
+    return orderedCodes
+        .filter((code, index) => index < 2 || Number(normalized[code] ?? 0) !== 0)
+        .map((code) => ({
+            code,
+            symbol: currencySymbol(code),
+            amount: Number(normalized[code] ?? 0),
+        }));
+}
+
+function currencyTotalsText(totals: CurrencyTotals = {}) {
+    return currencyRows(totals)
+        .map((row) => `${formatPrice(row.amount)} ${row.symbol}`)
+        .join(' / ');
 }
 
 function EmptyChart({ label }: { label: string }) {
