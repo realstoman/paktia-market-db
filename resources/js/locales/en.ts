@@ -3490,6 +3490,13 @@ const en = {
             title: 'Property images',
             help: 'Upload up to 10 gallery images. Each image must be exactly 1920×1080.',
             upload: 'Upload images',
+            image: 'Property image',
+            cover: 'Current cover',
+            setCover: 'Set as cover',
+            deleteTitle: 'Delete image?',
+            deleteDescription:
+                'This image will be removed from the property gallery.',
+            confirmDelete: 'Delete image',
             empty: 'No property images have been uploaded.',
             openLarge: 'Open large view',
         },

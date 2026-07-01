@@ -672,12 +672,16 @@ function PropertyImageGallery({
             (image) => image.path === property.image_path,
         );
 
-        if (coverIndex >= 0) {
-            setActiveIndex(coverIndex);
-        } else if (activeIndex >= images.length) {
-            setActiveIndex(Math.max(0, images.length - 1));
-        }
-    }, [activeIndex, images, property.image_path]);
+        setActiveIndex((current) => {
+            if (coverIndex >= 0) {
+                return coverIndex;
+            }
+
+            return current >= images.length
+                ? Math.max(0, images.length - 1)
+                : current;
+        });
+    }, [images, property.image_path]);
 
     const submit = (event: FormEvent) => {
         event.preventDefault();
