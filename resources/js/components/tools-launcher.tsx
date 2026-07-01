@@ -38,13 +38,6 @@ interface ToolConfig {
 
 const tools: ToolConfig[] = [
     {
-        href: '/contract-templates',
-        labelKey: 'navigation.toolContracts',
-        fallbackLabel: 'Contract Templates',
-        icon: FileSignature,
-        superAdminOnly: true,
-    },
-    {
         href: '/inventory',
         labelKey: 'navigation.toolInventory',
         fallbackLabel: 'Inventory',
@@ -54,14 +47,14 @@ const tools: ToolConfig[] = [
     {
         href: '/finance/dubai-restaurant',
         labelKey: 'navigation.toolDubaiRestaurant',
-        fallbackLabel: 'Dubai Restaurant',
+        fallbackLabel: 'Kabul Darbar Restaurant',
         icon: UtensilsCrossed,
         can: 'finance.view',
     },
     {
         href: '/finance/kabul-sarafi',
         labelKey: 'navigation.toolKabulSarafi',
-        fallbackLabel: 'Kabul Gold & Sarafi',
+        fallbackLabel: 'Abdul Hanan Paktiawal Sarafi',
         icon: Gem,
         can: 'finance.view',
     },
@@ -84,6 +77,13 @@ const tools: ToolConfig[] = [
         labelKey: 'navigation.toolCountries',
         fallbackLabel: 'Countries',
         icon: Globe2,
+        superAdminOnly: true,
+    },
+    {
+        href: '/contract-templates',
+        labelKey: 'navigation.toolContracts',
+        fallbackLabel: 'Contract Templates',
+        icon: FileSignature,
         superAdminOnly: true,
     },
     {

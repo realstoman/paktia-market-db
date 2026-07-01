@@ -12,7 +12,7 @@ class BusinessFinanceController extends Controller
     private const BUSINESSES = [
         'dubai-restaurant' => [
             'key' => 'dubai_restaurant',
-            'title' => 'Dubai Restaurant',
+            'title' => 'Kabul Darbar Restaurant',
             'titleKey' => 'businessFinance.businesses.dubaiRestaurant.title',
             'descriptionKey' => 'businessFinance.businesses.dubaiRestaurant.description',
             'locationKey' => 'businessFinance.businesses.dubaiRestaurant.location',
@@ -21,7 +21,7 @@ class BusinessFinanceController extends Controller
         ],
         'kabul-sarafi' => [
             'key' => 'kabul_sarafi',
-            'title' => 'Kabul Gold & Sarafi',
+            'title' => 'Abdul Hanan Paktiawal Sarafi',
             'titleKey' => 'businessFinance.businesses.kabulSarafi.title',
             'descriptionKey' => 'businessFinance.businesses.kabulSarafi.description',
             'locationKey' => 'businessFinance.businesses.kabulSarafi.location',

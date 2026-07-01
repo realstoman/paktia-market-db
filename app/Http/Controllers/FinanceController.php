@@ -454,8 +454,8 @@ class FinanceController extends Controller
                         ['label' => 'Outstanding', 'value' => max(0, $rentalSummary['expected'] - $rentReceived), 'format' => 'currency'],
                     ]],
                     ['name' => 'Inventory Valuation', 'description' => 'Stock valuation and inventory cost movements.', 'status' => 'Ready'],
-                    ['name' => 'Dubai Restaurant', 'description' => 'Daily restaurant valuation, sales, income, and expenses.', 'status' => 'Ready'],
-                    ['name' => 'Kabul Gold & Sarafi', 'description' => 'Daily gold and Sarafi valuation, sales, income, and expenses.', 'status' => 'Ready'],
+                    ['name' => 'Kabul Darbar Restaurant', 'description' => 'Daily restaurant valuation, sales, income, and expenses.', 'status' => 'Ready'],
+                    ['name' => 'Abdul Hanan Paktiawal Sarafi', 'description' => 'Daily Sarafi valuation, sales, income, and expenses.', 'status' => 'Ready'],
                 ],
                 'notes' => [
                     'grossProfit' => 'Received rent before operating expenses.',

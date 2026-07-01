@@ -104,13 +104,6 @@ const primaryNavConfig: HeaderNavConfig[] = [
 
 const toolNavConfig: HeaderNavConfig[] = [
     {
-        titleKey: 'navigation.toolContracts',
-        fallbackTitle: 'Contract Templates',
-        href: '/contract-templates',
-        icon: FileSignature,
-        superAdminOnly: true,
-    },
-    {
         titleKey: 'navigation.toolInventory',
         fallbackTitle: 'Inventory',
         href: '/inventory',
@@ -119,14 +112,14 @@ const toolNavConfig: HeaderNavConfig[] = [
     },
     {
         titleKey: 'navigation.toolDubaiRestaurant',
-        fallbackTitle: 'Dubai Restaurant',
+        fallbackTitle: 'Kabul Darbar Restaurant',
         href: '/finance/dubai-restaurant',
         icon: UtensilsCrossed,
         can: 'finance.view',
     },
     {
         titleKey: 'navigation.toolKabulSarafi',
-        fallbackTitle: 'Kabul Gold & Sarafi',
+        fallbackTitle: 'Abdul Hanan Paktiawal Sarafi',
         href: '/finance/kabul-sarafi',
         icon: Gem,
         can: 'finance.view',
@@ -157,6 +150,13 @@ const toolNavConfig: HeaderNavConfig[] = [
         fallbackTitle: 'Countries',
         href: '/countries',
         icon: Globe2,
+        superAdminOnly: true,
+    },
+    {
+        titleKey: 'navigation.toolContracts',
+        fallbackTitle: 'Contract Templates',
+        href: '/contract-templates',
+        icon: FileSignature,
         superAdminOnly: true,
     },
     {

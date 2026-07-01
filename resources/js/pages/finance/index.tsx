@@ -332,11 +332,19 @@ function localizeModuleName(
         ),
         'Dubai Restaurant': t(
             'businessFinance.businesses.dubaiRestaurant.title',
-            'Dubai Restaurant',
+            'Kabul Darbar Restaurant',
+        ),
+        'Kabul Darbar Restaurant': t(
+            'businessFinance.businesses.dubaiRestaurant.title',
+            'Kabul Darbar Restaurant',
         ),
         'Kabul Gold & Sarafi': t(
             'businessFinance.businesses.kabulSarafi.title',
-            'Kabul Gold & Sarafi',
+            'Abdul Hanan Paktiawal Sarafi',
+        ),
+        'Abdul Hanan Paktiawal Sarafi': t(
+            'businessFinance.businesses.kabulSarafi.title',
+            'Abdul Hanan Paktiawal Sarafi',
         ),
     };
 
@@ -423,7 +431,11 @@ function localizeModuleDescription(
         ),
         'Daily gold and Sarafi valuation, sales, income, and expenses.': t(
             'businessFinance.businesses.kabulSarafi.moduleDescription',
-            'Daily gold and Sarafi valuation, sales, income, and expenses.',
+            'Daily Sarafi valuation, sales, income, and expenses.',
+        ),
+        'Daily Sarafi valuation, sales, income, and expenses.': t(
+            'businessFinance.businesses.kabulSarafi.moduleDescription',
+            'Daily Sarafi valuation, sales, income, and expenses.',
         ),
     };
 
@@ -582,11 +594,14 @@ function moduleHref(name: string): string | null {
         return '/finance/rentals';
     }
 
-    if (name === 'Dubai Restaurant') {
+    if (name === 'Dubai Restaurant' || name === 'Kabul Darbar Restaurant') {
         return '/finance/dubai-restaurant';
     }
 
-    if (name === 'Kabul Gold & Sarafi') {
+    if (
+        name === 'Kabul Gold & Sarafi' ||
+        name === 'Abdul Hanan Paktiawal Sarafi'
+    ) {
         return '/finance/kabul-sarafi';
     }
 
