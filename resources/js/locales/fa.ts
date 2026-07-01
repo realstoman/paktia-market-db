@@ -1699,6 +1699,11 @@ const fa = {
             actions: 'عملیات',
         },
         status: { received: 'دریافت‌شده', void: 'باطل‌شده' },
+        receiptPrint: {
+            title: 'رسید پرداخت کرایه',
+            print: 'چاپ رسید',
+            paid: 'پرداخت شد',
+        },
     },
     financeDashboard: {
         pageTitle: 'داشبورد مالی',

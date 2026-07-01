@@ -134,14 +134,17 @@ export default function TenantCard({ tenant, selectedLeaseId = null }: Props) {
                             <div className="space-y-[1mm] text-[1.75mm] leading-tight text-slate-700">
                                 <p className="flex min-w-0 items-center gap-[0.8mm]">
                                     <Phone className="h-[2.2mm] w-[2.2mm] shrink-0 text-[#002452]" />
-                                    <span className="truncate" dir="ltr">
+                                    <span className="truncate pr-1" dir="ltr">
                                         {tenant.phone}
                                     </span>
                                 </p>
                                 {tenant.whatsapp && (
                                     <p className="flex min-w-0 items-center gap-[0.8mm]">
                                         <MessageCircle className="h-[2.2mm] w-[2.2mm] shrink-0 text-[#002452]" />
-                                        <span className="truncate" dir="ltr">
+                                        <span
+                                            className="truncate pr-1"
+                                            dir="ltr"
+                                        >
                                             {tenant.whatsapp}
                                         </span>
                                     </p>
@@ -183,7 +186,7 @@ export default function TenantCard({ tenant, selectedLeaseId = null }: Props) {
                                     value={tenant.card_code}
                                     className="h-[15mm] w-[15mm] shrink-0"
                                 />
-                                <div className="min-w-0 text-left">
+                                <div className="min-w-0 text-right">
                                     <p className="text-[1.55mm] font-semibold text-slate-500">
                                         {t('tenants.card.code')}
                                     </p>
@@ -217,17 +220,17 @@ export default function TenantCard({ tenant, selectedLeaseId = null }: Props) {
                         )}
                     </div>
                     <div className="relative mx-auto max-w-[62mm]">
-                        <p className="text-[2.75mm] leading-[5mm] font-semibold text-white">
+                        <p className="mt-4 text-[2.75mm] leading-[5mm] font-semibold text-white">
                             {cardMessage}
                         </p>
                         <div className="mt-[4mm] inline-flex items-center gap-[1.5mm] rounded-full border border-white/20 bg-white/10 px-[4mm] py-[1.6mm] text-white backdrop-blur">
-                            <Phone className="h-[3mm] w-[3mm]" />
                             <span
                                 className="font-mono text-[3mm] font-bold"
                                 dir="ltr"
                             >
                                 {contactPhone}
                             </span>
+                            <Phone className="h-[3mm] w-[3mm]" />
                         </div>
                     </div>
                 </article>

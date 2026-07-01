@@ -1697,6 +1697,11 @@ const en = {
             actions: 'Actions',
         },
         status: { received: 'Received', void: 'Void' },
+        receiptPrint: {
+            title: 'Rent payment receipt',
+            print: 'Print receipt',
+            paid: 'Paid',
+        },
     },
     financeDashboard: {
         pageTitle: 'Finance Dashboard',

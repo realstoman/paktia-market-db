@@ -25,6 +25,10 @@ import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { useLocalization } from '@/lib/localization';
 import { Lease, Property, SharedData } from '@/types';
+import {
+    formatAfghanDate,
+    formatAfghanPeriodLabel,
+} from '@/utils/afghan-calendar';
 import { formatCurrencySymbol, formatNumber } from '@/utils/format';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import {
@@ -83,6 +87,15 @@ interface Props {
 
 const today = () => new Date().toLocaleDateString('en-CA');
 
+function escapeHtml(value: string | number | null | undefined): string {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 export default function RentalsFinancePage({
     filters,
     summary,
@@ -91,7 +104,7 @@ export default function RentalsFinancePage({
     payments,
 }: Props) {
     const { t, isRtl, locale } = useLocalization();
-    const { auth } = usePage<SharedData>().props;
+    const { auth, branding } = usePage<SharedData>().props;
     const canManage =
         auth.is_super_admin || auth.permissions.includes('finance.manage');
     const [createOpen, setCreateOpen] = useState(false);
@@ -105,6 +118,166 @@ export default function RentalsFinancePage({
         property.name_translations?.[
             locale as keyof NonNullable<Property['name_translations']>
         ] || property.name;
+    const localizedDate = (value?: string | null) =>
+        locale === 'en' ? value || '—' : formatAfghanDate(value);
+    const localizedPeriod = (
+        start?: string | null,
+        end?: string | null,
+    ) =>
+        locale === 'en'
+            ? `${start || '—'}${end ? ` — ${end}` : ''}`
+            : formatAfghanPeriodLabel(start, end);
+    const printReceipt = (payment: RentPayment) => {
+        const printWindow = window.open('', '_blank');
+
+        if (!printWindow) {
+            return;
+        }
+
+        const propertyName = payment.property
+            ? propertyLabel(payment.property)
+            : branding.name;
+        const tenantName =
+            payment.tenant?.business_name ||
+            payment.tenant?.full_name ||
+            '—';
+        const title = t('rentals.receiptPrint.title', 'Rent payment receipt');
+
+        printWindow.document.write(`
+            <!doctype html>
+            <html dir="${isRtl ? 'rtl' : 'ltr'}">
+                <head>
+                    <meta charset="utf-8" />
+                    <title>${escapeHtml(title)}</title>
+                    <style>
+                        @font-face { font-family: BahijNazanin; src: url('/fonts/bahij-nazanin.ttf') format('truetype'); font-weight: 400; }
+                        @font-face { font-family: BahijNazanin; src: url('/fonts/bahij-nazanin-bold.ttf') format('truetype'); font-weight: 700; }
+                        @font-face { font-family: Manrope; src: url('/fonts/Manrope-VariableFont_wght.ttf') format('truetype'); }
+                        * { box-sizing: border-box; }
+                        body {
+                            margin: 0;
+                            min-height: 100vh;
+                            display: grid;
+                            place-items: center;
+                            background: #f8f9fd;
+                            color: #002452;
+                            font-family: ${isRtl ? 'BahijNazanin' : 'Manrope'}, Arial, sans-serif;
+                        }
+                        .receipt {
+                            width: min(560px, calc(100vw - 32px));
+                            border: 1px solid #dfe7e9;
+                            border-radius: 28px;
+                            background: white;
+                            padding: 34px;
+                            box-shadow: 0 18px 45px rgba(0, 36, 82, 0.08);
+                        }
+                        .top {
+                            display: flex;
+                            align-items: center;
+                            justify-content: space-between;
+                            gap: 20px;
+                            border-bottom: 1px solid #edf1f4;
+                            padding-bottom: 22px;
+                        }
+                        .brand { display: flex; align-items: center; gap: 14px; min-width: 0; }
+                        .logo {
+                            width: 62px;
+                            height: 62px;
+                            border-radius: 18px;
+                            object-fit: contain;
+                            background: #edf1f4;
+                            padding: 8px;
+                        }
+                        h1 { margin: 0; font-size: 24px; line-height: 1.25; }
+                        .muted { color: #64748b; font-size: 14px; }
+                        .paid {
+                            display: inline-flex;
+                            align-items: center;
+                            gap: 8px;
+                            border-radius: 999px;
+                            background: #dcfce7;
+                            color: #166534;
+                            padding: 9px 14px;
+                            font-weight: 800;
+                            white-space: nowrap;
+                        }
+                        .paid-mark {
+                            display: inline-grid;
+                            place-items: center;
+                            width: 20px;
+                            height: 20px;
+                            border-radius: 999px;
+                            background: #16a34a;
+                            color: white;
+                            font-size: 13px;
+                        }
+                        .grid {
+                            display: grid;
+                            gap: 12px;
+                            margin-top: 24px;
+                        }
+                        .row {
+                            display: grid;
+                            grid-template-columns: 150px 1fr;
+                            gap: 14px;
+                            align-items: center;
+                            border: 1px solid #edf1f4;
+                            border-radius: 16px;
+                            padding: 12px 14px;
+                        }
+                        [dir="rtl"] .row { grid-template-columns: 1fr 150px; }
+                        .label { color: #64748b; font-size: 13px; }
+                        .value { font-weight: 800; color: #002452; }
+                        .actions { margin-top: 24px; display: flex; justify-content: center; }
+                        button {
+                            border: 0;
+                            border-radius: 999px;
+                            background: #002452;
+                            color: white;
+                            padding: 11px 22px;
+                            font: inherit;
+                            font-weight: 800;
+                            cursor: pointer;
+                        }
+                        @media print {
+                            body { background: white; }
+                            .receipt { box-shadow: none; width: 100%; border-radius: 0; border: 0; }
+                            .actions { display: none; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <main class="receipt">
+                        <section class="top">
+                            <div class="brand">
+                                <img class="logo" src="${escapeHtml(branding.logoUrl)}" alt="${escapeHtml(branding.name)}" />
+                                <div>
+                                    <h1>${escapeHtml(propertyName)}</h1>
+                                    <div class="muted">${escapeHtml(branding.name)}</div>
+                                </div>
+                            </div>
+                            <div class="paid">
+                                <span class="paid-mark">✓</span>
+                                ${escapeHtml(t('rentals.receiptPrint.paid', 'Paid'))}
+                            </div>
+                        </section>
+                        <section class="grid">
+                            <div class="row"><div class="label">${escapeHtml(t('rentals.table.receipt'))}</div><div class="value">${escapeHtml(payment.receipt_number)}</div></div>
+                            <div class="row"><div class="label">${escapeHtml(t('rentals.table.tenant'))}</div><div class="value">${escapeHtml(tenantName)}</div></div>
+                            <div class="row"><div class="label">${escapeHtml(t('rentals.table.property'))}</div><div class="value">${escapeHtml(propertyName)}</div></div>
+                            <div class="row"><div class="label">${escapeHtml(t('rentals.table.period'))}</div><div class="value">${escapeHtml(localizedPeriod(payment.period_start, payment.period_end))}</div></div>
+                            <div class="row"><div class="label">${escapeHtml(t('rentals.table.date'))}</div><div class="value">${escapeHtml(localizedDate(payment.payment_date))}</div></div>
+                        </section>
+                        <div class="actions">
+                            <button onclick="window.print()">${escapeHtml(t('rentals.receiptPrint.print', 'Print receipt'))}</button>
+                        </div>
+                    </main>
+                </body>
+            </html>
+        `);
+        printWindow.document.close();
+        printWindow.focus();
+    };
     const applyFilters = () =>
         router.get(
             '/finance/rentals',
@@ -220,6 +393,11 @@ export default function RentalsFinancePage({
                                 }
                                 className="bg-white"
                             />
+                            {locale !== 'en' && (
+                                <p className="text-xs text-muted-foreground">
+                                    {formatAfghanDate(startDate)}
+                                </p>
+                            )}
                         </div>
                         <div className="space-y-1.5">
                             <Label>{t('rentals.fields.endDate')}</Label>
@@ -231,6 +409,11 @@ export default function RentalsFinancePage({
                                 }
                                 className="bg-white"
                             />
+                            {locale !== 'en' && (
+                                <p className="text-xs text-muted-foreground">
+                                    {formatAfghanDate(endDate)}
+                                </p>
+                            )}
                         </div>
                         <Button onClick={applyFilters}>
                             {t('rentals.apply')}
@@ -285,7 +468,9 @@ export default function RentalsFinancePage({
                                                     {payment.receipt_number}
                                                 </TableCell>
                                                 <TableCell>
-                                                    {payment.payment_date}
+                                                    {localizedDate(
+                                                        payment.payment_date,
+                                                    )}
                                                 </TableCell>
                                                 <TableCell>
                                                     <p className="font-medium">
@@ -309,8 +494,10 @@ export default function RentalsFinancePage({
                                                         : '—'}
                                                 </TableCell>
                                                 <TableCell className="whitespace-nowrap">
-                                                    {payment.period_start} —{' '}
-                                                    {payment.period_end || '—'}
+                                                    {localizedPeriod(
+                                                        payment.period_start,
+                                                        payment.period_end,
+                                                    )}
                                                 </TableCell>
                                                 <TableCell>
                                                     {t(
@@ -341,23 +528,44 @@ export default function RentalsFinancePage({
                                                     </Badge>
                                                 </TableCell>
                                                 <TableCell>
-                                                    {canManage &&
-                                                    payment.status ===
+                                                    {payment.status ===
                                                         'received' ? (
-                                                        <Button
-                                                            type="button"
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            className="text-destructive hover:text-destructive"
-                                                            onClick={() =>
-                                                                setVoiding(
-                                                                    payment,
-                                                                )
-                                                            }
-                                                        >
-                                                            <RotateCcw className="me-2 size-4" />
-                                                            {t('rentals.void')}
-                                                        </Button>
+                                                        <div className="flex items-center gap-2">
+                                                            <Button
+                                                                type="button"
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() =>
+                                                                    printReceipt(
+                                                                        payment,
+                                                                    )
+                                                                }
+                                                            >
+                                                                <ReceiptText className="me-2 size-4" />
+                                                                {t(
+                                                                    'rentals.receiptPrint.print',
+                                                                    'Print receipt',
+                                                                )}
+                                                            </Button>
+                                                            {canManage && (
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    className="text-destructive hover:text-destructive"
+                                                                    onClick={() =>
+                                                                        setVoiding(
+                                                                            payment,
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    <RotateCcw className="me-2 size-4" />
+                                                                    {t(
+                                                                        'rentals.void',
+                                                                    )}
+                                                                </Button>
+                                                            )}
+                                                        </div>
                                                     ) : (
                                                         '—'
                                                     )}
@@ -649,6 +857,8 @@ function FormDate({
     set: (value: string) => void;
     error?: string;
 }) {
+    const { locale } = useLocalization();
+
     return (
         <div className="space-y-1.5">
             <Label>{label}</Label>
@@ -658,6 +868,11 @@ function FormDate({
                 onChange={(event) => set(event.target.value)}
                 className="bg-white"
             />
+            {locale !== 'en' && value ? (
+                <p className="text-xs text-muted-foreground">
+                    {formatAfghanDate(value)}
+                </p>
+            ) : null}
             <InputError message={error} />
         </div>
     );

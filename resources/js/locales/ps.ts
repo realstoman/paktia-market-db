@@ -1688,6 +1688,11 @@ const ps = {
             actions: 'عملیات',
         },
         status: { received: 'ترلاسه شوې', void: 'باطله شوې' },
+        receiptPrint: {
+            title: 'د کرایې د تادیې رسید',
+            print: 'رسید چاپ کړئ',
+            paid: 'تادیه شوې',
+        },
     },
     financeDashboard: {
         pageTitle: 'مالي ډشبورډ',
